@@ -166,6 +166,99 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /gazette:
+    get:
+      tags:
+        - gazette
+      summary: 取得依時間新至舊的公報
+      operationId: 93235f6788c0a5acd733d84c5e0614eb
+      responses:
+        '200':
+          description: 公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gazette'
+  '/gazette/{comYear}':
+    get:
+      tags:
+        - gazette
+      summary: 取得特定年度的公報
+      operationId: 2aa6343321b8d646314c8a832c13297e
+      parameters:
+        -
+          name: comYear
+          in: path
+          description: 年度
+          required: true
+          schema:
+            type: integer
+          example: 109
+      responses:
+        '200':
+          description: 公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gazette'
+  '/gazette/{comYear}/{comVolume}':
+    get:
+      tags:
+        - gazette
+      summary: 取得特定年度卷號的公報
+      operationId: 236933c2a8aabe3644db921c33315e34
+      parameters:
+        -
+          name: comYear
+          in: path
+          description: 年度
+          required: true
+          schema:
+            type: integer
+          example: 109
+        -
+          name: comVolume
+          in: path
+          description: 卷號
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: 公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gazette'
+  '/gazette/{gazette_id}':
+    get:
+      tags:
+        - gazette
+      summary: 取得特定公報資料
+      operationId: 8854a0900e158365a799e242a98b70fc
+      parameters:
+        -
+          name: gazette_id
+          in: path
+          description: '公報 ID'
+          required: true
+          schema:
+            type: string
+          example: LCIDC01_1126203
+      responses:
+        '200':
+          description: 公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gazette'
+        '404':
+          description: 找不到公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Error:
@@ -249,6 +342,31 @@ components:
           description: '委員會類別(1:常設委員會,2:特種委員會,3:廢止委員會)'
           type: string
       type: object
+    Gazette:
+      required:
+        - comYear
+        - comVolume
+        - comBookId
+        - comDate
+        - comTitle
+        - comUrl
+      properties:
+        comYear:
+          description: 年度
+          type: integer
+        comVolume:
+          description: 卷號
+          type: integer
+        comBookId:
+          description: 冊號
+          type: integer
+        gazette_id:
+          description: '公報 ID'
+          type: string
+        agenda_api:
+          description: '公報目錄 API'
+          type: string
+      type: object
 tags:
   -
     name: legislator
@@ -256,3 +374,6 @@ tags:
   -
     name: committee
     description: 委員會
+  -
+    name: gazette
+    description: 公報
