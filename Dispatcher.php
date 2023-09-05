@@ -5,6 +5,7 @@
  *   title="立法院 API", version="1.0.0"
  * )
  * @OA\Tag(name="legislator", description="立法委員")
+ * @OA\Tag(name="committee", description="委員會")
  * @OA\Schema(schema="Error", type="object", required={"error"}, @OA\Property(property="error", type="string"))
  *  @OA\Schema(
  *    schema="Legislator",
@@ -101,6 +102,60 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *   path="/committee", summary="委員會資料", tags={"committee"},
+     *   @OA\Response(response="200", description="委員會資料", @OA\JsonContent(ref="#/components/schemas/Committee")),
+     *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *   )
+     *   @OA\Get(
+     *   path="/committee/{id}", summary="取得特定委員會資料", tags={"committee"},
+     *   @OA\Parameter(name="id", in="path", description="委員會 ID", required=true, @OA\Schema(type="integer"), example=15),
+     *   @OA\Response(response="200", description="委員會資料", @OA\JsonContent(ref="#/components/schemas/Committee")),
+     *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *   )
+     *   @OA\Schema(
+     *   schema="Committee", type="object", required={"comtCd", "comtName", "comtDesp", "comtType"},
+     *   @OA\Property(property="comtCd", type="string", description="委員會代號"),
+     *   @OA\Property(property="comtName", type="string", description="委員會名稱"),
+     *   @OA\Property(property="comtDesp", type="string", description="委員會/職掌"),
+     *   @OA\Property(property="comtType", type="string", description="委員會類別(1:常設委員會,2:特種委員會,3:廢止委員會)"),
+     *   )
+     */
+    public static function committee($params)
+    {
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+
+        if (count($params) > 0) {
+            $obj = Elastic::dbQuery("/{prefix}committee/_doc/" . intval($params[0]));
+            if (isset($obj->found) && $obj->found) {
+                self::json_output($obj->_source);
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+            }
+            return;
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}committee/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->committees = [];
+        foreach ($obj->hits->hits as $hit) {
+            $records->committees[] = $hit->_source;
+        }
+        self::json_output($records);
+    }
+
     public static function json_output($obj)
     {
         header('Access-Control-Allow-Origin: *');
@@ -129,6 +184,8 @@ class Dispatcher
 
         if ('legislator' == $method) {
             self::legislator($terms);
+        } else if ('committee' == $method) {
+            self::committee($terms);
         }
     }
 }
