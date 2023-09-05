@@ -56,22 +56,21 @@ class Dispatcher
      */
     public static function legislator($params)
     {
-        $page = @intval($_GET['page']) ?: 1;
-        $limit = @intval($_GET['limit']) ?: 100;
-
         $cmd = [
             'query' => [
                 'bool' => [
                     'must' => [],
                 ],
             ],
-            'size' => $limit,
-            'from' => ($page - 1) * $limit,
         ];
 
         $records = new StdClass;
         $records->total = 0;
-        $records->page = 0;
+        $records->total_page = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
 
         if (count($params) > 0) {
             $term = intval($params[0]);
@@ -95,7 +94,7 @@ class Dispatcher
 
         $obj = Elastic::dbQuery("/{prefix}legislator/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
-        $records->page = $page;
+        $records->total_page = ceil($records->total / $records->limit);
         $records->legislators = [];
         foreach ($obj->hits->hits as $hit) {
             $records->legislators[] = $hit->_source;
@@ -160,17 +159,23 @@ class Dispatcher
     /**
      * @OA\Get(
      *   path="/gazette", summary="取得依時間新至舊的公報", tags={"gazette"},
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
      *   )
      *   @OA\Get(
      *   path="/gazette/{comYear}", summary="取得特定年度的公報", tags={"gazette"},
      *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
      *   )
      *   @OA\Get(
      *   path="/gazette/{comYear}/{comVolume}", summary="取得特定年度卷號的公報", tags={"gazette"},
      *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
      *   @OA\Parameter(name="comVolume", in="path", description="卷號", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
      *   )
      *   @OA\Get(
@@ -219,6 +224,11 @@ class Dispatcher
 
         $records = new StdClass;
         $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+
 
         if (count($params) > 0) {
             if (strpos($params[0], 'LCIDC') === 0) {
@@ -249,6 +259,7 @@ class Dispatcher
 
         $obj = Elastic::dbQuery("/{prefix}gazette/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total / $records->limit);
         $records->gazettes = [];
         foreach ($obj->hits->hits as $hit) {
             $records->gazettes[] = $buildData($hit->_source);
@@ -256,6 +267,122 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *  path="/gazette_agenda", summary="取得依時間新至舊的公報目錄", tags={"gazette"},
+     *  @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *  @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *  @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
+     *  )
+     *  @OA\Get(
+     *   path="/gazette_agenda/{gazette_id}", summary="取得公報下所有目錄", tags={"gazette"},
+     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
+     *  )
+     *  @OA\Get(
+     *   path="/gazette_agenda/{agenda_id}", summary="取得特定公報目錄資料", tags={"gazette"},
+     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203_0001"),
+     *   @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
+     *   @OA\Response(response="404", description="找不到公報目錄資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *   )
+     *  @OA\Schema( 
+     *  schema="GazetteAgenda", type="object", required={"comYear", "comVolume", "comBookId", "comDate", "comTitle", "comUrl"},
+     *  @OA\Property(property="comYear", type="integer", description="卷"),
+     *  @OA\Property(property="comVolume", type="integer", description="期"),
+     *  @OA\Property(property="comBookId", type="integer", description="冊"),
+     *  @OA\Property(property="term", type="integer", description="屆"),
+     *  @OA\Property(property="sessionPeriod", type="integer", description="會期"),
+     *  @OA\Property(property="sessionTimes", type="integer", description="會次"),
+     *  @OA\Property(property="meetingTimes", type="integer", description="臨時會會次"),
+     *  @OA\Property(property="agendaNo", type="integer", description="目錄編號"),
+     *  @OA\Property(property="agendaType", type="integer", description="類別代碼(1:院會、2:國是論壇、3:委員會、4:質詢事項、5:議事錄、8:黨團協商紀錄、9:發言索引、10:報告事項、11:討論事項、12:臨時提案)"),
+     *  @OA\Property(property="meetingDate", type="array", description="會議日期", @OA\Items(type="string")),
+     *  @OA\Property(property="subject", type="string", description="案由"),
+     *  @OA\Property(property="pageStart", type="integer", description="起頁"),
+     *  @OA\Property(property="pageEnd", type="integer", description="迄頁"),
+     *  @OA\Property(property="selectTerm", type="string", description="選定屆別"),
+     *  @OA\Property(property="agenda_id", type="string", description="公報目錄 ID"),
+     *  @OA\Property(property="gazette_id", type="string", description="公報 ID")
+     *  )
+     */
+    public static function gazette_agenda($params)
+    {
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => [
+                'comYear' => 'desc',
+                'comVolume' => 'desc',
+                'comBookId' => 'desc',
+            ],
+            'size' => 100,
+        ];
+
+        $buildData = function($source) {
+            return $source;
+        };
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->total_page = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+
+        if (count($params) > 0) {
+            if (preg_match('/^LCIDC01_(\d+)$/', $params[0], $matches)) {
+                $records->gazette_id = $params[0];
+                $records->comYear = intval(substr($matches[1], 0, 3));
+                $matches[1] = substr($matches[1], 3);
+                $records->comBookId = intval(substr($matches[1], -2));
+                $records->comVolume = intval(substr($matches[1], 0, -2));
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'comYear' => $records->comYear,
+                    ],
+                ];
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'comVolume' => $records->comVolume,
+                    ],
+                ];
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'comBookId' => $records->comBookId,
+                    ],
+                ];
+            } elseif (preg_match('/^LCIDC01_\d+_\d+$/', $params[0], $matches)) {
+                $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_doc/" . urlencode($params[0]));
+                if (isset($obj->found) && $obj->found) {
+                    self::json_output($buildData($obj->_source));
+                } else {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                return;
+            }
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'comYear' => $records->comYear,
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total / $records->limit);
+        $records->gazettes = [];
+        foreach ($obj->hits->hits as $hit) {
+            $records->gazettes[] = $buildData($hit->_source);
+        }
+        self::json_output($records);
+    }
 
     public static function json_output($obj)
     {
@@ -283,6 +410,7 @@ class Dispatcher
             return;
         }
 
+        $uri = explode('?', $uri)[0];
         $terms = explode('/', trim($uri, '/'));
         $method = array_shift($terms);
         $terms = array_map('urldecode', $terms);
@@ -293,6 +421,11 @@ class Dispatcher
             self::committee($terms);
         } else if ('gazette' == $method) {
             self::gazette($terms);
+        } else if ('gazette_agenda' == $method) {
+            self::gazette_agenda($terms);
+        } else {
+            header('HTTP/1.0 404 Not Found');
+            echo '404 Not Found';
         }
     }
 }
