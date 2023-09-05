@@ -119,6 +119,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /committee:
+    get:
+      tags:
+        - committee
+      summary: 委員會資料
+      operationId: 8df59eb6ba4db5f74bd2f0cc73ac96aa
+      responses:
+        '200':
+          description: 委員會資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Committee'
+        '404':
+          description: 找不到委員會資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/committee/{id}':
+    get:
+      tags:
+        - committee
+      summary: 取得特定委員會資料
+      operationId: 5607bfde8d6d31055bf141b3e746d6f8
+      parameters:
+        -
+          name: id
+          in: path
+          description: '委員會 ID'
+          required: true
+          schema:
+            type: integer
+          example: 15
+      responses:
+        '200':
+          description: 委員會資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Committee'
+        '404':
+          description: 找不到委員會資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Error:
@@ -182,7 +229,30 @@ components:
           description: 離職原因
           type: string
       type: object
+    Committee:
+      required:
+        - comtCd
+        - comtName
+        - comtDesp
+        - comtType
+      properties:
+        comtCd:
+          description: 委員會代號
+          type: string
+        comtName:
+          description: 委員會名稱
+          type: string
+        comtDesp:
+          description: 委員會/職掌
+          type: string
+        comtType:
+          description: '委員會類別(1:常設委員會,2:特種委員會,3:廢止委員會)'
+          type: string
+      type: object
 tags:
   -
     name: legislator
     description: 立法委員
+  -
+    name: committee
+    description: 委員會
