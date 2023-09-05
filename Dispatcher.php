@@ -109,8 +109,8 @@ class Dispatcher
      *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
      *   @OA\Get(
-     *   path="/committee/{id}", summary="取得特定委員會資料", tags={"committee"},
-     *   @OA\Parameter(name="id", in="path", description="委員會 ID", required=true, @OA\Schema(type="integer"), example=15),
+     *   path="/committee/{comtCd}", summary="取得特定委員會資料", tags={"committee"},
+     *   @OA\Parameter(name="comtCd", in="path", description="委員會 ID", required=true, @OA\Schema(type="integer"), example=15),
      *   @OA\Response(response="200", description="委員會資料", @OA\JsonContent(ref="#/components/schemas/Committee")),
      *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
