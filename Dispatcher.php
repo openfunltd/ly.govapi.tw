@@ -6,6 +6,7 @@
  * )
  * @OA\Tag(name="legislator", description="立法委員")
  * @OA\Tag(name="committee", description="委員會")
+ * @OA\Tag(name="gazette", description="公報")
  * @OA\Schema(schema="Error", type="object", required={"error"}, @OA\Property(property="error", type="string"))
  *  @OA\Schema(
  *    schema="Legislator",
@@ -156,6 +157,106 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *   path="/gazette", summary="取得依時間新至舊的公報", tags={"gazette"},
+     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
+     *   )
+     *   @OA\Get(
+     *   path="/gazette/{comYear}", summary="取得特定年度的公報", tags={"gazette"},
+     *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
+     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
+     *   )
+     *   @OA\Get(
+     *   path="/gazette/{comYear}/{comVolume}", summary="取得特定年度卷號的公報", tags={"gazette"},
+     *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
+     *   @OA\Parameter(name="comVolume", in="path", description="卷號", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
+     *   )
+     *   @OA\Get(
+     *   path="/gazette/{gazette_id}", summary="取得特定公報資料", tags={"gazette"},
+     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203"),
+     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
+     *   @OA\Response(response="404", description="找不到公報資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *   )
+     *   @OA\Schema(
+     *   schema="Gazette", type="object", required={"comYear", "comVolume", "comBookId", "comDate", "comTitle", "comUrl"},
+     *   @OA\Property(property="comYear", type="integer", description="年度"),
+     *   @OA\Property(property="comVolume", type="integer", description="卷號"),
+     *   @OA\Property(property="comBookId", type="integer", description="冊號"),
+     *   @OA\Property(property="gazette_id", type="string", description="公報 ID"),
+     *   @OA\Property(property="agenda_api", type="string", description="公報目錄 API"),
+     *   )
+     */
+    public static function gazette($params)
+    {
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => [
+                'comYear' => 'desc',
+                'comVolume' => 'desc',
+                'comBookId' => 'desc',
+            ],
+            'size' => 100,
+        ];
+
+        $buildData = function($source) {
+            $source->gazette_id = sprintf("LCIDC01_%03d%02d%02d",
+                $source->comYear,
+                $source->comVolume,
+                $source->comBookId
+            );
+            $source->agenda_api = sprintf("https://%s/gazette_agenda/%s",
+                $_SERVER['HTTP_HOST'],
+                $source->gazette_id
+            );
+            return $source;
+        };
+
+        $records = new StdClass;
+        $records->total = 0;
+
+        if (count($params) > 0) {
+            if (strpos($params[0], 'LCIDC') === 0) {
+                $obj = Elastic::dbQuery("/{prefix}gazette/_doc/" . urlencode($params[0]));
+                if (isset($obj->found) && $obj->found) {
+                    self::json_output($buildData($obj->_source));
+                } else {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                return;
+            }
+            $records->comYear = intval($params[0]);
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'comYear' => $records->comYear,
+                ],
+            ];
+        }
+        if (count($params) > 1) {
+            $records->comVolume = intval($params[1]);
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'comVolume' => $records->comVolume,
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}gazette/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->gazettes = [];
+        foreach ($obj->hits->hits as $hit) {
+            $records->gazettes[] = $buildData($hit->_source);
+        }
+        self::json_output($records);
+    }
+
+
     public static function json_output($obj)
     {
         header('Access-Control-Allow-Origin: *');
@@ -186,6 +287,8 @@ class Dispatcher
             self::legislator($terms);
         } else if ('committee' == $method) {
             self::committee($terms);
+        } else if ('gazette' == $method) {
+            self::gazette($terms);
         }
     }
 }
