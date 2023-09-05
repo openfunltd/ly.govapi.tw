@@ -4,6 +4,8 @@ class Elastic
 {
     public static function dbQuery($url, $method = 'GET', $data = null)
     {
+        $prefix = getenv('ELASTIC_PREFIX');
+        $url = str_replace('{prefix}', $prefix, $url);
         $curl = curl_init(getenv('ELASTIC_URL') . $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $_user = getenv('ELASTIC_USER');
