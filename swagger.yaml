@@ -172,6 +172,23 @@ paths:
         - gazette
       summary: 取得依時間新至舊的公報
       operationId: 93235f6788c0a5acd733d84c5e0614eb
+      parameters:
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
       responses:
         '200':
           description: 公報資料
@@ -194,6 +211,22 @@ paths:
           schema:
             type: integer
           example: 109
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
       responses:
         '200':
           description: 公報資料
@@ -224,6 +257,22 @@ paths:
           schema:
             type: integer
           example: 1
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
       responses:
         '200':
           description: 公報資料
@@ -255,6 +304,102 @@ paths:
                 $ref: '#/components/schemas/Gazette'
         '404':
           description: 找不到公報資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /gazette_agenda:
+    get:
+      tags:
+        - gazette
+      summary: 取得依時間新至舊的公報目錄
+      operationId: 08b354684db6dcec0be51961873a8222
+      parameters:
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 公報目錄資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GazetteAgenda'
+  '/gazette_agenda/{gazette_id}':
+    get:
+      tags:
+        - gazette
+      summary: 取得公報下所有目錄
+      operationId: 4564aa7a2b6b80dcca440603b90edbc0
+      parameters:
+        -
+          name: gazette_id
+          in: path
+          description: '公報 ID'
+          required: true
+          schema:
+            type: string
+          example: LCIDC01_1126203
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 公報目錄資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GazetteAgenda'
+  '/gazette_agenda/{agenda_id}':
+    get:
+      tags:
+        - gazette
+      summary: 取得特定公報目錄資料
+      operationId: aa8875843b9348b0eda4ae3d8a47891e
+      parameters:
+        -
+          name: agenda_id
+          in: path
+          description: '公報目錄 ID'
+          required: true
+          schema:
+            type: string
+          example: LCIDC01_1126203_0001
+      responses:
+        '200':
+          description: 公報目錄資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GazetteAgenda'
+        '404':
+          description: 找不到公報目錄資料
           content:
             application/json:
               schema:
@@ -365,6 +510,66 @@ components:
           type: string
         agenda_api:
           description: '公報目錄 API'
+          type: string
+      type: object
+    GazetteAgenda:
+      required:
+        - comYear
+        - comVolume
+        - comBookId
+        - comDate
+        - comTitle
+        - comUrl
+      properties:
+        comYear:
+          description: 卷
+          type: integer
+        comVolume:
+          description: 期
+          type: integer
+        comBookId:
+          description: 冊
+          type: integer
+        term:
+          description: 屆
+          type: integer
+        sessionPeriod:
+          description: 會期
+          type: integer
+        sessionTimes:
+          description: 會次
+          type: integer
+        meetingTimes:
+          description: 臨時會會次
+          type: integer
+        agendaNo:
+          description: 目錄編號
+          type: integer
+        agendaType:
+          description: '類別代碼(1:院會、2:國是論壇、3:委員會、4:質詢事項、5:議事錄、8:黨團協商紀錄、9:發言索引、10:報告事項、11:討論事項、12:臨時提案)'
+          type: integer
+        meetingDate:
+          description: 會議日期
+          type: array
+          items:
+            type: string
+        subject:
+          description: 案由
+          type: string
+        pageStart:
+          description: 起頁
+          type: integer
+        pageEnd:
+          description: 迄頁
+          type: integer
+        selectTerm:
+          description: 選定屆別
+          type: string
+        agenda_id:
+          description: '公報目錄 ID'
+          type: string
+        gazette_id:
+          description: '公報 ID'
           type: string
       type: object
 tags:
