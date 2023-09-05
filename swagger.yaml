@@ -2,3 +2,187 @@ openapi: 3.0.0
 info:
   title: '立法院 API'
   version: 1.0.0
+paths:
+  /legislator:
+    get:
+      tags:
+        - legislator
+      summary: 歷屆立法委員資料
+      operationId: 99342c5f3a8f0ecbf24785431be8401f
+      parameters:
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 歷屆立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Legislator'
+        '404':
+          description: 找不到立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/legislator/{term}':
+    get:
+      tags:
+        - legislator
+      summary: '第 {term} 屆立法委員資料'
+      operationId: 7839058e0b725ce8480fbaaacc31a7e7
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: '第 {term} 屆立法委員資料'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Legislator'
+        '404':
+          description: 找不到立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/legislator/{term}/{name}':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定立法委員資料
+      operationId: c4d714ab03730a6d5a81f2a39f896a8a
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: name
+          in: path
+          description: 姓名
+          required: true
+          schema:
+            type: string
+          example: 王金平
+      responses:
+        '200':
+          description: 立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Legislator'
+        '404':
+          description: 找不到立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      required:
+        - error
+      properties:
+        error:
+          type: string
+      type: object
+    Legislator:
+      properties:
+        term:
+          description: 屆別
+          type: integer
+        name:
+          description: 姓名
+          type: string
+        ename:
+          description: 英文姓名
+          type: string
+        sex:
+          description: 性別
+          type: string
+        party:
+          description: 黨籍
+          type: string
+        partyGroup:
+          description: 黨團
+          type: string
+        areaName:
+          description: 選區
+          type: string
+        committee:
+          description: 委員會
+          type: array
+          items:
+            type: string
+        onboardDate:
+          description: 就職日期
+          type: string
+        degree:
+          description: 學歷
+          type: array
+          items:
+            type: string
+        experience:
+          description: 經歷
+          type: array
+          items:
+            type: string
+        picUrl:
+          description: 照片連結
+          type: string
+        leaveFlag:
+          description: 離職否
+          type: string
+        leaveDate:
+          description: 離職日期
+          type: string
+        leaveReason:
+          description: 離職原因
+          type: string
+      type: object
+tags:
+  -
+    name: legislator
+    description: 立法委員
