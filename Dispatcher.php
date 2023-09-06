@@ -94,7 +94,7 @@ class Dispatcher
 
         $obj = Elastic::dbQuery("/{prefix}legislator/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
-        $records->total_page = ceil($records->total / $records->limit);
+        $records->total_page = ceil($records->total->value / $records->limit);
         $records->legislators = [];
         foreach ($obj->hits->hits as $hit) {
             $records->legislators[] = $hit->_source;
@@ -259,7 +259,7 @@ class Dispatcher
 
         $obj = Elastic::dbQuery("/{prefix}gazette/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
-        $records->total_page = ceil($records->total / $records->limit);
+        $records->total_page = ceil($records->total->value / $records->limit);
         $records->gazettes = [];
         foreach ($obj->hits->hits as $hit) {
             $records->gazettes[] = $buildData($hit->_source);
@@ -376,7 +376,7 @@ class Dispatcher
 
         $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
-        $records->total_page = ceil($records->total / $records->limit);
+        $records->total_page = ceil($records->total->value / $records->limit);
         $records->gazettes = [];
         foreach ($obj->hits->hits as $hit) {
             $records->gazettes[] = $buildData($hit->_source);
