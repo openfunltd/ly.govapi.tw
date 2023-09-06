@@ -5,6 +5,7 @@
  *   title="立法院 API", version="1.0.0"
  * )
  * @OA\Tag(name="legislator", description="立法委員")
+ * @OA\Tag(name="bill", description="議案")
  * @OA\Tag(name="committee", description="委員會")
  * @OA\Tag(name="gazette", description="公報")
  * @OA\Schema(schema="Error", type="object", required={"error"}, @OA\Property(property="error", type="string"))
@@ -384,6 +385,99 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *   path="/bill", summary="取得依時間新至舊的議案", tags={"bill"},
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *  )
+     *  @OA\Get(
+     *    path="/bill/{billNo}", summary="取得特定議案資料", tags={"bill"},
+     *    @OA\Parameter(name="billNo", in="path", description="議案編號", required=true, @OA\Schema(type="string"), example="1090001"),
+     *    @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *    @OA\Response(response="404", description="找不到議案資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *  )
+     *  @OA\Schema(
+     *    schema="Bill", type="object", required={"billNo"},
+     *    @OA\Property(property="billNo", type="string", description="議案編號"),
+     *    @OA\Property(property="相關附件", type="array", description="相關附件", @OA\Items(type="object", @OA\Property(property="名稱", type="string", description="附件名稱"), @OA\Property(property="網址", type="string", description="附件網址"))),
+     *    @OA\Property(property="議案流程", type="array", description="議案流程", @OA\Items(type="object", @OA\Property(property="日期", type="array", description="日期", @OA\Items(type="string")), @OA\Property(property="狀態", type="string", description="狀態"), @OA\Property(property="會期", type="string", description="會期"), @OA\Property(property="院會/委員會", type="string", description="院會/委員會"))),
+     *    @OA\Property(property="關連議案", type="array", description="關連議案", @OA\Items(type="string")),
+     *    @OA\Property(property="議案名稱", type="string", description="議案名稱"),
+     *    @OA\Property(property="提案單位/提案委員", type="string", description="提案單位/提案委員"),
+     *    @OA\Property(property="議案狀態", type="string", description="議案狀態"),
+     *    @OA\Property(property="提案人", type="array", description="提案人", @OA\Items(type="string")),
+     *    @OA\Property(property="連署人", type="array", description="連署人", @OA\Items(type="string")),
+     *    @OA\Property(property="mtime", type="string", description="最後更新時間"),
+     *    @OA\Property(property="屆期", type="integer", description="屆期"),
+     *    @OA\Property(property="first_time", type="string", description="初次提案時間"),
+     *    @OA\Property(property="last_time", type="string", description="最後提案時間"),
+     *    )
+     *  )
+     *  @OA\Get(
+     *    path="/bill/{term}", summary="取得特定屆期的議案", tags={"bill"},
+     *    @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *    @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *  )
+     *
+     */
+    public static function bill($params)
+    {
+        // Bill output sample: {"billNo":"202103161290000","相關附件":[{"名稱":"關係文書PDF","網址":"https://ppg.ly.gov.tw/ppg/download/agenda1/02/pdf/10/07/13/LCEWA01_100713_00007.pdf"},{"名稱":"關係文書DOC","網址":"https://ppg.ly.gov.tw/ppg/download/agenda1/02/word/10/07/13/LCEWA01_100713_00007.doc"}],"議案流程":[{"日期":["2023-05-26","2023-05-29","2023-05-30","2023-05-31"],"狀態":"排入院會","會期":"10-07-13","院會/委員會":"院會"}],"關連議案":[],"議案名稱":"「建築法第九十一條條文修正草案」，請審議案。","提案單位/提案委員":"本院委員賴瑞隆等18人","議案狀態":"排入院會","提案人":["賴瑞隆"],"連署人":["林岱樺","莊競程","王美惠","趙天麟","林淑芬","蘇巧慧","林楚茵","余　天","邱泰源","吳玉琴","吳思瑤","范　雲","湯蕙禎","莊瑞雄","沈發惠","黃秀芳","洪申翰"],"mtime":"2023-05-29T17:13:27+08:00","屆期":10,"first_time":"2023-05-26","last_time":"2023-05-31"}
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => [
+                'last_time' => 'desc',
+            ],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+
+        if (count($params) > 0 and strlen($params[0] > 10)) {
+            $billNo = $params[0];
+            $obj = Elastic::dbQuery("/{prefix}bill/_doc/" . urlencode($billNo));
+            if (isset($obj->found) && $obj->found) {
+                self::json_output($obj->_source);
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+            }
+            return;
+        }
+
+        if (count($params) > 0) {
+            $term = intval($params[0]);
+            $records->term = $term;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    '屆期' => $term,
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total->value / $records->limit);
+        $records->bills = [];
+        foreach ($obj->hits->hits as $hit) {
+            $records->bills[] = $hit->_source;
+        }
+        self::json_output($records);
+    }
+
     public static function json_output($obj)
     {
         header('Access-Control-Allow-Origin: *');
@@ -423,6 +517,8 @@ class Dispatcher
             self::gazette($terms);
         } else if ('gazette_agenda' == $method) {
             self::gazette_agenda($terms);
+        } else if ('bill' == $method) {
+            self::bill($terms);
         } else {
             header('HTTP/1.0 404 Not Found');
             echo '404 Not Found';
