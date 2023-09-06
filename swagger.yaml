@@ -404,6 +404,102 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /bill:
+    get:
+      tags:
+        - bill
+      summary: 取得依時間新至舊的議案
+      operationId: 4fc3244602adaced08fc882bdda73756
+      parameters:
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+  '/bill/{billNo}':
+    get:
+      tags:
+        - bill
+      summary: 取得特定議案資料
+      operationId: 2d9a7e2f6361e07bd06ae361750622a8
+      parameters:
+        -
+          name: billNo
+          in: path
+          description: 議案編號
+          required: true
+          schema:
+            type: string
+          example: '1090001'
+      responses:
+        '200':
+          description: 議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '404':
+          description: 找不到議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/bill/{term}':
+    get:
+      tags:
+        - bill
+      summary: 取得特定屆期的議案
+      operationId: 7a2d80bffed068a55f820bab1475ba77
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
 components:
   schemas:
     Error:
@@ -572,10 +668,89 @@ components:
           description: '公報 ID'
           type: string
       type: object
+    Bill:
+      required:
+        - billNo
+      properties:
+        billNo:
+          description: 議案編號
+          type: string
+        相關附件:
+          description: 相關附件
+          type: array
+          items:
+            properties:
+              名稱:
+                description: 附件名稱
+                type: string
+              網址:
+                description: 附件網址
+                type: string
+            type: object
+        議案流程:
+          description: 議案流程
+          type: array
+          items:
+            properties:
+              日期:
+                description: 日期
+                type: array
+                items:
+                  type: string
+              狀態:
+                description: 狀態
+                type: string
+              會期:
+                description: 會期
+                type: string
+              院會/委員會:
+                description: 院會/委員會
+                type: string
+            type: object
+        關連議案:
+          description: 關連議案
+          type: array
+          items:
+            type: string
+        議案名稱:
+          description: 議案名稱
+          type: string
+        提案單位/提案委員:
+          description: 提案單位/提案委員
+          type: string
+        議案狀態:
+          description: 議案狀態
+          type: string
+        提案人:
+          description: 提案人
+          type: array
+          items:
+            type: string
+        連署人:
+          description: 連署人
+          type: array
+          items:
+            type: string
+        mtime:
+          description: 最後更新時間
+          type: string
+        屆期:
+          description: 屆期
+          type: integer
+        first_time:
+          description: 初次提案時間
+          type: string
+        last_time:
+          description: 最後提案時間
+          type: string
+      type: object
 tags:
   -
     name: legislator
     description: 立法委員
+  -
+    name: bill
+    description: 議案
   -
     name: committee
     description: 委員會
