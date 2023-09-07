@@ -482,7 +482,7 @@ class Dispatcher
     {
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET');
-        if (strpos($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST']) !== false) {
+        if (@strpos($_SERVER['HTTP_REFERER'], $_SERVER['HTTP_HOST']) !== false) {
             echo json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         } else {
             echo json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
