@@ -338,6 +338,10 @@ class Dispatcher
      */
     public static function gazette_agenda($params)
     {
+        if (count($params) >= 2 and $params[1] == 'html') {
+            return self::gazette_agenda_html([$params[0]]);
+        }
+
         $cmd = [
             'query' => [
                 'bool' => [
@@ -412,6 +416,35 @@ class Dispatcher
         }
         self::json_output($records);
     }
+
+    /**
+     * @OA\Get(
+     *   path="/gazette_agenda/{agenda_id}/html", summary="取得公報目錄 HTML", tags={"gazette"},
+     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1077502_00003"),
+     *   @OA\Response(response="200", description="公報目錄 HTML"),
+     *   @OA\Response(response="404", description="找不到公報目錄資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     * )
+     */
+    public static function gazette_agenda_html($params)
+    {
+        // agenda_id: LCIDC01_1077502_00003 
+        $agenda_id = $params[0] . '.doc';
+        $content = file_get_contents('https://lydata.ronny-s3.click/publication-html/' . urlencode($agenda_id));
+        if (!$obj = json_decode($content)) {
+            header('HTTP/1.1 404 Not Found');
+            echo '404 not found';
+            return;
+        }
+        $content = base64_decode($obj->content);
+        $content = preg_replace_callback('#<img src="([^"]*)"#', function($matches) use ($agenda_id) {
+            $id = explode('_html_', $matches[1])[1];
+            return '<img src="https://lydata.ronny-s3.click/picfile/' . $agenda_id. '-' . $id . '"';
+        }, $content);
+
+        header('Content-Type: text/html; charset=utf-8');
+        echo $content;
+    }
+
 
     /**
      * @OA\Get(

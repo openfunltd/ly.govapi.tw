@@ -496,6 +496,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/gazette_agenda/{agenda_id}/html':
+    get:
+      tags:
+        - gazette
+      summary: '取得公報目錄 HTML'
+      operationId: 2441d41a3c96154dc7068ace5e57ee98
+      parameters:
+        -
+          name: agenda_id
+          in: path
+          description: '公報目錄 ID'
+          required: true
+          schema:
+            type: string
+          example: LCIDC01_1077502_00003
+      responses:
+        '200':
+          description: '公報目錄 HTML'
+        '404':
+          description: 找不到公報目錄資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /bill:
     get:
       tags:
