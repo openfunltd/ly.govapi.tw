@@ -388,6 +388,8 @@ class Dispatcher
     /**
      * @OA\Get(
      *   path="/bill", summary="取得依時間新至舊的議案", tags={"bill"},
+     *   @OA\Parameter(name="proposer", in="query", description="提案人", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="cosignatory", in="query", description="連署人", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
@@ -417,6 +419,8 @@ class Dispatcher
      *  )
      *  @OA\Get(
      *    path="/bill/{term}", summary="取得特定屆期的議案", tags={"bill"},
+     *    @OA\Parameter(name="proposer", in="query", description="提案人", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *    @OA\Parameter(name="cosignatory", in="query", description="連署人", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *    @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
      *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
@@ -443,6 +447,22 @@ class Dispatcher
         $records->total = 0;
         $records->page = @intval($_GET['page']) ?: 1;
         $records->limit = @intval($_GET['limit']) ?: 100;
+        if (array_key_exists('proposer', $_GET)) {
+            $records->proposer = $_GET['proposer'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    '提案人.keyword' => $records->proposer,
+                ],
+            ];
+        }
+        if (array_key_exists('cosignatory', $_GET)) {
+            $records->cosignatory = $_GET['cosignatory'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    '連署人.keyword' => $records->cosignatory,
+                ],
+            ];
+        }
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 

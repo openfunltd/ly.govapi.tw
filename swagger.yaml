@@ -412,6 +412,22 @@ paths:
       operationId: 4fc3244602adaced08fc882bdda73756
       parameters:
         -
+          name: proposer
+          in: query
+          description: 提案人
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: cosignatory
+          in: query
+          description: 連署人
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
           name: page
           in: query
           description: 頁數
@@ -469,6 +485,22 @@ paths:
       summary: 取得特定屆期的議案
       operationId: 7a2d80bffed068a55f820bab1475ba77
       parameters:
+        -
+          name: proposer
+          in: query
+          description: 提案人
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: cosignatory
+          in: query
+          description: 連署人
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
         -
           name: term
           in: path
