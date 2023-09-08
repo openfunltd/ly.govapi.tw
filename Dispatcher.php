@@ -54,9 +54,37 @@ class Dispatcher
      *   @OA\Response(response="200", description="立法委員資料", @OA\JsonContent(ref="#/components/schemas/Legislator")),
      *   @OA\Response(response="404", description="找不到立法委員資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *  )
+     *  @OA\Get(
+     *    path="/legislator/{term}/{name}/propose_bill", summary="取得特定委員的提案議案列表", tags={"legislator"},
+     *    @OA\Parameter(name="term", in="path", description="屆別", required=true, @OA\Schema(type="integer"), example=9),
+     *    @OA\Parameter(name="name", in="path", description="姓名", required=true, @OA\Schema(type="string"), example="王金平"),
+     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *    @OA\Response(response="200", description="提案議案列表", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *  )
+     *  @OA\Get(
+     *    path="/legislator/{term}/{name}/cosign_bill", summary="取得特定委員的連署議案列表", tags={"legislator"},
+     *    @OA\Parameter(name="term", in="path", description="屆別", required=true, @OA\Schema(type="integer"), example=9),
+     *    @OA\Parameter(name="name", in="path", description="姓名", required=true, @OA\Schema(type="string"), example="王金平"),
+     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *    @OA\Response(response="200", description="連署議案列表", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *  )
      */
     public static function legislator($params)
     {
+        if (count($params) > 2) {
+            if ($params[2] == 'propose_bill') {
+                $_GET['proposer'] = $params[1];
+
+                return self::bill([$params[0]]);
+            } elseif ($params[2] == 'cosign_bill') {
+                $_GET['cosignatory'] = $params[1];
+
+                return self::bill([$params[0]]);
+            }
+        }
+
         $cmd = [
             'query' => [
                 'bool' => [

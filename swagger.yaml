@@ -119,6 +119,98 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/legislator/{term}/{name}/propose_bill':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定委員的提案議案列表
+      operationId: 7a16ca8ff9f09f2e8df6a014fdf3ae0b
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: name
+          in: path
+          description: 姓名
+          required: true
+          schema:
+            type: string
+          example: 王金平
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 提案議案列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+  '/legislator/{term}/{name}/cosign_bill':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定委員的連署議案列表
+      operationId: 9751b7283a70fa44d10e76570ab3de2c
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: name
+          in: path
+          description: 姓名
+          required: true
+          schema:
+            type: string
+          example: 王金平
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 連署議案列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
   /committee:
     get:
       tags:
