@@ -408,6 +408,30 @@ paths:
       operationId: 08b354684db6dcec0be51961873a8222
       parameters:
         -
+          name: date
+          in: query
+          description: 會議日期
+          required: false
+          schema:
+            type: string
+          example: '2017-01-19'
+        -
+          name: date_start
+          in: query
+          description: 會議日期起
+          required: false
+          schema:
+            type: string
+          example: '2017-01-01'
+        -
+          name: date_end
+          in: query
+          description: 會議日期迄
+          required: false
+          schema:
+            type: string
+          example: '2017-01-31'
+        -
           name: page
           in: query
           description: 頁數
@@ -461,6 +485,30 @@ paths:
           schema:
             type: integer
           example: 100
+        -
+          name: date
+          in: query
+          description: 會議日期
+          required: false
+          schema:
+            type: string
+          example: '2017-01-19'
+        -
+          name: date_start
+          in: query
+          description: 會議日期起
+          required: false
+          schema:
+            type: string
+          example: '2017-01-01'
+        -
+          name: date_end
+          in: query
+          description: 會議日期迄
+          required: false
+          schema:
+            type: string
+          example: '2017-01-31'
       responses:
         '200':
           description: 公報目錄資料
@@ -501,7 +549,7 @@ paths:
       tags:
         - gazette
       summary: '取得公報目錄 HTML'
-      operationId: 2441d41a3c96154dc7068ace5e57ee98
+      operationId: d25d071512bb1d4bb45285c7e1b120f3
       parameters:
         -
           name: agenda_id

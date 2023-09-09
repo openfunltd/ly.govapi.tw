@@ -299,6 +299,9 @@ class Dispatcher
     /**
      * @OA\Get(
      *  path="/gazette_agenda", summary="取得依時間新至舊的公報目錄", tags={"gazette"},
+     *  @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *  @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
+     *  @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
      *  @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *  @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *  @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
@@ -308,6 +311,9 @@ class Dispatcher
      *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *  @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *  @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
+     *  @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
      *   @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
      *  )
      *  @OA\Get(
@@ -403,6 +409,23 @@ class Dispatcher
             $cmd['query']['bool']['must'][] = [
                 'term' => [
                     'comYear' => $records->comYear,
+                ],
+            ];
+        }
+        if (array_key_exists('date', $_GET)) {
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meetingDate' => $_GET['date'],
+                ],
+            ];
+        }
+        if (array_key_exists('date_start', $_GET) and array_key_exists('date_end', $_GET)) {
+            $cmd['query']['bool']['must'][] = [
+                'range' => [
+                    'meetingDate' => [
+                        'gte' => $_GET['date_start'],
+                        'lte' => $_GET['date_end'],
+                    ],
                 ],
             ];
         }
