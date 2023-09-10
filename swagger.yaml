@@ -304,6 +304,144 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/committee/{comtCd_or_comtName}/meet':
+    get:
+      tags:
+        - committee
+      summary: 取得特定委員會的會議紀錄列表
+      operationId: 8ee5e00a295c4bda782743057aa8f7e1
+      parameters:
+        -
+          name: comtCd_or_comtName
+          in: path
+          description: '委員會 ID 或 名稱'
+          required: true
+          schema:
+            type: string
+          example: 內政委員會
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議紀錄列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
+  '/committee/{comtCd_or_comtName}/meet/{term}':
+    get:
+      tags:
+        - committee
+      summary: 取得特定委員會的特定屆次的會議紀錄列表
+      operationId: b00f6e01ceef08c1eb81ffc862f3e947
+      parameters:
+        -
+          name: comtCd_or_comtName
+          in: path
+          description: '委員會 ID 或 名稱'
+          required: true
+          schema:
+            type: string
+          example: 內政委員會
+        -
+          name: term
+          in: path
+          description: 屆次
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議紀錄列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
+  '/committee/{comtCd_or_comtName}/meet/{term}/{sessionPeriod}':
+    get:
+      tags:
+        - committee
+      summary: 取得特定委員會的特定屆次的特定會期的會議紀錄列表
+      operationId: 7755ed245fef6c2417b25239caf7c1f9
+      parameters:
+        -
+          name: comtCd_or_comtName
+          in: path
+          description: '委員會 ID 或 名稱'
+          required: true
+          schema:
+            type: string
+          example: 內政委員會
+        -
+          name: term
+          in: path
+          description: 屆次
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: path
+          description: 會期
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議紀錄列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
   /gazette:
     get:
       tags:

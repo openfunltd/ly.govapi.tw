@@ -158,6 +158,30 @@ class Dispatcher
      *   @OA\Response(response="200", description="委員會資料", @OA\JsonContent(ref="#/components/schemas/Committee")),
      *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
+     *   @OA\Get(
+     *     path="/committee/{comtCd_or_comtName}/meet", summary="取得特定委員會的會議紀錄列表", tags={"committee"},
+     *     @OA\Parameter(name="comtCd_or_comtName", in="path", description="委員會 ID 或 名稱", required=true, @OA\Schema(type="string"), example="內政委員會"),
+     *     @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *     @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *     @OA\Response(response="200", description="會議紀錄列表", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     *   )
+     *   @OA\Get(
+     *     path="/committee/{comtCd_or_comtName}/meet/{term}", summary="取得特定委員會的特定屆次的會議紀錄列表", tags={"committee"},
+     *     @OA\Parameter(name="comtCd_or_comtName", in="path", description="委員會 ID 或 名稱", required=true, @OA\Schema(type="string"), example="內政委員會"),
+     *     @OA\Parameter(name="term", in="path", description="屆次", required=true, @OA\Schema(type="integer"), example=9),
+     *     @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *     @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *     @OA\Response(response="200", description="會議紀錄列表", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     *   )
+     *   @OA\Get(
+     *     path="/committee/{comtCd_or_comtName}/meet/{term}/{sessionPeriod}", summary="取得特定委員會的特定屆次的特定會期的會議紀錄列表", tags={"committee"},
+     *     @OA\Parameter(name="comtCd_or_comtName", in="path", description="委員會 ID 或 名稱", required=true, @OA\Schema(type="string"), example="內政委員會"),
+     *     @OA\Parameter(name="term", in="path", description="屆次", required=true, @OA\Schema(type="integer"), example=9),
+     *     @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
+     *     @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *     @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *     @OA\Response(response="200", description="會議紀錄列表", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     *   )
      *   @OA\Schema(
      *   schema="Committee", type="object", required={"comtCd", "comtName", "comtDesp", "comtType"},
      *   @OA\Property(property="comtCd", type="string", description="委員會代號"),
@@ -194,6 +218,21 @@ class Dispatcher
                 return self::json_output(['error' => 'not found']);
             }
         }
+
+        if (count($params) > 1 and $params[1] == 'meet') {
+            $_GET['committee_id'] = $params[0];
+
+            if (count($params) > 2) {
+                $_GET['term'] = $params[2];
+            }
+            if (count($params) > 3) {
+                $_GET['sessionPeriod'] = $params[3];
+            }
+
+            return self::meet([]);
+        }
+
+
         $cmd = [
             'query' => [
                 'bool' => [
