@@ -39,7 +39,11 @@ class LYLib
         if (!property_exists($meet, 'alias')) {
             $meet->alias = [];
         }
-        $meet->attendLegislator = explode(',', $meet->attendLegislator);
+        if ($meet->attendLegislator == '') {
+            $meet->attendLegislator = [];
+        } else {
+            $meet->attendLegislator = explode(',', $meet->attendLegislator); 
+        }
         $meet->meetingName = str_replace('立', '立', $meet->meetingName);
         $meet->meetingName = str_replace('會體委員會議', '全體委員會議', $meet->meetingName);
         $meet->meetingName = preg_replace('#全體委$#', '全體委員會', $meet->meetingName);
@@ -57,9 +61,9 @@ class LYLib
             readline('press any key to continue :');
         }
         $meet->date = date('Y-m-d', mktime(0, 0, 0, $matches[2], $matches[3], $matches[1] + 1911));
-        $meet->startTime = date('Y-m-d H:i:s', mktime($matches[4], $matches[5], 0, $matches[2], $matches[3], $matches[1] + 1911));
+        $meet->startTime = date('Y-m-d\TH:i:s', mktime($matches[4], $matches[5], 0, $matches[2], $matches[3], $matches[1] + 1911));
         if (isset($matches[6])) {
-            $meet->endTime = date('Y-m-d H:i:s', mktime($matches[7], $matches[8], 0, $matches[2], $matches[3], $matches[1] + 1911));
+            $meet->endTime = date('Y-m-d\TH:i:s', mktime($matches[7], $matches[8], 0, $matches[2], $matches[3], $matches[1] + 1911));
         } else {
             $meet->endTime = null;
         }
@@ -84,7 +88,8 @@ class LYLib
         }
 
         try {
-            $l = LYLib::meetNameToId($meet->meetingName);
+            $l = LYLib::meetNameToId($meet->meetingName, $type);
+            $meet->meetingType = $type;
         } catch (Exception $e) {
             if (strpos($meet->meetingName, '黨團協商') !== false) {
                 $meet->meetingType = '黨團協商';
@@ -128,7 +133,7 @@ class LYLib
         return $meet;
     }
 
-    public static function meetNameToId($oname)
+    public static function meetNameToId($oname, &$type)
     {
         $name = $oname;
         $name = str_replace(' ', '', $name);
@@ -147,13 +152,16 @@ class LYLib
         // 立法院第8屆第1會期財政、經濟委員會第1次聯席會議 -> committees-8-1-19,20-1
         // 第8屆第4會期第2次全院委員會議
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次(全院委員會?)?會議$/u', $name, $matches)) {
+            $type = '全院委員會';
             return 'all-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
         } elseif (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次全體委員會$/u', $name, $matches)) {
+            $type = '全院委員會';
             // 第8屆第5會期第18次全體委員會
             return 'all-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
         }
 
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次(全院委員會)?會議$/', $name, $matches)) {
+            $type = '全院委員會';
             return 'tempall-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3] . '-' . $matches[4];
         }
         // 立法院第8屆第2會期財政委員會第5次全體委員會議
@@ -164,6 +172,7 @@ class LYLib
             $committeeIdMap = self::getCommitteeIdMap();
             try {
                 $committee_id = self::getCommitteeId($matches[5]);
+                $type = '委員會';
                 if ($matches[3]) {
                     return 'tempcommittee-' . $matches[1] . '-' . $matches[2] . '-' . $matches[4] . '-' . $committee_id . '-' . $matches[6];
                 }
@@ -174,6 +183,7 @@ class LYLib
         // 立法院第8屆修憲委員會第1次全體委員會議
         if (preg_match('/^立法院第(\d+)屆([^第]*)委員會第(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
+            $type = '委員會';
             try {
                 $committee_id = self::getCommitteeId($matches[2]);
                 return 'committee-' . $matches[1] . '-' . $committee_id . '-' . $matches[3];
@@ -184,6 +194,7 @@ class LYLib
         // 立法院第8屆第6會期社會福利及衛生環境、司法及法制二委員會第1次聯席會議
         // 立法院第9屆第4會期社會福利及衛生環境及經濟二委員會第1次聯席會議
         if (preg_match('/^立法院第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?(.*)第(\d+)次(聯席|全體委員)會議?/u', $name, $matches)) {
+            $type = '聯席會議';
             $committeeIdMap = self::getCommitteeIdMap();
             $committee_ids = [];
             foreach (explode('、', $matches[5]) as $committee_name) {
