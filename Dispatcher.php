@@ -153,8 +153,8 @@ class Dispatcher
      *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
      *   @OA\Get(
-     *   path="/committee/{comtCd}", summary="取得特定委員會資料", tags={"committee"},
-     *   @OA\Parameter(name="comtCd", in="path", description="委員會 ID", required=true, @OA\Schema(type="integer"), example=15),
+     *   path="/committee/{comtCd_or_comtName}", summary="取得特定委員會資料", tags={"committee"},
+     *   @OA\Parameter(name="comtCd_or_comtName", in="path", description="委員會 ID 或 名稱", required=true, @OA\Schema(type="string"), example="內政委員會"),
      *   @OA\Response(response="200", description="委員會資料", @OA\JsonContent(ref="#/components/schemas/Committee")),
      *   @OA\Response(response="404", description="找不到委員會資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
@@ -168,6 +168,32 @@ class Dispatcher
      */
     public static function committee($params)
     {
+        if (count($params) > 0 and !preg_match('#^\d+$#', $params[0])) {
+            $name = $params[0];
+            $name = str_replace('委員會', '', $name);
+            $name .= '委員會';
+
+            $obj = Elastic::dbQuery("/{prefix}committee/_search", 'GET', json_encode([
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            [
+                                'match' => [
+                                    'comtName.keyword' => $name,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]));
+            if ($obj->hits->total->value > 0) {
+                $params[0] = $obj->hits->hits[0]->_source->comtCd;
+                return self::committee($params);
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                return self::json_output(['error' => 'not found']);
+            }
+        }
         $cmd = [
             'query' => [
                 'bool' => [

@@ -276,21 +276,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  '/committee/{comtCd}':
+  '/committee/{comtCd_or_comtName}':
     get:
       tags:
         - committee
       summary: 取得特定委員會資料
-      operationId: 07625016084b45107a257093dce35bae
+      operationId: 3f91ee947b0c722bade63c8e699cb97b
       parameters:
         -
-          name: comtCd
+          name: comtCd_or_comtName
           in: path
-          description: '委員會 ID'
+          description: '委員會 ID 或 名稱'
           required: true
           schema:
-            type: integer
-          example: 15
+            type: string
+          example: 內政委員會
       responses:
         '200':
           description: 委員會資料
