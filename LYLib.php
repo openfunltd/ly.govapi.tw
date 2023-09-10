@@ -39,6 +39,7 @@ class LYLib
         if (!property_exists($meet, 'alias')) {
             $meet->alias = [];
         }
+        $meet->attendLegislator = explode(',', $meet->attendLegislator);
         $meet->meetingName = str_replace('立', '立', $meet->meetingName);
         $meet->meetingName = str_replace('會體委員會議', '全體委員會議', $meet->meetingName);
         $meet->meetingName = preg_replace('#全體委$#', '全體委員會', $meet->meetingName);
