@@ -1,3 +1,4 @@
 .*.swp
 config.php
 imports/gazette
+imports/meet/meet.jsonl
