@@ -687,6 +687,22 @@ class Dispatcher
             ];
         }
 
+        if (array_key_exists('term', $_GET)) {
+            $records->term = $_GET['term'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'term' => $records->term,
+                ],
+            ];
+        }
+        if (array_key_exists('sessionPeriod', $_GET)) {
+            $records->sessionPeriod = $_GET['sessionPeriod'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'sessionPeriod' => $records->sessionPeriod,
+                ],
+            ];
+        }
         if (array_key_exists('meet_type', $_GET)) {
             $records->meet_type = $_GET['meet_type'];
             $cmd['query']['bool']['must'][] = [
