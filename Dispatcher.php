@@ -5,6 +5,7 @@
  *   title="立法院 API", version="1.0.0"
  * )
  * @OA\Tag(name="legislator", description="立法委員")
+ * @OA\Tag(name="meet", description="會議")
  * @OA\Tag(name="bill", description="議案")
  * @OA\Tag(name="committee", description="委員會")
  * @OA\Tag(name="gazette", description="公報")
@@ -582,6 +583,170 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *   path="/meet/", summary="從舊到新列出會議", tags={"meet"},
+     *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
+     *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
+     *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="會議資料", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     * )
+     * @OA\Get(
+     *   path="/meet/{term}", summary="從舊到新列出會議", tags={"meet"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
+     *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
+     *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="會議資料", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     * )
+     * @OA\Get(
+     *   path="/meet/{term}/{sessionPeriod}", summary="從舊到新列出會議", tags={"meet"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
+     *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
+     *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="會議資料", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     * )
+     * @OA\Schema(
+     *   schema="Meet", type="object", required={"meetingName", "meetingContent", "meetingType", "meetingDateDesc", "meetingRoom", "attendLegislator"},
+     *   @OA\Property(property="meetingName", type="string", description="會議名稱"),
+     *   @OA\Property(property="meetingContent", type="string", description="會議內容"),
+     *   @OA\Property(property="meetingType", type="string", description="會議類型(全院委員會、委員會、聯席會議、黨團協商、其他會議)"),
+     *   @OA\Property(property="meetingDateDesc", type="string", description="會議日期"),
+     *   @OA\Property(property="meetingRoom", type="string", description="會議地點"),
+     *   @OA\Property(property="attendLegislator", type="array", description="出席立委", @OA\Items(type="string")),
+     *   @OA\Property(property="alias", type="array", description="別名", @OA\Items(type="string")),
+     *   @OA\Property(property="date", type="string", description="會議日期"),
+     *   @OA\Property(property="startTime", type="string", description="會議開始時間"),
+     *   @OA\Property(property="endTime", type="string", description="會議結束時間"),
+     *   @OA\Property(property="id", type="string", description="會議 ID"),
+     *   @OA\Property(property="sessionPeriod", type="integer", description="會期"),
+     *   @OA\Property(property="term", type="integer", description="屆期"),
+     *   @OA\Property(property="meetingNo", type="string", description="會議編號"),
+     *   @OA\Property(property="meetingTimes", type="string", description="會議次數"),
+     *   @OA\Property(property="sessionTimes", type="string", description="會期次數"),
+     *   @OA\Property(property="jointCommittee", type="string", description="聯席會議"),
+     *   @OA\Property(property="coChairman", type="string", description="共同主席"),
+     *   @OA\Property(property="meetingUnit", type="string", description="會議單位"),
+     * )
+     */
+    public static function meet($params)
+    {
+        // meet sample: {"sessionTimes":"null","jointCommittee":null,"sessionPeriod":7,"meetingContent":"研商「性別工作平等法」、「性騷擾防治法」及「性別平等教育法」案相關事宜(民進黨黨團提議)","meetingNo":"2023072573","selectTerm":"1007","meetingName":"立法院黨團協商","term":10,"meetingDateDesc":"112/07/26 15:30","coChairman":"游院長錫堃","meetingUnit":"朝野黨團協商","meetingTimes":"null","meetingRoom":"議場三樓會議室","attendLegislator":[],"alias":[],"date":"2023-07-26","startTime":"2023-07-26T15:30:00","endTime":null,"meetingType":"黨團協商","id":"2023-07-26:2023072573"}
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => ['startTime' => 'desc'],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+        if (count($params) > 0) {
+            $term = $params[0];
+            $records->term = $term;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'term' => $term,
+                ],
+            ];
+        }
+        if (count($params) > 1) {
+            $sessionPeriod = $params[1];
+            $records->sessionPeriod = $sessionPeriod;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'sessionPeriod' => $sessionPeriod,
+                ],
+            ];
+        }
+
+        if (array_key_exists('meet_type', $_GET)) {
+            $records->meet_type = $_GET['meet_type'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meetingType.keyword' => $records->meet_type,
+                ],
+            ];
+        }
+        if (array_key_exists('legislator', $_GET)) {
+            $records->legislator = $_GET['legislator'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'attendLegislator.keyword' => $records->legislator,
+                ],
+            ];
+        }
+
+        if (array_key_exists('date', $_GET)) {
+            $records->date = $_GET['date'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'startTime' => $records->date,
+                ],
+            ];
+        }
+
+        if (array_key_exists('date_start', $_GET) and array_key_exists('date_end', $_GET)) {
+            $records->date_start = $_GET['date_start'];
+            $records->date_end = $_GET['date_end'];
+            $cmd['query']['bool']['must'][] = [
+                'range' => [
+                    'startTime' => [
+                        'gte' => $records->date_start,
+                        'lte' => $records->date_end,
+                    ],
+                ],
+            ];
+        }
+
+        if (array_key_exists('q', $_GET)) {
+            $records->q = '"' . $_GET['q'] . '"';
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['meetingName', 'meetingContent'],
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}meet/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total->value / $records->limit);
+        $records->meets = [];
+        foreach ($obj->hits->hits as $hit) {
+            $hit->_source->id = $hit->_id;
+            $records->meets[] = $hit->_source;
+        }
+        self::json_output($records);
+    }
+
     public static function json_output($obj)
     {
         header('Access-Control-Allow-Origin: *');
@@ -623,6 +788,8 @@ class Dispatcher
             self::gazette_agenda($terms);
         } else if ('bill' == $method) {
             self::bill($terms);
+        } else if ('meet' == $method) {
+            self::meet($terms);
         } else {
             header('HTTP/1.0 404 Not Found');
             echo '404 Not Found';

@@ -696,6 +696,288 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Bill'
+  /meet/:
+    get:
+      tags:
+        - meet
+      summary: 從舊到新列出會議
+      operationId: 0f8e688e80837551a0419808929cb08c
+      parameters:
+        -
+          name: term
+          in: query
+          description: 屆期
+          required: false
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: meet_type
+          in: query
+          description: 會議類型
+          required: false
+          schema:
+            type: string
+          example: 院會
+        -
+          name: legislator
+          in: query
+          description: 出席立委
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: date
+          in: query
+          description: 會議日期
+          required: false
+          schema:
+            type: string
+          example: '2017-01-19'
+        -
+          name: date_start
+          in: query
+          description: 會議日期起
+          required: false
+          schema:
+            type: string
+          example: '2017-01-01'
+        -
+          name: date_end
+          in: query
+          description: 會議日期迄
+          required: false
+          schema:
+            type: string
+          example: '2017-01-31'
+        -
+          name: q
+          in: query
+          description: 搜尋會議名稱或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
+  '/meet/{term}':
+    get:
+      tags:
+        - meet
+      summary: 從舊到新列出會議
+      operationId: e003bf653539f87d200f8e28d0e47ffa
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: meet_type
+          in: query
+          description: 會議類型
+          required: false
+          schema:
+            type: string
+          example: 院會
+        -
+          name: legislator
+          in: query
+          description: 出席立委
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: date
+          in: query
+          description: 會議日期
+          required: false
+          schema:
+            type: string
+          example: '2017-01-19'
+        -
+          name: date_start
+          in: query
+          description: 會議日期起
+          required: false
+          schema:
+            type: string
+          example: '2017-01-01'
+        -
+          name: date_end
+          in: query
+          description: 會議日期迄
+          required: false
+          schema:
+            type: string
+          example: '2017-01-31'
+        -
+          name: q
+          in: query
+          description: 搜尋會議名稱或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
+  '/meet/{term}/{sessionPeriod}':
+    get:
+      tags:
+        - meet
+      summary: 從舊到新列出會議
+      operationId: f45011a7369a7c2cc0f31fbb67233230
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: path
+          description: 會期
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: meet_type
+          in: query
+          description: 會議類型
+          required: false
+          schema:
+            type: string
+          example: 院會
+        -
+          name: legislator
+          in: query
+          description: 出席立委
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: date
+          in: query
+          description: 會議日期
+          required: false
+          schema:
+            type: string
+          example: '2017-01-19'
+        -
+          name: date_start
+          in: query
+          description: 會議日期起
+          required: false
+          schema:
+            type: string
+          example: '2017-01-01'
+        -
+          name: date_end
+          in: query
+          description: 會議日期迄
+          required: false
+          schema:
+            type: string
+          example: '2017-01-31'
+        -
+          name: q
+          in: query
+          description: 搜尋會議名稱或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
 components:
   schemas:
     Error:
@@ -940,10 +1222,84 @@ components:
           description: 最後提案時間
           type: string
       type: object
+    Meet:
+      required:
+        - meetingName
+        - meetingContent
+        - meetingType
+        - meetingDateDesc
+        - meetingRoom
+        - attendLegislator
+      properties:
+        meetingName:
+          description: 會議名稱
+          type: string
+        meetingContent:
+          description: 會議內容
+          type: string
+        meetingType:
+          description: 會議類型(全院委員會、委員會、聯席會議、黨團協商、其他會議)
+          type: string
+        meetingDateDesc:
+          description: 會議日期
+          type: string
+        meetingRoom:
+          description: 會議地點
+          type: string
+        attendLegislator:
+          description: 出席立委
+          type: array
+          items:
+            type: string
+        alias:
+          description: 別名
+          type: array
+          items:
+            type: string
+        date:
+          description: 會議日期
+          type: string
+        startTime:
+          description: 會議開始時間
+          type: string
+        endTime:
+          description: 會議結束時間
+          type: string
+        id:
+          description: '會議 ID'
+          type: string
+        sessionPeriod:
+          description: 會期
+          type: integer
+        term:
+          description: 屆期
+          type: integer
+        meetingNo:
+          description: 會議編號
+          type: string
+        meetingTimes:
+          description: 會議次數
+          type: string
+        sessionTimes:
+          description: 會期次數
+          type: string
+        jointCommittee:
+          description: 聯席會議
+          type: string
+        coChairman:
+          description: 共同主席
+          type: string
+        meetingUnit:
+          description: 會議單位
+          type: string
+      type: object
 tags:
   -
     name: legislator
     description: 立法委員
+  -
+    name: meet
+    description: 會議
   -
     name: bill
     description: 議案
