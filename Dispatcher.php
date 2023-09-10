@@ -71,6 +71,14 @@ class Dispatcher
      *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *    @OA\Response(response="200", description="連署議案列表", @OA\JsonContent(ref="#/components/schemas/Bill")),
      *  )
+     *  @OA\Get(
+     *    path="/legislator/{term}/{name}/meet", summary="取得特定委員的會議紀錄列表", tags={"legislator"},
+     *    @OA\Parameter(name="term", in="path", description="屆別", required=true, @OA\Schema(type="integer"), example=9),
+     *    @OA\Parameter(name="name", in="path", description="姓名", required=true, @OA\Schema(type="string"), example="王金平"),
+     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *    @OA\Response(response="200", description="會議紀錄列表", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     *    )
      */
     public static function legislator($params)
     {
@@ -83,7 +91,13 @@ class Dispatcher
                 $_GET['cosignatory'] = $params[1];
 
                 return self::bill([$params[0]]);
+            } elseif ($params[2] == 'meet') {
+                $_GET['legislator'] = $params[1];
+                $_GET['term'] = $params[0];
+
+                return self::meet([$params[0]]);
             }
+
         }
 
         $cmd = [

@@ -211,6 +211,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Bill'
+  '/legislator/{term}/{name}/meet':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定委員的會議紀錄列表
+      operationId: f3cca7484f1b467c834bcd7576d5db47
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: name
+          in: path
+          description: 姓名
+          required: true
+          schema:
+            type: string
+          example: 王金平
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 會議紀錄列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
   /committee:
     get:
       tags:
