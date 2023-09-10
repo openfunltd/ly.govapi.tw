@@ -631,6 +631,7 @@ class Dispatcher
      *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
      *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="committee_id", in="query", description="委員會 ID", required=false, @OA\Schema(type="string"), example="15"),
      *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
      *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
      *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
@@ -645,6 +646,7 @@ class Dispatcher
      *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
      *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="committee_id", in="query", description="委員會 ID", required=false, @OA\Schema(type="string"), example="15"),
      *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
      *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
      *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
@@ -659,6 +661,7 @@ class Dispatcher
      *   @OA\Parameter(name="meet_type", in="query", description="會議類型", required=false, @OA\Schema(type="string"), example="院會"),
      *   @OA\Parameter(name="legislator", in="query", description="出席立委", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *   @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
+     *   @OA\Parameter(name="committee_id", in="query", description="委員會 ID", required=false, @OA\Schema(type="string"), example="15"),
      *   @OA\Parameter(name="date_start", in="query", description="會議日期起", required=false, @OA\Schema(type="string"), example="2017-01-01"),
      *   @OA\Parameter(name="date_end", in="query", description="會議日期迄", required=false, @OA\Schema(type="string"), example="2017-01-31"),
      *   @OA\Parameter(name="q", in="query", description="搜尋會議名稱或內容", required=false, @OA\Schema(type="string"), example="平等"),
@@ -765,6 +768,15 @@ class Dispatcher
             $cmd['query']['bool']['must'][] = [
                 'term' => [
                     'startTime' => $records->date,
+                ],
+            ];
+        }
+
+        if (array_key_exists('committee_id', $_GET)) {
+            $records->committee_id = intval($_GET['committee_id']);
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'committees' => $records->committee_id,
                 ],
             ];
         }
