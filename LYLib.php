@@ -39,6 +39,9 @@ class LYLib
         if (!property_exists($meet, 'alias')) {
             $meet->alias = [];
         }
+        if (!property_exists($meet, 'committees')) {
+            $meet->committees = [];
+        }
         if ($meet->attendLegislator == '') {
             $meet->attendLegislator = [];
         } else {
@@ -88,8 +91,9 @@ class LYLib
         }
 
         try {
-            $l = LYLib::meetNameToId($meet->meetingName, $type);
+            $l = LYLib::meetNameToId($meet->meetingName, $type, $committees);
             $meet->meetingType = $type;
+            $meet->committees = $committees;
         } catch (Exception $e) {
             if (strpos($meet->meetingName, '黨團協商') !== false) {
                 $meet->meetingType = '黨團協商';
@@ -133,8 +137,9 @@ class LYLib
         return $meet;
     }
 
-    public static function meetNameToId($oname, &$type)
+    public static function meetNameToId($oname, &$type, &$committees)
     {
+        $committees = [];
         $name = $oname;
         $name = str_replace(' ', '', $name);
         $name = str_replace('：', '', $name);
@@ -176,6 +181,7 @@ class LYLib
                 if ($matches[3]) {
                     return 'tempcommittee-' . $matches[1] . '-' . $matches[2] . '-' . $matches[4] . '-' . $committee_id . '-' . $matches[6];
                 }
+                $committees[] = $committee_id;
                 return 'committee-' . $matches[1] . '-' . $matches[2] . '-' . $committee_id . '-' . $matches[6];
             } catch (Exception $e) {
             }
@@ -186,6 +192,7 @@ class LYLib
             $type = '委員會';
             try {
                 $committee_id = self::getCommitteeId($matches[2]);
+                $committees[] = $committee_id;
                 return 'committee-' . $matches[1] . '-' . $committee_id . '-' . $matches[3];
             } catch (Exception $e) {
             }
@@ -210,6 +217,7 @@ class LYLib
                 throw new Exception("{$name} 有問題");
             }
             sort($committee_ids);
+            $committees = $committee_ids;
             if ($matches[3]) {
                 return 'tempcommittees-' . $matches[1] . '-' . $matches[2] . '-' . $matches[4] . '-' . implode(',', $committee_ids) . '-' . $matches[6];
             }
