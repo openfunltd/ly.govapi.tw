@@ -513,9 +513,9 @@ class Dispatcher
         $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
         $records->total_page = ceil($records->total->value / $records->limit);
-        $records->gazettes = [];
+        $records->agendas = [];
         foreach ($obj->hits->hits as $hit) {
-            $records->gazettes[] = $buildData($hit->_source);
+            $records->agendas[] = $buildData($hit->_source);
         }
         self::json_output($records);
     }
