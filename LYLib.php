@@ -237,4 +237,43 @@ class LYLib
         }
         throw new Exception("{$oname} 有問題");
     }
+
+    public static function buildGazette($source)
+    {
+        $source->gazette_id = sprintf("LCIDC01_%03d%02d%02d",
+            $source->comYear,
+            $source->comVolume,
+            $source->comBookId
+        );
+        $source->agenda_api = sprintf("https://%s/gazette_agenda/%s",
+            $_SERVER['HTTP_HOST'],
+            $source->gazette_id
+        );
+        $source->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%2d/%02d/details", 
+            $source->comYear,
+            $source->comVolume,
+            $source->comBookId
+        );
+        return $source;
+    }
+
+    public static function buildGazetteAgenda($source)
+    {
+        $source->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%2d/%02d/details", 
+            $source->comYear,
+            $source->comVolume,
+            $source->comBookId
+        );
+        $source->pdf_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/%d/%02d/%s.pdf", 
+            $source->comYear,
+            $source->comVolume,
+            $source->agenda_id
+        );
+        $source->doc_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/%d/%02d/%s.doc", 
+            $source->comYear,
+            $source->comVolume,
+            $source->agenda_id
+        );
+        return $source;
+    }
 }

@@ -318,19 +318,6 @@ class Dispatcher
             'size' => 100,
         ];
 
-        $buildData = function($source) {
-            $source->gazette_id = sprintf("LCIDC01_%03d%02d%02d",
-                $source->comYear,
-                $source->comVolume,
-                $source->comBookId
-            );
-            $source->agenda_api = sprintf("https://%s/gazette_agenda/%s",
-                $_SERVER['HTTP_HOST'],
-                $source->gazette_id
-            );
-            return $source;
-        };
-
         $records = new StdClass;
         $records->total = 0;
         $records->page = @intval($_GET['page']) ?: 1;
@@ -343,7 +330,7 @@ class Dispatcher
             if (strpos($params[0], 'LCIDC') === 0) {
                 $obj = Elastic::dbQuery("/{prefix}gazette/_doc/" . urlencode($params[0]));
                 if (isset($obj->found) && $obj->found) {
-                    self::json_output($buildData($obj->_source));
+                    self::json_output(LYLib::buildGazette($obj->_source));
                 } else {
                     header('HTTP/1.0 404 Not Found');
                     self::json_output(['error' => 'not found']);
@@ -371,7 +358,7 @@ class Dispatcher
         $records->total_page = ceil($records->total->value / $records->limit);
         $records->gazettes = [];
         foreach ($obj->hits->hits as $hit) {
-            $records->gazettes[] = $buildData($hit->_source);
+            $records->gazettes[] = LYLib::buildGazette($hit->_source);
         }
         self::json_output($records);
     }
@@ -442,10 +429,6 @@ class Dispatcher
             'size' => 100,
         ];
 
-        $buildData = function($source) {
-            return $source;
-        };
-
         $records = new StdClass;
         $records->total = 0;
         $records->total_page = 0;
@@ -479,7 +462,7 @@ class Dispatcher
             } elseif (preg_match('/^LCIDC01_\d+_\d+$/', $params[0], $matches)) {
                 $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_doc/" . urlencode($params[0]));
                 if (isset($obj->found) && $obj->found) {
-                    self::json_output($buildData($obj->_source));
+                    self::json_output(LYLib::buildGazetteAgenda($obj->_source));
                 } else {
                     header('HTTP/1.0 404 Not Found');
                     self::json_output(['error' => 'not found']);
@@ -515,7 +498,7 @@ class Dispatcher
         $records->total_page = ceil($records->total->value / $records->limit);
         $records->agendas = [];
         foreach ($obj->hits->hits as $hit) {
-            $records->agendas[] = $buildData($hit->_source);
+            $records->agendas[] = LYLib::buildGazetteAgenda($hit->_source);
         }
         self::json_output($records);
     }
