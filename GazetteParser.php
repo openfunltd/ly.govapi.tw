@@ -281,4 +281,112 @@ class GazetteParser
         array_shift($ret->block_lines);
         return self::parseVote($ret);
     }
+
+    public static function parseInterpellation($content)
+    {
+        $current_page = 1;
+
+        $lines = explode("\n", $content);
+        $ret = new StdClass;
+        $ret->doc_title = trim(array_shift($lines));
+
+        $get_newline = function() use (&$lines, &$current_page, $ret) {
+            if (!count($lines)) {
+                return null;
+            }
+            while (trim($lines[0]) == '') {
+                if (!count($lines)) {
+                    return null;
+                }
+                array_shift($lines);
+            }
+
+            if (preg_match('#^質 (\d+)$#', trim($lines[0]), $matches) and strpos($lines[1], $ret->doc_title) !== false) {
+                $current_page = intval($matches[1]);
+                array_shift($lines);
+                array_shift($lines);
+                while (trim($lines[0]) == '') {
+                    if (!count($lines)) {
+                        return null;
+                    }
+                    array_shift($lines);
+                }
+
+            }
+            return array_shift($lines);
+        };
+
+        $pop_line = function($line) use (&$lines) {
+            array_unshift($lines, $line);
+        };
+
+        $ret->interpellations = [];
+        $interpellation = null;
+        // 第一行會是 立法院第 8 屆第 1 會期第 1 次會議議案關係文書
+        if (!preg_match('#立法院第 ([0-9]+) 屆第 ([0-9]+) 會期第 ([0-9]+) 次會議議案關係文書#u', $ret->doc_title, $matches)) {
+            throw new Exception("找不到屆期次: " . $ret->doc_title);
+        }
+
+        while (count($lines)) {
+            $line = $get_newline();
+            // 專案質詢\n8－1－1－0001
+            if ($line == '專案質詢' and preg_match('#^(\d+)－(\d+)－(\d+)－(\d+)$#', $lines[0], $matches)) {
+                if (!is_null($interpellation)) {
+                    $interpellation->page_end = $current_page;
+                    $ret->interpellations[] = $interpellation;
+                }
+                $interpellation = new StdClass;
+                $interpellation->id = implode('-', array_slice($matches, 1));
+                $interpellation->page_start = $current_page;
+                $interpellation->page_end = $current_page;
+                array_shift($lines);
+
+                $line = $get_newline();
+                // 立法院議案關係文書 中華民國 101 年 2 月 22 日印發
+                if (!preg_match('#立法院議案關係文書 中華民國 ([0-9]+) 年 ([0-9]+) 月 ([0-9]+) 日印發#u', $line, $matches)) {
+                    throw new Exception("找不到議案關係文書: " . $line);
+                }
+                $interpellation->printed_at = sprintf("%04d-%02d-%02d", $matches[1] + 1911, $matches[2], $matches[3]);
+                continue;
+            }
+
+            if (preg_match('#^案由：(.*)$#u', trim($line), $matches)) {
+                $interpellation->reason = $matches[1];
+                if (!preg_match('#^本院([^，]+)委員([^，]+)，#u', $interpellation->reason, $matches)) {
+                    throw new Exception("找不到委員: " . $interpellation->reason);
+                }
+                $interpellation->committee = $matches[1] . $matches[2];
+
+                while ($line = $get_newline()) {
+                    if (strpos(trim($line), '說明：') === 0) {
+                        $pop_line($line);
+                        break;
+                    }
+                    $interpellation->reason .= trim($line);
+                }
+                continue;
+            }
+
+            if (preg_match('#^說明：(.*)$#u', trim($line), $matches)) {
+                $interpellation->description = $matches[1];
+                if ($matches[1]) {
+                    $interpellation->description .= "\n";
+                }
+                while ($line = $get_newline()) {
+                    if (strpos(trim($line), '專案質詢') === 0) {
+                        $pop_line($line);
+                        break;
+                    }
+                    $interpellation->description .= trim($line) . "\n";
+                }
+                continue;
+            }
+
+            print_r($ret);
+            echo json_encode($interpellation, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
+            echo "line: " . $line . "\n";
+            throw new Exception("unknown line");
+        }
+        return $ret;
+    }
 }
