@@ -249,7 +249,7 @@ class LYLib
             $_SERVER['HTTP_HOST'],
             $source->gazette_id
         );
-        $source->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%2d/%02d/details", 
+        $source->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%02d/%02d/details",
             $source->comYear,
             $source->comVolume,
             $source->comBookId
