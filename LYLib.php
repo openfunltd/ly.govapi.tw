@@ -238,6 +238,19 @@ class LYLib
         throw new Exception("{$oname} 有問題");
     }
 
+    public static function buildMeet($source)
+    {
+        if (strlen($source->meetingNo) < 15) {
+            $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
+                $source->meetingNo,
+                date('Y', strtotime($source->date)) - 1911,
+                date('m', strtotime($source->date)),
+                date('d', strtotime($source->date))
+            );
+        }
+        return $source;
+    }
+
     public static function buildGazette($source)
     {
         $source->gazette_id = sprintf("LCIDC01_%03d%02d%02d",

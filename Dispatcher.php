@@ -832,7 +832,7 @@ class Dispatcher
         $records->meets = [];
         foreach ($obj->hits->hits as $hit) {
             $hit->_source->id = $hit->_id;
-            $records->meets[] = $hit->_source;
+            $records->meets[] = LYLib::buildMeet($hit->_source);
         }
         self::json_output($records);
     }
