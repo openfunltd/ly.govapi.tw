@@ -286,7 +286,7 @@ class LYLib
 
         if (file_exists($dir . "/txtfile/" . $basename)) {
             // 檢查是否有圖片，有的話就解出來轉檔
-            $cmd = sprintf("grep --quiet %s %s", escapeshellarg('\[pic\]'), escapeshellarg('txtfile/' . $basename));
+            $cmd = sprintf("grep --quiet %s %s", escapeshellarg('\[pic\]'), escapeshellarg($dir . '/txtfile/' . $basename));
             system($cmd, $ret);
             if ($ret) {
                 return;
