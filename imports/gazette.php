@@ -74,7 +74,7 @@ foreach ($list_files as $file) {
                 throw $e;
             }
         }
-        $agenda_id = sprintf("LCIDC01_%03d%02d%02d_%05d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId'], $agenda['agendaNo'] + 1);
+        $agenda_id = sprintf("LCIDC01_%03d%02d%02d_%05d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId'], $agenda['agendaNo']);
         $agenda['agenda_id'] = $agenda_id;
         $gazette_id = sprintf("LCIDC01_%03d%02d%02d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
         $agenda['gazette_id'] = $gazette_id;
