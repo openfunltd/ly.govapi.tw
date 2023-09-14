@@ -276,4 +276,90 @@ class LYLib
         );
         return $source;
     }
+
+    public static function parseTxtFile($basename, $dir)
+    {
+        $docfile = $dir . "/docfile/{$basename}";
+        if (!file_exists($dir . "/txtfile/" . $basename) or filesize($dir . "/txtfile/{$basename}") == 0) {
+            system(sprintf("antiword %s > %s", escapeshellarg($docfile), escapeshellarg($dir . "/txtfile/{$basename}")));
+        }
+
+        if (file_exists($dir . "/txtfile/" . $basename)) {
+            // 檢查是否有圖片，有的話就解出來轉檔
+            $cmd = sprintf("grep --quiet %s %s", escapeshellarg('\[pic\]'), escapeshellarg('txtfile/' . $basename));
+            system($cmd, $ret);
+            if ($ret) {
+                return;
+            }
+            $pics = LYLib::parseDoc($docfile, $dir);
+            $pic_count = 0;
+            $content = file_get_contents($dir . "/txtfile/{$basename}");
+            $uploading_pics = [];
+            $content = preg_replace_callback('/\[pic\]/', function($matches) use (&$pics, $basename, &$uploading_pics, &$pic_count) {
+                if (!$pics) {
+                    print_r($pics);
+                    throw new Exception("圖片數量不正確: {$basename} (pic_count = {$pic_count})");
+                }
+                $pic = array_shift($pics);
+                $pic_count ++;
+                if ($pic[2] < 10) {
+                    return '==========';
+                }
+                $uploading_pics[$pic[0]] = true;
+                return "[pic:https://lydata.ronny-s3.click/picfile/{$basename}-{$pic[0]}]";
+            }, $content);
+
+            file_put_contents($dir . "/txtfile/{$basename}", $content);
+        }
+    }
+
+    public static function parseDoc($file, $dir)
+    {
+        error_log("parse doc $file");
+        $basename = basename($file);
+        if (file_exists($dir . "/htmlfile/{$basename}")) {
+            $pics = json_decode(file_get_contents($dir . "/htmlfile/{$basename}"))->pics;
+            if ($pics) {
+            }
+            return $pics;
+        }
+        $cmd = sprintf("curl -X POST -F %s -F \"output_type=html\" https://soffice.ronny.tw/", escapeshellarg('file=@' . $file));
+        $fp = popen($cmd, 'r');
+        $base = basename($file);
+        $images = new StdClass;
+        $ret = new StdClass;
+        while ($line = fgets($fp)) {
+            if (!$obj = json_decode($line)) {
+                echo $line;
+                echo 'error line';
+                exit;
+            }
+            if ($obj[0] == 'attachments') {
+                $attachment = $obj[1];
+                $img_name = explode('_html_', $attachment->file_name)[1];
+                file_put_contents($dir . '/picfile/' . $base . '-' . $img_name, base64_decode($attachment->content));
+                //S3Lib::put(__DIR__ . "/picfile/{$basename}-{$img_name}", "data/picfile/{$basename}-{$img_name}");
+                //unlink(__DIR__ . "/picfile/{$basename}-{$img_name}");
+
+                $images->{$img_name} = true;
+            } elseif ($obj[0] == 'content') {
+                $ret->content = $obj[1];
+                $content = base64_decode($obj[1]);
+                preg_match_all('#<img src="([^"]+)"[^>]*"#', $content, $matches);
+                $pics = [];
+                foreach ($matches[1] as $idx => $file_name) {
+                    $img_name = explode('_html_', $file_name)[1];
+                    if (!preg_match('/width="(\d+)" height="(\d+)"/', $matches[0][$idx], $matches2)) {
+                    }
+                    $pics[] = [$img_name, $matches2[1], $matches2[2], $idx];
+                }
+                $ret->pics = $pics;
+            } else {
+                $ret->{$obj[0]} = $obj[1];
+            }
+        }
+
+        file_put_contents($dir . "/htmlfile/{$basename}", json_encode($ret));
+        return $pics;
+    }
 }
