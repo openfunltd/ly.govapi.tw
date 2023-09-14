@@ -79,7 +79,7 @@ foreach ($list_files as $file) {
         $gazette_id = sprintf("LCIDC01_%03d%02d%02d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
         $agenda['gazette_id'] = $gazette_id;
         if (strpos($agenda['docUrl'], $agenda['agenda_id']) === false) {
-            continue;
+            //continue;
         }
 
         unset($agenda['docUrl']);
