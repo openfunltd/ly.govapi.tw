@@ -74,9 +74,9 @@ foreach ($list_files as $file) {
                 throw $e;
             }
         }
-        $agenda_id = sprintf("LCIDC01_%03d%02d%02d_%05d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId'], $agenda['agendaNo']);
+        $agenda_id = sprintf("%03d%02d%02d_%05d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId'], $agenda['agendaNo']);
         $agenda['agenda_id'] = $agenda_id;
-        $gazette_id = sprintf("LCIDC01_%03d%02d%02d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
+        $gazette_id = sprintf("%03d%02d%02d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
         $agenda['gazette_id'] = $gazette_id;
         if (strpos($agenda['docUrl'], $agenda['agenda_id']) === false) {
             //continue;
