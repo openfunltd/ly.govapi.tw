@@ -240,6 +240,12 @@ class LYLib
 
     public static function buildInterpellation($source)
     {
+        $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
+            $source->meetingNo,
+            date('Y', strtotime($source->meetingDate)) - 1911,
+            date('m', strtotime($source->meetingDate)),
+            date('d', strtotime($source->meetingDate))
+        );
         return $source;
     }
 
