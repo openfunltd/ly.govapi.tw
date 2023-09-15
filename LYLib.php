@@ -238,6 +238,11 @@ class LYLib
         throw new Exception("{$oname} 有問題");
     }
 
+    public static function buildInterpellation($source)
+    {
+        return $source;
+    }
+
     public static function buildMeet($source)
     {
         if (strlen($source->meetingNo) < 15) {

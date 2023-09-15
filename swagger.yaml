@@ -257,6 +257,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Meet'
+  '/legislator/{term}/{name}/interpellation':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定委員的質詢紀錄列表
+      operationId: 5dd30a1c5238ddd096018d51ffe52f62
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆別
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: name
+          in: path
+          description: 姓名
+          required: true
+          schema:
+            type: string
+          example: 林淑芬
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 質詢紀錄列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
   /committee:
     get:
       tags:
@@ -1186,6 +1232,322 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Meet'
+  /interpellation:
+    get:
+      tags:
+        - interpellation
+      summary: 搜尋質詢資料
+      operationId: 8e35d5ab17e0d49ddd327e59fadf1c47
+      parameters:
+        -
+          name: term
+          in: query
+          description: 屆期
+          required: false
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: sessionTimes
+          in: query
+          description: 會期次數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: legislator
+          in: query
+          description: 提案委員
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: q
+          in: query
+          description: 搜尋質詢理由或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
+  '/interpellation/{term}':
+    get:
+      tags:
+        - interpellation
+      summary: '搜尋 {term} 屆質詢資料'
+      operationId: d786381f753555254d24e5d54919a56b
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: sessionTimes
+          in: query
+          description: 會期次數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: legislator
+          in: query
+          description: 提案委員
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: q
+          in: query
+          description: 搜尋質詢理由或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
+  '/interpellation/{term}/{sessionPeriod}':
+    get:
+      tags:
+        - interpellation
+      summary: '搜尋第 {term} 屆第 {sessionPeriod} 會期的質詢資料'
+      operationId: 98a9bda5579c943949d1ef27152516a7
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: path
+          description: 會期
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: sessionTimes
+          in: query
+          description: 會期次數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: legislator
+          in: query
+          description: 提案委員
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: q
+          in: query
+          description: 搜尋質詢理由或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
+  '/interpellation/{term}/{sessionPeriod}/{sessionTimes}':
+    get:
+      tags:
+        - interpellation
+      summary: '搜尋第{term}屆第{sessionPeriod}會期第{sessionTimes}次會議的質詢資料'
+      operationId: c0a5ed7c7c497449bb368a04eb191239
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: path
+          description: 會期
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: sessionTimes
+          in: path
+          description: 會期次數
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: legislator
+          in: query
+          description: 提案委員
+          required: false
+          schema:
+            type: string
+          example: 黃國昌
+        -
+          name: q
+          in: query
+          description: 搜尋質詢理由或內容
+          required: false
+          schema:
+            type: string
+          example: 平等
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
+  '/interpellation/{term}/{sessionPeriod}/{sessionTimes}/{interpellation_id}':
+    get:
+      tags:
+        - interpellation
+      summary: 取得特定次質詢資料
+      operationId: 2e5d972faf4160fa1eff94fb43719207
+      parameters:
+        -
+          name: term
+          in: path
+          description: 屆期
+          required: true
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: path
+          description: 會期
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: sessionTimes
+          in: path
+          description: 會期次數
+          required: true
+          schema:
+            type: integer
+          example: 1
+        -
+          name: interpellation_id
+          in: path
+          description: '質詢 ID'
+          required: true
+          schema:
+            type: integer
+          example: '1'
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
+        '404':
+          description: 找不到質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
 components:
   schemas:
     Error:
@@ -1501,10 +1863,63 @@ components:
           description: 會議單位
           type: string
       type: object
+    Interpellation:
+      required:
+        - id
+        - page_start
+        - page_end
+        - printed_at
+        - reason
+        - legislators
+        - description
+        - meetingNo
+        - term
+        - sessionPeriod
+        - sessionTimes
+      properties:
+        id:
+          description: '質詢 ID'
+          type: string
+        page_start:
+          description: 起始頁數
+          type: integer
+        page_end:
+          description: 結束頁數
+          type: integer
+        printed_at:
+          description: 列印日期
+          type: string
+        reason:
+          description: 質詢理由
+          type: string
+        legislators:
+          description: 提案委員
+          type: array
+          items:
+            type: string
+        description:
+          description: 質詢內容
+          type: string
+        meetingNo:
+          description: 會議編號
+          type: string
+        term:
+          description: 屆期
+          type: integer
+        sessionPeriod:
+          description: 會期
+          type: integer
+        sessionTimes:
+          description: 會期次數
+          type: integer
+      type: object
 tags:
   -
     name: legislator
     description: 立法委員
+  -
+    name: committee
+    description: 委員會
   -
     name: meet
     description: 會議
@@ -1512,8 +1927,8 @@ tags:
     name: bill
     description: 議案
   -
-    name: committee
-    description: 委員會
+    name: interpellation
+    description: 質詢
   -
     name: gazette
     description: 公報

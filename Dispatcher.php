@@ -5,9 +5,10 @@
  *   title="立法院 API", version="1.0.0"
  * )
  * @OA\Tag(name="legislator", description="立法委員")
+ * @OA\Tag(name="committee", description="委員會")
  * @OA\Tag(name="meet", description="會議")
  * @OA\Tag(name="bill", description="議案")
- * @OA\Tag(name="committee", description="委員會")
+ * @OA\Tag(name="interpellation", description="質詢")
  * @OA\Tag(name="gazette", description="公報")
  * @OA\Schema(schema="Error", type="object", required={"error"}, @OA\Property(property="error", type="string"))
  *  @OA\Schema(
@@ -78,7 +79,15 @@ class Dispatcher
      *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *    @OA\Response(response="200", description="會議紀錄列表", @OA\JsonContent(ref="#/components/schemas/Meet")),
-     *    )
+     *  )
+     *  @OA\Get(
+     *    path="/legislator/{term}/{name}/interpellation", summary="取得特定委員的質詢紀錄列表", tags={"legislator"},
+     *    @OA\Parameter(name="term", in="path", description="屆別", required=true, @OA\Schema(type="integer"), example=9),
+     *    @OA\Parameter(name="name", in="path", description="姓名", required=true, @OA\Schema(type="string"), example="林淑芬"),
+     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *    @OA\Response(response="200", description="質詢紀錄列表", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     *  )
      */
     public static function legislator($params)
     {
@@ -96,6 +105,11 @@ class Dispatcher
                 $_GET['term'] = $params[0];
 
                 return self::meet([$params[0]]);
+            } elseif ($params[2] == 'interpellation') {
+                $_GET['legislator'] = $params[1];
+                $_GET['term'] = $params[0];
+
+                return self::interpellation([$params[0]]);
             }
 
         }
@@ -837,6 +851,181 @@ class Dispatcher
         self::json_output($records);
     }
 
+    /**
+     * @OA\Get(
+     *   path="/interpellation", summary="搜尋質詢資料", tags={"interpellation"},
+     *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
+     * @OA\Get(
+     *   path="/interpellation/{term}", summary="搜尋 {term} 屆質詢資料", tags={"interpellation"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
+     * @OA\Get(
+     *   path="/interpellation/{term}/{sessionPeriod}", summary="搜尋第 {term} 屆第 {sessionPeriod} 會期的質詢資料", tags={"interpellation"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
+     * @OA\Get(
+     *   path="/interpellation/{term}/{sessionPeriod}/{sessionTimes}", summary="搜尋第{term}屆第{sessionPeriod}會期第{sessionTimes}次會議的質詢資料", tags={"interpellation"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="sessionTimes", in="path", description="會期次數", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
+     * @OA\Get(
+     *   path="/interpellation/{term}/{sessionPeriod}/{sessionTimes}/{interpellation_id}", summary="取得特定次質詢資料", tags={"interpellation"},
+     *   @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="sessionTimes", in="path", description="會期次數", required=true, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="interpellation_id", in="path", description="質詢 ID", required=true, @OA\Schema(type="integer"), example="1"),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     *   @OA\Response(response="404", description="找不到質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
+     * @OA\Schema(
+     *   schema="Interpellation", type="object", required={"id", "page_start", "page_end", "printed_at", "reason", "legislators", "description", "meetingNo", "term", "sessionPeriod", "sessionTimes"},
+     *   @OA\Property(property="id", type="string", description="質詢 ID"),
+     *   @OA\Property(property="page_start", type="integer", description="起始頁數"),
+     *   @OA\Property(property="page_end", type="integer", description="結束頁數"),
+     *   @OA\Property(property="printed_at", type="string", description="列印日期"),
+     *   @OA\Property(property="reason", type="string", description="質詢理由"),
+     *   @OA\Property(property="legislators", type="array", description="提案委員", @OA\Items(type="string")),
+     *   @OA\Property(property="description", type="string", description="質詢內容"),
+     *   @OA\Property(property="meetingNo", type="string", description="會議編號"),
+     *   @OA\Property(property="term", type="integer", description="屆期"),
+     *   @OA\Property(property="sessionPeriod", type="integer", description="會期"),
+     *   @OA\Property(property="sessionTimes", type="integer", description="會期次數"),
+     * )
+     *
+     *
+     */
+    public static function interpellation($params)
+    {
+        // output: 
+        // {"id":"10-7-11-40","page_start":1,"page_end":4,"printed_at":"2023-05-10","reason":"本院林委員淑芬，針對...","legislators":["林淑芬"],"description":"根據農糧署...","meetingNo":"2023051084","term":10,"sessionPeriod":7,"sessionTimes":11}
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => ['printed_at' => 'desc'],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+        if (count($params) > 0) {
+            $term = $params[0];
+            $records->term = $term;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'term' => $term,
+                ],
+            ];
+        }
+        if (count($params) > 1) {
+            $sessionPeriod = $params[1];
+            $records->sessionPeriod = $sessionPeriod;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'sessionPeriod' => $sessionPeriod,
+                ],
+            ];
+        }
+        if (count($params) > 2) {
+            $sessionTimes = intval($params[2]);
+            $records->sessionTimes = $sessionTimes;
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'sessionTimes' => $sessionTimes,
+                ],
+            ];
+        }
+        if (count($params) > 3) {
+            $interpellation_id = implode('-', [$term, $sessionPeriod, $sessionTimes, $params[3]]);
+            $obj = Elastic::dbQuery("/{prefix}interpellation/_doc/{$interpellation_id}");
+            if (isset($obj->found) && $obj->found) {
+                self::json_output(LYLib::buildInterpellation($obj->_source));
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+            }
+            return;
+        }
+
+        if (array_key_exists('term', $_GET)) {
+            $records->term = $_GET['term'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'term' => $records->term,
+                ],
+            ];
+        }
+        if (array_key_exists('sessionPeriod', $_GET)) {
+            $records->sessionPeriod = $_GET['sessionPeriod'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'sessionPeriod' => $records->sessionPeriod,
+                ],
+            ];
+        }
+
+        if (array_key_exists('legislator', $_GET)) {
+            $records->legislator = $_GET['legislator'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'legislators.keyword' => $records->legislator,
+                ],
+            ];
+        }
+
+        if (array_key_exists('q', $_GET)) {
+            $records->q = '"' . $_GET['q'] . '"';
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['reason', 'description'],
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}interpellation/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total->value / $records->limit);
+        $records->interpellations = [];
+        foreach ($obj->hits->hits as $hit) {
+            $hit->_source->id = $hit->_id;
+            $records->interpellations[] = LYLib::buildInterpellation($hit->_source);
+        }
+        self::json_output($records);
+    }
+
     public static function json_output($obj)
     {
         header('Access-Control-Allow-Origin: *');
@@ -880,6 +1069,8 @@ class Dispatcher
             self::bill($terms);
         } else if ('meet' == $method) {
             self::meet($terms);
+        } else if ('interpellation' == $method) {
+            self::interpellation($terms);
         } else {
             header('HTTP/1.0 404 Not Found');
             echo '404 Not Found';
