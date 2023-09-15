@@ -47,6 +47,7 @@ $get_meetingdate = function($agenda) {
 };
 
 $agendas = [];
+$agendas_doc = [];
 $gazettes = [];
 
 foreach ($list_files as $file) {
@@ -78,9 +79,10 @@ foreach ($list_files as $file) {
         $agenda['agenda_id'] = $agenda_id;
         $gazette_id = sprintf("%03d%02d%02d", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
         $agenda['gazette_id'] = $gazette_id;
-        if (strpos($agenda['docUrl'], $agenda['agenda_id']) === false) {
-            //continue;
+        if (!array_key_exists($agenda_id, $agendas_doc)) {
+            $agendas_doc[$agenda_id] = [];
         }
+        $agendas_doc[$agenda_id][] = $agenda['docUrl'];
 
         unset($agenda['docUrl']);
         unset($agenda['']);
@@ -100,8 +102,10 @@ foreach ($list_files as $file) {
             }
         } else {
             $agendas[$agenda['agenda_id']] = $agenda;
-            Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], $agenda);
         }
+        Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], array_merge($agenda, [
+            'docUrls' => $agendas_doc[$agenda['agenda_id']],
+        ]));
 
         if (array_key_exists($agenda['gazette_id'], $gazettes)) {
             if ($gazettes[$agenda['gazette_id']] != $gazette) {
