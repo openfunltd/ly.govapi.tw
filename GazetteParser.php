@@ -285,12 +285,71 @@ class GazetteParser
     public static function parseInterpellation($content)
     {
         $current_page = 1;
+        $content = rtrim($content);
+        if (strpos($content, '專案賥詢') !== false) {
+            $content = str_replace('賥', '質', $content);
+        }
+        if (strpos($content, '案由〆本') !== false) {
+            $content = str_replace('〆', '：', $content);
+        }
+        if (strpos($content, '中華术國') !== false) {
+            $content = str_replace('术', '民', $content);
+        }
+        if (strpos($content, '職後，行政院派了與花蓮縣並無淵源的法務部次長蔡碧仲代') !== false) {
+            $content = str_replace("職後，行政院派了與花蓮縣並無淵源的法務部次長蔡碧仲代", "案由：本院許委員淑華，鑒於花蓮縣前縣長傅崐萁被判刑定讞而解\n職後，行政院派了與花蓮縣並無淵源的法務部次長蔡碧仲代", $content);
+        }
+
+        if (strpos($content, '各約十萬輛次，在尖峰時，台北到花蓮花了 8 小時，因國五') !== false) {
+            $content = str_replace('各約十萬輛次，在尖峰時，台北到花蓮花了 8 小時，因國五', "案由：本院傅委員崐萁，針對蘇花改今年通車，春節期間南下北上\n各約十萬輛次，在尖峰時，台北到花蓮花了 8 小時，因國五", $content);
+        }
+
+        if (strpos($content, '史、感染原因不明的死亡個案，建請行政院防疫作戰勢必更') !== false) {
+            $content = str_replace('史、感染原因不明的死亡個案，建請行政院防疫作戰勢必更', '案由：本院傅委員崐萁，針對日前台灣已經出首例無接觸史、旅遊\n史、感染原因不明的死亡個案，建請行政院防疫作戰勢必更', $content);
+        }
+
+        if (strpos($content, '求，民眾因恐慌性瘋搶口罩，更使得口罩供應嚴重不足，進') !== false) {
+            $content = str_replace("求，民眾因恐慌性瘋搶口罩，更使得口罩供應嚴重不足，進",
+                "案由：本院傅委員崐萁，針對行政院因應「新冠肺炎」口罩供不應\n"
+                . "求，民眾因恐慌性瘋搶口罩，更使得口罩供應嚴重不足，進", $content);
+        }
+
+        if (strpos($content, '國民宿業者住房率下降，花蓮民宿業者影響尤其嚴重，營業') !== false) {
+            $content = str_replace("國民宿業者住房率下降，花蓮民宿業者影響尤其嚴重，營業",
+                "案由：本院傅委員崐萁，針對新冠肺炎重挫我國觀光產業，以致全\n"
+                . "國民宿業者住房率下降，花蓮民宿業者影響尤其嚴重，營業", $content);
+        }
+
+        if (strpos($content, '光市場，交通部目前紓困計畫有 5 個項目，已經籌編新台幣') !== false) {
+            $content = str_replace("光市場，交通部目前紓困計畫有 5 個項目，已經籌編新台幣",
+                "案由：本院傅委員崐萁，針對交通部因應「新冠肺炎」衝擊台灣觀\n"
+                . "光市場，交通部目前紓困計畫有 5 個項目，已經籌編新台幣", $content);
+        }
+
+        if (strpos($content, '炎」疫情急速升溫，國內許多產業因嚴重特殊傳染性肺炎疫') !== false) {
+            $content = str_replace("炎」疫情急速升溫，國內許多產業因嚴重特殊傳染性肺炎疫",
+                "案由：本院傅委員崐萁，針對勞動部近日發函指出，因應「新冠肺\n"
+                . "炎」疫情急速升溫，國內許多產業因嚴重特殊傳染性肺炎疫", $content);
+        }
+
+        if (strpos($content, '                                             中政策」宣') !== false) {
+            $content = str_replace("                                             中政策」宣",
+                "案由：本院傅委員崐萁，針對日前菲律賓衛生部以「一中政策」宣", $content);
+        }
+
+        if (strpos($content, '                                 型冠狀肺炎疫情日趨嚴重，') !== false) {
+            $content = str_replace("                                 型冠狀肺炎疫情日趨嚴重，",
+                "案由：本院陳委員秀寳，有鑑於目前新型冠狀肺炎疫情日趨嚴重，", $content);
+        }
+
+        if (strpos($content, '本院陳委素月，針對政府目')) {
+            $content = str_replace('本院陳委素月，針對政府目', '本院陳委員素月，針對政府目', $content);
+        }
 
         $lines = explode("\n", $content);
         $ret = new StdClass;
         $ret->doc_title = trim(array_shift($lines));
 
-        $get_newline = function() use (&$lines, &$current_page, $ret) {
+        $get_newline = function() use (&$lines, &$current_page, $ret, &$get_newline) {
             if (!count($lines)) {
                 return null;
             }
@@ -301,8 +360,11 @@ class GazetteParser
                 array_shift($lines);
             }
 
-            if (preg_match('#^質 (\d+)$#', trim($lines[0]), $matches) and strpos($lines[1], $ret->doc_title) !== false) {
-                $current_page = intval($matches[1]);
+            if (preg_match('#^質 (\d+)$#u', trim($lines[0]), $matches) and trim(str_replace("\f", "", $lines[1])) == '') {
+                return null;
+            }
+            while (preg_match('#^質 (\d+)$#u', trim($lines[0]), $matches) and strpos($lines[1], $ret->doc_title) !== false) {
+                $current_page = intval($matches[1]) + 1;
                 array_shift($lines);
                 array_shift($lines);
                 while (trim($lines[0]) == '') {
@@ -311,9 +373,20 @@ class GazetteParser
                     }
                     array_shift($lines);
                 }
+                return $get_newline();
 
             }
-            return array_shift($lines);
+            $line = array_shift($lines);
+            if (strpos(trim($line), '案 由 ： 本 院 ') === 0) {
+                $line = preg_replace('#([^ ])[ ]#u', "$1", $line);
+            }
+            if (strpos($line, '案由：本院陳委員學聖針對行政院回覆本席書面質詢之關係文書編') !== false) {
+                $line = '案由：本院陳委員學聖，針對行政院回覆本席書面質詢之關係文書編';
+            }
+            if (strpos($line, '立法院議案關係文書 中華民國 104 年 10 月 14 印發') !== false) {
+                $line = '立法院議案關係文書 中華民國 104 年 10 月 14 日印發';
+            }
+            return $line;
         };
 
         $pop_line = function($line) use (&$lines) {
@@ -326,36 +399,53 @@ class GazetteParser
         if (!preg_match('#立法院第 ([0-9]+) 屆第 ([0-9]+) 會期第 ([0-9]+) 次會議議案關係文書#u', $ret->doc_title, $matches)) {
             throw new Exception("找不到屆期次: " . $ret->doc_title);
         }
+        $ret->term = intval($matches[1]);
+        $ret->sessionPeriod = intval($matches[2]);
+        $ret->sessionTimes = intval($matches[3]);
 
         while (count($lines)) {
             $line = $get_newline();
+            if (is_null($line)) {
+                break;
+            }
             // 專案質詢\n8－1－1－0001
-            if ($line == '專案質詢' and preg_match('#^(\d+)－(\d+)－(\d+)－(\d+)$#', $lines[0], $matches)) {
+            if (trim($line) == '專案質詢' and preg_match('#^(\d+)－(\d+)－(\d+)－(\d+)$#', trim($lines[0]), $matches)) {
                 if (!is_null($interpellation)) {
                     $interpellation->page_end = $current_page;
                     $ret->interpellations[] = $interpellation;
                 }
                 $interpellation = new StdClass;
-                $interpellation->id = implode('-', array_slice($matches, 1));
+                $interpellation->id = implode('-', array_map('intval', array_slice($matches, 1)));
                 $interpellation->page_start = $current_page;
                 $interpellation->page_end = $current_page;
                 array_shift($lines);
 
                 $line = $get_newline();
                 // 立法院議案關係文書 中華民國 101 年 2 月 22 日印發
-                if (!preg_match('#立法院議案關係文書 中華民國 ([0-9]+) 年 ([0-9]+) 月 ([0-9]+) 日印發#u', $line, $matches)) {
-                    throw new Exception("找不到議案關係文書: " . $line);
+                if (preg_match('#立法院議案關係文書 中華民國 ([0-9]+) 年 ([0-9]+) 月 ([0-9]+) 日印發#u', $line, $matches)) {
+                    $interpellation->printed_at = sprintf("%04d-%02d-%02d", $matches[1] + 1911, $matches[2], $matches[3]);
+                } else {
+                    $pop_line($line);
                 }
-                $interpellation->printed_at = sprintf("%04d-%02d-%02d", $matches[1] + 1911, $matches[2], $matches[3]);
                 continue;
             }
 
             if (preg_match('#^案由：(.*)$#u', trim($line), $matches)) {
                 $interpellation->reason = $matches[1];
-                if (!preg_match('#^本院([^，]+)委員([^，]+)，#u', $interpellation->reason, $matches)) {
+                if (preg_match('#^本院([^，、]+)委員([^，、]+)[，、]#u', $interpellation->reason, $matches)) {
+                    $interpellation->committees = [$matches[1] . $matches[2]];
+                } elseif (preg_match('#^本院委員(.*)，#u', $interpellation->reason, $matches)) {
+                    //本院委員鄭麗君、李俊俋，
+                    $interpellation->committees = explode('、', $matches[1]);
+                } elseif (preg_match('#^本院([^，]*黨團)，#u', $interpellation->reason, $matches)) {
+                    //本院台灣團結聯盟黨團，
+                    $interpellation->committees = [$matches[1]];
+                } elseif (preg_match('#^本院([^，]*)委員，#u', $interpellation->reason, $matches)) {
+                    //本院江惠貞委員，
+                    $interpellation->committees = [$matches[1]];
+                } else {
                     throw new Exception("找不到委員: " . $interpellation->reason);
                 }
-                $interpellation->committee = $matches[1] . $matches[2];
 
                 while ($line = $get_newline()) {
                     if (strpos(trim($line), '說明：') === 0) {
@@ -384,8 +474,12 @@ class GazetteParser
 
             print_r($ret);
             echo json_encode($interpellation, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
-            echo "line: " . $line . "\n";
+            echo "line: " . json_encode($line, JSON_UNESCAPED_UNICODE) . "\n";
             throw new Exception("unknown line");
+        }
+        if (!is_null($interpellation)) {
+            $interpellation->page_end = $current_page;
+            $ret->interpellations[] = $interpellation;
         }
         return $ret;
     }
