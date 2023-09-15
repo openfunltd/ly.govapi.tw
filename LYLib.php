@@ -264,7 +264,7 @@ class LYLib
 
     public static function buildGazette($source)
     {
-        $source->gazette_id = sprintf("LCIDC01_%03d%02d%02d",
+        $source->gazette_id = sprintf("%03d%02d%02d",
             $source->comYear,
             $source->comVolume,
             $source->comBookId

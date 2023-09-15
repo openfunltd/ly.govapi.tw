@@ -303,7 +303,7 @@ class Dispatcher
      *   )
      *   @OA\Get(
      *   path="/gazette/{gazette_id}", summary="取得特定公報資料", tags={"gazette"},
-     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203"),
+     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="1126203"),
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
      *   @OA\Response(response="404", description="找不到公報資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
@@ -389,7 +389,7 @@ class Dispatcher
      *  )
      *  @OA\Get(
      *   path="/gazette_agenda/{gazette_id}", summary="取得公報下所有目錄", tags={"gazette"},
-     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203"),
+     *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="1126203"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *  @OA\Parameter(name="date", in="query", description="會議日期", required=false, @OA\Schema(type="string"), example="2017-01-19"),
@@ -399,7 +399,7 @@ class Dispatcher
      *  )
      *  @OA\Get(
      *   path="/gazette_agenda/{agenda_id}", summary="取得特定公報目錄資料", tags={"gazette"},
-     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1126203_0001"),
+     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="1126203_0001"),
      *   @OA\Response(response="200", description="公報目錄資料", @OA\JsonContent(ref="#/components/schemas/GazetteAgenda")),
      *   @OA\Response(response="404", description="找不到公報目錄資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *   )
@@ -452,7 +452,7 @@ class Dispatcher
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
         if (count($params) > 0) {
-            if (preg_match('/^LCIDC01_(\d+)$/', $params[0], $matches)) {
+            if (preg_match('/^(\d+)$/', $params[0], $matches) and strlen($params[0]) > 3) {
                 $records->gazette_id = $params[0];
                 $records->comYear = intval(substr($matches[1], 0, 3));
                 $matches[1] = substr($matches[1], 3);
@@ -473,7 +473,7 @@ class Dispatcher
                         'comBookId' => $records->comBookId,
                     ],
                 ];
-            } elseif (preg_match('/^LCIDC01_\d+_\d+$/', $params[0], $matches)) {
+            } elseif (preg_match('/^\d+_\d+$/', $params[0], $matches)) {
                 $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_doc/" . urlencode($params[0]));
                 if (isset($obj->found) && $obj->found) {
                     self::json_output(LYLib::buildGazetteAgenda($obj->_source));
@@ -482,12 +482,13 @@ class Dispatcher
                     self::json_output(['error' => 'not found']);
                 }
                 return;
+            } else {
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'comYear' => $records->comYear,
+                    ],
+                ];
             }
-            $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'comYear' => $records->comYear,
-                ],
-            ];
         }
         if (array_key_exists('date', $_GET)) {
             $cmd['query']['bool']['must'][] = [
@@ -520,7 +521,7 @@ class Dispatcher
     /**
      * @OA\Get(
      *   path="/gazette_agenda/{agenda_id}/html", summary="取得公報目錄 HTML", tags={"gazette"},
-     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="LCIDC01_1077502_00003"),
+     *   @OA\Parameter(name="agenda_id", in="path", description="公報目錄 ID", required=true, @OA\Schema(type="string"), example="1077502_00003"),
      *   @OA\Response(response="200", description="公報目錄 HTML"),
      *   @OA\Response(response="404", description="找不到公報目錄資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      * )
