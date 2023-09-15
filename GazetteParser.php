@@ -433,16 +433,16 @@ class GazetteParser
             if (preg_match('#^案由：(.*)$#u', trim($line), $matches)) {
                 $interpellation->reason = $matches[1];
                 if (preg_match('#^本院([^，、]+)委員([^，、]+)[，、]#u', $interpellation->reason, $matches)) {
-                    $interpellation->committees = [$matches[1] . $matches[2]];
+                    $interpellation->legislators = [$matches[1] . $matches[2]];
                 } elseif (preg_match('#^本院委員(.*)，#u', $interpellation->reason, $matches)) {
                     //本院委員鄭麗君、李俊俋，
-                    $interpellation->committees = explode('、', $matches[1]);
+                    $interpellation->legislators = explode('、', $matches[1]);
                 } elseif (preg_match('#^本院([^，]*黨團)，#u', $interpellation->reason, $matches)) {
                     //本院台灣團結聯盟黨團，
-                    $interpellation->committees = [$matches[1]];
+                    $interpellation->legislators = [$matches[1]];
                 } elseif (preg_match('#^本院([^，]*)委員，#u', $interpellation->reason, $matches)) {
                     //本院江惠貞委員，
-                    $interpellation->committees = [$matches[1]];
+                    $interpellation->legislators = [$matches[1]];
                 } else {
                     throw new Exception("找不到委員: " . $interpellation->reason);
                 }
