@@ -87,6 +87,7 @@ foreach ($obj->hits->hits as $hit) {
         $info = GazetteParser::parseInterpellation($content);
         foreach ($info->interpellations as $interpellation) {
             $interpellation->meetingNo = $source->meetingNo;
+            $interpellation->meetingDate = $source->date;
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;
