@@ -273,6 +273,13 @@ class LYLib
             $_SERVER['HTTP_HOST'],
             $source->gazette_id
         );
+        $source->ppg_pdf_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/%d/%02d/LCIDC01_%03d%02d%02d.pdf",
+            $source->comYear,
+            $source->comVolume,
+            $source->comYear,
+            $source->comVolume,
+            $source->comBookId
+        );
         $source->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%02d/%02d/details",
             $source->comYear,
             $source->comVolume,
@@ -288,15 +295,13 @@ class LYLib
             $source->comVolume,
             $source->comBookId
         );
-        $source->pdf_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/%d/%02d/%s.pdf", 
+
+        $source->ppg_full_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/%d/%02d/LCIDC01_%03d%02d%02d.pdf",
             $source->comYear,
             $source->comVolume,
-            $source->agenda_id
-        );
-        $source->doc_url = sprintf("https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/%d/%02d/%s.doc", 
             $source->comYear,
             $source->comVolume,
-            $source->agenda_id
+            $source->comBookId
         );
         return $source;
     }
