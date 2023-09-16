@@ -45,7 +45,7 @@ class LYLib
         if ($meet->attendLegislator == '') {
             $meet->attendLegislator = [];
         } else {
-            $meet->attendLegislator = explode(',', $meet->attendLegislator); 
+            $meet->attendLegislator = explode(',', $meet->attendLegislator);
         }
         $meet->meetingName = str_replace('立', '立', $meet->meetingName);
         $meet->meetingName = str_replace('會體委員會議', '全體委員會議', $meet->meetingName);
@@ -120,7 +120,7 @@ class LYLib
                 $meet->meetingType = '黨團協商';
                 return $meet;
             }
-            if (strpos($meet->meetingName, '公聽會') !== false or 
+            if (strpos($meet->meetingName, '公聽會') !== false or
                 strpos($meet->meetingName, '參訪') !== false or
                 strpos($meet->meetingName, '考察') !== false
             ) {
