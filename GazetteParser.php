@@ -67,24 +67,35 @@ class GazetteParser
         $str = str_replace('．', '', $str);
         $str = str_replace('&nbsp;', '', $str);
         $hit = [];
-        $names = self::getNameList();
+
+        $names = self::getNameList($term);
 
         while (strlen($str)) {
-            foreach ($names as $n => $nn) {
-                if (strpos($n, '.') !== false) {
-                    if (preg_match("#^{$n}(.*)$#u", $str, $matches)) {
-                        $str = $matches[1];
-                        $hit[] = $nn['name'];
-                        continue 2;
-                    }
-                } else {
-                    if (strpos($str, $n) === 0) {
-                        $str = substr($str, strlen($n));
-                        $hit[] = $nn['name'];
-                        continue 2;
-                    }
+            foreach ($names as $qname => $name) {
+                if (stripos($str, $qname) === 0) {
+                    $str = substr($str, strlen($qname));
+                    $hit[] = $name;
+                    continue 2;
                 }
             }
+            if (preg_match('#^（\d+月\d+日）#', $str, $matches)) {
+                // TODO: 有部份委員只出席一天，需要特別處理
+                $str = substr($str, strlen($matches[0]));
+                continue;
+            }
+            if (preg_match('#^（[^）]+）#u', $str, $matches)) {
+                // TODO: 一些備註
+                $str = substr($str, strlen($matches[0]));
+                continue;
+            }
+            if (preg_match('#^(委員請假|委員出席)\d+人#', $str, $matches)) {
+                $str = substr($str, strlen($matches[0]));
+                continue;
+            }
+            var_dump($str);
+            echo $term . "\n";
+            error_log(json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            exit;
             $str = mb_substr($str, 1, 0, 'UTF-8');
         }
         return $hit;
