@@ -400,7 +400,7 @@ class LYLib
         }
         $agenda_docfile = __DIR__ . "/imports/gazette/agenda-doc/{$basename}";
         if (!file_exists($agenda_docfile)) {
-            system(sprintf("curl -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($url)), $ret);
+            system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($url)), $ret);
             if ($ret) {
                 throw new Exception("curl error: {$url}");
             }
