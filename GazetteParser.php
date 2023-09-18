@@ -522,4 +522,219 @@ class GazetteParser
         }
         return $ret;
     }
+
+    public static function getAgendaDocHTMLs($agenda)
+    {
+        $paths = [];
+        foreach ($agenda->docUrls as $url) {
+            $paths[] = LYLib::getAgendaHTML($url);
+        }
+        return $paths;
+    }
+
+    public static function replaceWord($content)
+    {
+        $content = str_replace('', '鳯', $content);
+        $content = str_replace('', '寳', $content);
+        $content = str_replace('', '堃', $content);
+        $content = str_replace('', '崐', $content);
+        $content = str_replace('', '崐', $content);
+        return $content;
+    }
+
+    public static function getDOMsFromHTMLs($htmls)
+    {
+        $doms = [];
+        foreach ($htmls as $html) {
+            $doc = new DOMDocument;
+            // 讀取 $html 檔案，並且強制用 UTF-8
+            $content = file_get_contents($html);
+            $content = self::replaceWord($content);
+            $content = mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8');
+            @$doc->loadHTML($content);
+            foreach ($doc->getElementsByTagName('body')->item(0)->childNodes as $node) {
+                if ($node->nodeName == 'div' and in_array($node->getAttribute('class'), ['header', 'footer'])) {
+                    continue;
+                }
+                if ($node->nodeName == '#text' and trim($node->nodeValue) == '') {
+                    continue;
+                }
+                if ($node->nodeName == 'p') {
+                    $doms[] = $node;
+                    continue;
+                }
+                if ($node->nodeName == 'table') {
+                    $doms[] = $node;
+                    continue;
+                }
+                echo $doc->saveHTML($node);
+                throw new Exception("不支援的 DOM: {$node->nodeName}");
+            }
+        }
+        return $doms;
+    }
+
+    public static function removeSpace($str)
+    {
+        $str = str_replace('　', '', $str);
+        $str = str_replace(' ', '', $str);
+        $str =  str_replace("\n", '', $str);
+        return $str;
+    }
+
+    public static function parseAgendaWholeMeetingNote($agenda)
+    {
+        $htmls = self::getAgendaDocHTMLs($agenda);
+        $doms = self::getDOMsFromHTMLs($htmls);
+
+        $ret = new StdClass;
+        $ret->title = null;
+
+        // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
+        while (count($doms)) {
+            $dom = array_shift($doms);
+            if ($dom->nodeName == 'p' and preg_match('#立法院第(\d+)#', $dom->nodeValue, $matches)) {
+                $ret->term = intval($matches[1]);
+                $ret->title = trim($dom->nodeValue);
+                break;
+            }
+        }
+        if (is_null($ret->title)) {
+            throw new Exception("找不到議事錄標題");
+        }
+        $ret->{'人員名單'} = [];
+
+        // 在 table 表格以前，會是 時間、出席委員、委員出席 ... 等資料
+        $prev_col = null;
+        $section_name = null;
+        while (count($doms)) {
+            if ($doms[0]->nodeName == 'p' and $doms[0]->getAttribute('class') == '事項標題') {
+                break;
+            }
+            $dom = array_shift($doms);
+            if ($dom->nodeName == 'table') {
+                if ($dom->getElementsByTagName('p')->item(0)->nodeValue == '列席官員') {
+                    $type = '列席官員';
+                } elseif (self::removeSpace($dom->getElementsByTagName('p')->item(0)->nodeValue) == '主席') {
+                    $type = '主席';
+                } elseif (self::removeSpace($dom->getElementsByTagName('p')->item(0)->nodeValue) == '紀錄') {
+                    $type = '紀錄';
+                } else {
+                    $type = '列席官員';
+                    continue;
+                    throw new Exception("不認得的 table 表格: " . $dom->nodeValue);
+                }
+                $records = new StdClass;
+                $records->{'人員'} = [];
+                $records->{'備註'} = '';
+                foreach ($dom->getElementsByTagName('tr') as $tr_dom) {
+                    $td_doms = $tr_dom->getElementsByTagName('td');
+                    if (trim($td_doms->item(0)->nodeValue)) {
+                        $type = self::removeSpace($td_doms->item(0)->nodeValue);
+                    }
+
+                    if (count($td_doms) == 3) {
+                        $record = new StdClass;
+                        $record->{'身份'} = $type;
+                        $record->{'職稱'} = self::removeSpace($td_doms->item(1)->nodeValue);
+                        $record->{'姓名'} = self::removeSpace($td_doms->item(2)->nodeValue);
+                        if (preg_match('#(.*)（(.*)）#u', $record->{'姓名'}, $matches)) {
+                            $record->{'姓名'} = $matches[1];
+                            $record->{'備註'} = $matches[2];
+                        }
+                        $records->{'人員'}[] = $record;
+                    } elseif (count($td_doms) == 2 and strpos($td_doms[1]->nodeValue, '列席時間')) {
+                        $records->{'備註'} = trim($td_doms[1]->nodeValue) . "\n";
+                    } elseif (count($td_doms) == 2 and strpos($td_doms[0]->nodeValue, '列席時間')) {
+                        $records->{'備註'} = trim($td_doms[0]->nodeValue) . "\n";
+                    } elseif (count($td_doms) == 2 and strpos($td_doms[1]->nodeValue, '組：')) {
+                        $records->{'備註'} = trim($td_doms[1]->nodeValue) . "\n";
+                    } elseif (count($td_doms) == 2 and strpos($td_doms[0]->nodeValue, '組：')) {
+                        $records->{'備註'} = trim($td_doms[0]->nodeValue) . "\n";
+                    } elseif (count($td_doms) == 0) {
+                        continue;
+                    } else {
+                        error_log("不認得的 tr: " . $tr_dom->nodeValue);
+                        continue;
+                        throw new Exception("不支援的 tr: " . $tr_dom->nodeValue);
+                    }
+                }
+                if (!is_null($section_name)) {
+                    $records->{'討論項目'} = $section_name;
+                    $section_name = null;
+                }
+
+                $records->{'備註'} = trim($records->{'備註'});
+                $ret->{'人員名單'}[] = $records;
+                continue;
+            }
+            $value = $dom->nodeValue;
+            $value = str_replace('　', '', $value);
+            $value = str_replace(' ', '', $value);
+            foreach (['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'] as $col) {
+                if (strpos($value, $col) === 0) {
+                    $ret->{$col} = trim(substr($value, strlen($col)));
+                    $prev_col = $col;
+                    continue 2;
+                }
+            }
+            if ($prev_col == '時間' and preg_match('#^(\d+年|\d+月|下午|\d+時)#u', $value)) {
+                $ret->{'時間'} .= "\n" . trim($value);
+                continue;
+            }
+            if ($prev_col == '出席委員') {
+                if (preg_match('#^\d+人#u', $value)) { // LCIDC01_1056801_00008.doc
+                    $prev_col = '缺席委員';
+                    continue;
+                }
+                $ret->{'出席委員'} .= trim($value);
+                continue;
+            }
+
+            if ($prev_col == '缺席委員') {
+                if (strpos($value, '（') !== false) {
+                    $prev_col = null;
+                    continue;
+                }
+                $ret->{'缺席委員'} .= trim($value);
+                continue;
+            }
+
+            if (strpos($value, '不予列載') !== false) {
+                $ret->{'備註'} = trim($value);
+                break;
+            }
+            if (strpos($value, '討論事項') === 0 or strpos($value, '報告事項') === 0) {
+                // TODO: 留在章節名稱
+                break;
+            }
+            if (preg_match('#^[一二三]、.*$#u', $value)) {
+                if (!is_null($section_name)) {
+                    throw new Exception("章節名稱重複: " . $section_name);
+                }
+                $section_name = $value;
+                continue;
+            }
+            if (strpos($value, '紀錄議事處處長') === 0
+                or strpos($value, '記錄議事處處長') === 0
+                or strpos($value, '主席院長') === 0
+            ) {
+                // TODO: 本來應該是表格寫成純文字了，跳過不處理
+                break;
+            }
+            throw new Exception("未知的內容: " . json_encode($value, JSON_UNESCAPED_UNICODE));
+        }
+        if (!is_null($section_name)) {
+            throw new Exception("章節名稱重複: " . $section_name);
+        }
+        $ret->{'出席委員'} = self::parsePeople($ret->{'出席委員'}, $ret->term);
+        if (property_exists($ret, '請假委員')) {
+            $ret->{'請假委員'} = self::parsePeople($ret->{'請假委員'}, $ret->term);
+        }
+        if (property_exists($ret, '缺席委員')) {
+            $ret->{'缺席委員'} = self::parsePeople($ret->{'缺席委員'}, $ret->term);
+        }
+
+        return $ret;
+    }
 }
