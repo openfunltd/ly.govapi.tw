@@ -391,4 +391,32 @@ class LYLib
         file_put_contents($dir . "/htmlfile/{$basename}", json_encode($ret));
         return $pics;
     }
+
+    public static function getAgendaHTML($url)
+    {
+        $basename = basename($url);
+        if (!file_exists(__DIR__ . "/imports/gazette/agenda-doc/")) {
+            throw new Exception("no agenda-doc directory");
+        }
+        $agenda_docfile = __DIR__ . "/imports/gazette/agenda-doc/{$basename}";
+        if (!file_exists($agenda_docfile)) {
+            system(sprintf("curl -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($url)), $ret);
+            if ($ret) {
+                throw new Exception("curl error: {$url}");
+            }
+            copy(__DIR__ . "/tmp.doc", $agenda_docfile);
+            unlink(__DIR__ . "/tmp.doc");
+        }
+        $agenda_htmlfile = __DIR__ . "/imports/gazette/agenda-html/{$basename}.html";
+        if (!file_exists($agenda_htmlfile)) {
+            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
+            if ($ret) {
+                print_r($agenda);
+                throw new Exception('curl failed');
+            }
+            copy(__DIR__ . "/tmp.html", $agenda_htmlfile);
+            unlink(__DIR__ . "/tmp.html");
+        }
+        return $agenda_htmlfile;
+    }
 }
