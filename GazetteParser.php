@@ -4,32 +4,60 @@ class GazetteParser
 {
     public static $_name_list = null;
 
-    public static function getNameList()
+    public static function getNameList($term)
     {
-        if (!is_null(self::$_name_list)) {
-            return self::$_name_list;
+        if (is_null(self::$_name_list)) {
+            self::$_name_list = new StdClass;
         }
-        $fp = fopen('php://temp', 'rw');
-        fputs($fp, LYLib::getPersonList());
-        fseek($fp, 0, SEEK_SET);
-        $columns = fgetcsv($fp);
-        $columns[0] = 'term';
+        if (property_exists(self::$_name_list, $term)) {
+            return self::$_name_list->{$term};
+        }
+        self::$_name_list->{$term} = [];
 
-        $name_list = [];
-        while ($rows = fgetcsv($fp)) {
-            $values = array_combine($columns, $rows);
-            if (!array_key_exists($values['name'], $name_list)) {
-                $name_list[$values['name']] = [
-                    'terms' => [],
-                    'name' => $values['name'],
-                ];
-            }
-            $name_list[$values['name']]['terms'][] = $values['term'];
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [
+                        [
+                            'term' => [
+                                'term' => $term,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'fields' => ['name'],
+            '_source' => false,
+            'size' => 1000,
+        ];
+        $obj = Elastic::dbQuery("/{prefix}legislator/_search", 'GET', json_encode($cmd));
+        foreach ($obj->hits->hits as $hit) {
+            $name = $hit->fields->name[0];
+            $queryname = str_replace('　', '', $name);
+            $queryname = str_replace(' ', '', $queryname);
+            $queryname = strtolower($queryname);
+            $queryname = str_replace('‧', '', $queryname);
+            $queryname = str_replace('．', '', $queryname);
+            self::$_name_list->{$term}[$queryname] = $hit->fields->name[0];
         }
-        return self::$_name_list = $name_list;
+        if ($term == 8) {
+            self::$_name_list->{$term}['(SraKacaw)'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+        }
+
+        if ($term == 9) {
+            self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['簡東明UliwAljupayare'] = '簡東明Uliw．Qaljupayare';
+        }
+        if ($term == 10) {
+            self::$_name_list->{$term}['葉毓蘭'] = '游毓蘭';
+        }
+
+        return self::$_name_list->{$term};
     }
 
-    public static function parsePeople($str)
+    public static function parsePeople($str, $term)
     {
         $str = str_replace('　', '', $str);
         $str = str_replace("\r", '', $str);
