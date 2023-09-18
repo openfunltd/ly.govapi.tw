@@ -507,6 +507,15 @@ class Dispatcher
                 ],
             ];
         }
+        if (array_key_exists('q', $_GET)) {
+            $records->q = '"' . $_GET['q'] . '"';
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['subject'],
+                ],
+            ];
+        }
 
         $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
