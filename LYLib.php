@@ -165,7 +165,7 @@ class LYLib
             return 'all-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
         }
 
-        if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次(全院委員會)?會議$/', $name, $matches)) {
+        if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次(全院委員會)?(會議)?$/', $name, $matches)) {
             $type = '全院委員會';
             return 'tempall-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3] . '-' . $matches[4];
         }
