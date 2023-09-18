@@ -45,7 +45,7 @@ class LYLib
         if ($meet->attendLegislator == '') {
             $meet->attendLegislator = [];
         } else {
-            $meet->attendLegislator = explode(',', $meet->attendLegislator);
+            $meet->attendLegislator = array_values(array_unique(explode(',', $meet->attendLegislator)));
         }
         $meet->meetingName = str_replace('立', '立', $meet->meetingName);
         $meet->meetingName = str_replace('會體委員會議', '全體委員會議', $meet->meetingName);
