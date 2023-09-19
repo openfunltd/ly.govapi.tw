@@ -149,6 +149,8 @@ class LYLib
         $name = preg_replace('#「.*」#', '', $name);
         $name = preg_replace('#議事日程$#', '', $name);
         $name = str_replace('第六次', '第6次', $name);
+        $name = preg_replace('#^立法院#', '', $name);
+        $name = preg_replace('#議事錄$#', '', $name);
         // 第8屆第5會期第4次會議 -> all-8-5-4
         // 第8屆第1會期第1次全院委員會會議 -> all-8-1-1
         // 第8屆第1會期第1次臨時會第1次會議 -> temp-8-1-1-1
@@ -172,7 +174,24 @@ class LYLib
         // 立法院第8屆第5會期第2次臨時會內政委員會第1次全體委員會議
         // 立法院第8屆第6會期財政委員會第6次全體委員會議
         // 立法院第9屆第1會期社會福利及衛生環境委員會31次全體委員會議
-        if (preg_match('/^立法院第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?([^第0-9]*)第?(\d+)次全體委員會議?/u', $name, $matches)) {
+        // 第10屆第3會期程序委員會第6次會議
+        if (preg_match('/^程序委員會第(\d+)屆第(\d+)會期第(\d+)次會議/u', $name, $matches) or
+            preg_match('/^第(\d+)屆第(\d+)會期程序委員會第(\d+)次會議/u', $name, $matches)
+        ) {
+            $committee_id = self::getCommitteeId('程序');
+            $committees[] = $committee_id;
+            $type = '委員會';
+            return 'committee-' . $matches[2] . '-' . $matches[3] . '-' . $committee_id . '-' . $matches[1];
+        }
+        // 第121屆經費稽核委員會第7次會議
+        if (preg_match('/^第(\d+)屆經費稽核委員會第(\d+)次會議/u', $name, $matches)) {
+            $committee_id = self::getCommitteeId('經費稽核');
+            $committees[] = $committee_id;
+            $type = '委員會';
+            return 'committee-' . $matches[1] . '-0-' . $committee_id . '-' . $matches[2];
+        }
+
+        if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?([^第0-9]*)第?(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
             try {
                 $committee_id = self::getCommitteeId($matches[5]);
@@ -186,7 +205,7 @@ class LYLib
             }
         }
         // 立法院第8屆修憲委員會第1次全體委員會議
-        if (preg_match('/^立法院第(\d+)屆([^第]*)委員會第(\d+)次全體委員會議?/u', $name, $matches)) {
+        if (preg_match('/^第(\d+)屆([^第]*)委員會第(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
             $type = '委員會';
             try {
@@ -199,7 +218,7 @@ class LYLib
         // 立法院第8屆第5會期第1次臨時會經濟、財政、內政三委員會第1次聯席會議
         // 立法院第8屆第6會期社會福利及衛生環境、司法及法制二委員會第1次聯席會議
         // 立法院第9屆第4會期社會福利及衛生環境及經濟二委員會第1次聯席會議
-        if (preg_match('/^立法院第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?(.*)第(\d+)次(聯席|全體委員)會議?/u', $name, $matches)) {
+        if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?(.*)第(\d+)次(聯席|全體委員)會議?/u', $name, $matches)) {
             $type = '聯席會議';
             $committeeIdMap = self::getCommitteeIdMap();
             $committee_ids = [];
