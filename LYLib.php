@@ -19,7 +19,6 @@ class LYLib
                 $comtName = str_replace('委員會', '', $hit->fields->comtName[0]);
                 self::$_committeeIdMap[$comtName] = $comtCd;
             }
-            self::$_committeeIdMap['社會福利及衛生環境'] = 37;
         }
         return self::$_committeeIdMap;
     }
