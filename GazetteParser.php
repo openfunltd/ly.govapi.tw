@@ -46,15 +46,40 @@ class GazetteParser
         if ($term == 8) {
             self::$_name_list->{$term}['(SraKacaw)'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['吳宜瑧'] = '吳宜臻';
+            self::$_name_list->{$term}['陳淑惠'] = '陳淑慧';
         }
 
         if ($term == 9) {
             self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['高潞以用巴魕剌'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['高潞以用·巴魕剌KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['簡東明UliwAljupayare'] = '簡東明Uliw．Qaljupayare';
+            self::$_name_list->{$term}['簡東明'] = '簡東明Uliw．Qaljupayare';
+            self::$_name_list->{$term}['廖國棟'] = '廖國棟Sufin‧Siluko';
+            self::$_name_list->{$term}['Sufin．Siluko'] = '廖國棟Sufin‧Siluko';
+            self::$_name_list->{$term}['SufinSiluko廖國棟'] = '廖國棟Sufin‧Siluko';
+            self::$_name_list->{$term}['江啓臣'] = '江啟臣';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['呂玉鈴'] = '呂玉玲';
+            self::$_name_list->{$term}['陳潔如'] = '陳怡潔';
+            self::$_name_list->{$term}['陳寶清'] = '鄭寶清';
+            self::$_name_list->{$term}['陳歐柏'] = '陳歐珀';
+            self::$_name_list->{$term}['林政憲'] = '林俊憲';
+            self::$_name_list->{$term}['陳賴素'] = '陳賴素美';
         }
         if ($term == 10) {
+            self::$_name_list->{$term}['王琬諭'] = '王婉諭';
+            self::$_name_list->{$term}['廖國棟'] = '廖國棟Sufin‧Siluko';
+            self::$_name_list->{$term}['廖國SufinSiluko'] = '廖國棟Sufin‧Siluko';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['葉毓蘭'] = '游毓蘭';
+            self::$_name_list->{$term}['謝衣鳳'] = '謝衣鳯';
+            self::$_name_list->{$term}['林楚菌'] = '林楚茵';
+            self::$_name_list->{$term}['吳秉數'] = '吳秉叡';
+            self::$_name_list->{$term}['莊端雄'] = '莊瑞雄';
+            self::$_name_list->{$term}['伍麗華'] = '伍麗華Saidhai‧Tahovecahe';
         }
 
         return self::$_name_list->{$term};
