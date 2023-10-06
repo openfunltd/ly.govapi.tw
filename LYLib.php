@@ -433,6 +433,7 @@ class LYLib
         }
         $agenda_docfile = __DIR__ . "/imports/gazette/agenda-doc/{$basename}";
         if (!file_exists($agenda_docfile)) {
+            error_log("download $url");
             system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($url)), $ret);
             if ($ret) {
                 throw new Exception("curl error: {$url}");
@@ -440,9 +441,25 @@ class LYLib
             copy(__DIR__ . "/tmp.doc", $agenda_docfile);
             unlink(__DIR__ . "/tmp.doc");
         }
+        $agenda_docxfile = __DIR__ . "/imports/gazette/agenda-docx/{$basename}";
         $agenda_htmlfile = __DIR__ . "/imports/gazette/agenda-html/{$basename}.html";
+        if (!file_exists($agenda_docxfile)) {
+            error_log("to docx $agenda_docfile");
+            // curl -s -v --request POST --url https://unoserver.openfun.dev/request --header 'Content-Type: multipart/form-data'  --form "file=@LCIDC01_1016201_00006.doc" --form 'convert-to=txt' --output test.txt
+            system(sprintf("curl --request POST --url https://unoserver.openfun.dev/request --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
+            clearstatcache();
+            if (filesize(__DIR__ . '/tmp.docx') < 1000) {
+                copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
+                touch($agenda_htmlfile);
+                throw new Exception("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
+            }
+            copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
+            unlink(__DIR__ . "/tmp.docx");
+            error_log("to docx done: " . ($agenda_docxfile));
+        }
         if (!file_exists($agenda_htmlfile)) {
-            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
+            error_log("to html $agenda_docxfile");
+            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($agenda_docxfile), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
             if ($ret) {
                 print_r($agenda);
                 throw new Exception('curl failed');

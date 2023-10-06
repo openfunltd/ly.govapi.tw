@@ -87,13 +87,22 @@ class GazetteParser
 
     public static function parsePeople($str, $term)
     {
+        $ostr = $str;
+        $str = str_replace('召集', '', $str);
+        $str = str_replace('委員', '', $str);
+        $str = str_replace('代理', '', $str);
         $str = str_replace('　', '', $str);
         $str = str_replace("\r", '', $str);
         $str = str_replace("\n", '', $str);
+        $str = str_replace("\t", '', $str);
         $str = str_replace(' ', '', $str);
         $str = str_replace('‧', '', $str);
         $str = str_replace('．', '', $str);
+        $str = str_replace('、', '', $str);
         $str = str_replace('&nbsp;', '', $str);
+        $str = preg_replace('#^：#', '', $str);
+        $str = str_replace('(一)會議室', '', $str);
+        $str = str_replace('(二)視訊與會', '', $str);
         $hit = [];
 
         $names = self::getNameList($term);
@@ -116,15 +125,16 @@ class GazetteParser
                 $str = substr($str, strlen($matches[0]));
                 continue;
             }
-            if (preg_match('#^(委員請假|委員出席)\d+人#', $str, $matches)) {
+            if (strpos($str, '紀錄：') === 0 or strpos($str, '專門：') === 0) {
+                break;
+            }
+            if (preg_match('#^(請假|出席|列席|列|視訊)\d+人#u', $str, $matches)) {
                 $str = substr($str, strlen($matches[0]));
                 continue;
             }
-            var_dump($str);
-            echo $term . "\n";
             error_log(json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            exit;
-            $str = mb_substr($str, 1, 0, 'UTF-8');
+            error_log("ostr = " . json_encode($ostr, JSON_UNESCAPED_UNICODE));
+            throw new Exception("{$term} 找不到人名: " . json_encode($str, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
         return $hit;
     }
@@ -551,13 +561,167 @@ class GazetteParser
         return $ret;
     }
 
-    public static function getAgendaDocHTMLs($agenda)
+    /**
+     * 處理將公報經過 pdftotext -layout 產生的純文字
+     * 轉成一頁一頁的文字陣列
+     */
+    public static function splitPages($content, $gazette_id)
     {
-        $paths = [];
-        foreach ($agenda->docUrls as $url) {
-            $paths[] = LYLib::getAgendaHTML($url);
+        $ret = new StdClass;
+        $ret->pages = [];
+
+        $page_contents = explode("\f", $content);
+        // 第一頁一定有包含 The Legislative Yuan Gazette ，是封面
+        $page_content = array_shift($page_contents);
+        if (strpos($page_content, 'The Legislative Yuan Gazette') === false) {
+            throw new Exception("第一頁不是封面");
         }
-        return $paths;
+
+        // 第二頁一定是「目次」開頭
+        $page_content = array_shift($page_contents);
+        if (strpos(str_replace(" ", "", $page_content), '目次') !== 0) {
+            throw new Exception("第二頁不是目次");
+        }
+        $lines = explode("\n", trim($page_content));
+        $footer = array_pop($lines);
+
+        if (!preg_match('#^\d\d\d\d [第全]#u', $footer)) {
+            throw new Exception("目次頁尾不是第幾期: " . $footer);
+        }
+        $ret->issue_no = $footer;
+
+        while (count($page_contents)) {
+            $lines = explode("\n", trim($page_contents[0]));
+            $footer = array_pop($lines);
+            if ($footer == $ret->issue_no) {
+                array_shift($page_contents);
+                continue;
+            }
+            break;
+        }
+
+        // 略過空白頁
+        while (count($page_contents) and $page_contents[0] == '') {
+            array_shift($page_contents);
+        }
+
+        $page_no = 1;
+        $page_type = null;
+        foreach ($page_contents as $idx => $page_content) {
+            $page_content = trim($page_content);
+            $lines = explode("\n", $page_content);
+            $line = array_shift($lines);
+            $gazette_page = "{$gazette_id}-{$page_no}";
+
+            if (!$lines) {
+                $page_no ++;
+                continue;
+            }
+            if ($idx == count($page_contents) - 2 and strpos($line, '本期冊別') === 0) {
+                break;
+            }
+            if (in_array($gazette_page, [
+                '1011702-387',
+                '1012701-465',
+            ])) {
+                $page_type = '發言紀錄索引';
+            }
+
+            if (strpos(str_replace(' ', '', $line), '本期委員發言紀錄索引') !== false) {
+                $page_type = '發言紀錄索引';
+            } else if (strpos($line, '勘誤：') === 0) {
+                $page_type = '勘誤';
+            } else if ($page_type == '發言紀錄索引') {
+                array_unshift($lines, $line);
+            } else if (in_array($gazette_page, [
+                '1011701-392',
+            ])) {
+                // 部份例外
+                array_unshift($lines, $line);
+            } else {
+                // 第一行一定要是「立法院公報」開頭
+                $line = str_replace(' ', '', $line);
+                if (preg_match('#^立法院公報第([0-9]+)卷第([0-9]+)期(.*)#u', $line, $matches)) {
+                    $page_type = trim($matches[3]);
+                } else {
+                    // 檢查是不是橫書
+                    array_unshift($lines, $line);
+                    $hit = [];
+                    $hit_page = null;
+                    foreach ($lines as $cline) {
+                        if (trim($cline) == '立法院公報') {
+                            $hit[] = trim($cline);
+                        }
+                        if (preg_match('#第 \d+ [卷期]#u', $cline)) {
+                            $hit[] = $cline;
+                        }
+                        if (trim($cline) == $page_no) {
+                            $hit_page = $cline;
+                        }
+                    }
+                    if (count($hit) != 3 or is_null($hit_page)) {
+                        throw new Exception("第 idx={$idx}, page_no={$page_no} 頁不是立法院公報: " . $line);
+                    }
+                    $line = implode('', $hit);
+                    $lines[] = $hit_page;
+                }
+                if (!in_array($page_type, [
+                    '院會紀錄',
+                    '委員會紀錄',
+                ])) {
+                    throw new Exception("第 {$page_no} 頁不是立法院公報: " . $line);
+                }
+
+                if (strpos($line, '立法院公報') !== 0) {
+                    throw new Exception("第 {$page_no} 頁不是立法院公報: " . $line);
+                }
+            }
+
+            if (in_array($gazette_page, [
+                '1011701-392',
+            ])) {
+                // 頁碼例外
+            } else {
+                // 最後一行一定要等於 $page_no 的數字
+                $line = array_pop($lines);
+                if (trim($line) != $page_no) {
+                    throw new Exception("第 {$page_no} 頁最後一行不是頁碼: " . $line);
+                }
+            }
+            $page = new StdClass;
+            $page->page_no = $page_no;
+            $page->page_type = $page_type;
+            $page->content = trim(implode("\n", $lines));
+            $ret->pages[] = $page;
+
+            $page_no ++;
+        }
+        return $ret;
+    }
+
+    /**
+     * 因為 $agenda_htmlfile 可能包含很多不同的頁數
+     * 因此依照 GazetteParser::splitPages() 產生出來的 $gazette_pages
+     * 只回傳需要的內容
+     */
+    public static function getContents($gazette_pages, $agenda_htmlfile, $agenda)
+    {
+        $doc = new DOMDocument;
+        @$doc->loadHTMLFile($agenda_htmlfile);
+        // 取得 <meta name="xmpTPg:NPages" content="4"/> 的頁碼
+        $xpath = new DOMXPath($doc);
+        $meta = $xpath->query('//meta[@name="xmpTPg:NPages"]')->item(0)->getAttribute('content');
+        if (!$meta) {
+            throw new Exception("找不到頁數");
+        }
+        if (count($agenda->docUrls) == 1 and ($agenda->pageEnd - $agenda->pageStart + 1) == $meta) {
+            // 沒問題，全包了
+        } else {
+            print_r($agenda);
+            throw new Exception("TODO: 頁數不一致: " . $meta);
+        }
+
+        // TODO
     }
 
     public static function replaceWord($content)
@@ -574,20 +738,52 @@ class GazetteParser
     {
         $doms = [];
         foreach ($htmls as $html) {
-            $doc = new DOMDocument;
             // 讀取 $html 檔案，並且強制用 UTF-8
             $content = file_get_contents($html);
+            $content = str_replace('<b>', '', $content);
+            $content = str_replace('</b>', '', $content);
             $content = self::replaceWord($content);
+            if (strpos($content, '議事錄') === false) {
+                continue;
+            }
             $content = mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8');
+            $doc = new DOMDocument;
             @$doc->loadHTML($content);
+            $prev_class = null;
             foreach ($doc->getElementsByTagName('body')->item(0)->childNodes as $node) {
-                if ($node->nodeName == 'div' and in_array($node->getAttribute('class'), ['header', 'footer'])) {
+                if ($node->nodeName == 'div' and in_array($node->getAttribute('class'), ['header', 'footer', 'embedded', 'package-entry'])) {
                     continue;
                 }
                 if ($node->nodeName == '#text' and trim($node->nodeValue) == '') {
                     continue;
                 }
+                if ($node->nodeName == 'h1' or $node->nodeName == 'h2') {
+                    $doms[] = $node;
+                    continue;
+                }
                 if ($node->nodeName == 'p') {
+                    if ($prev_class == 'header') {
+                        $prev_class = null;
+                        if (strpos($node->nodeValue, '立法院公報') === 0) {
+                            continue;
+                        }
+                    }
+                    if ($prev_class == 'footer') {
+                        $prev_class = null;
+                        if (preg_match('#^\d+$#', $node->nodeValue)) {
+                            continue;
+                        }
+                    }
+                    $prev_class = null;
+                    $class = $node->getAttribute('class');
+                    if ($class == 'header') {
+                        $prev_class = $class;
+                        continue;
+                    }
+                    if ($class == 'footer') {
+                        $prev_class = $class;
+                        continue;
+                    }
                     $doms[] = $node;
                     continue;
                 }
@@ -595,8 +791,11 @@ class GazetteParser
                     $doms[] = $node;
                     continue;
                 }
+                if ($node->nodeName == 'img') {
+                    continue;
+                }
                 echo $doc->saveHTML($node);
-                throw new Exception("不支援的 DOM: {$node->nodeName}");
+                throw new Exception("不支援的 DOM: {$node->nodeName} (file: {$html})");
             }
         }
         return $doms;
@@ -610,10 +809,15 @@ class GazetteParser
         return $str;
     }
 
-    public static function parseAgendaWholeMeetingNote($agenda)
+    public static function parseAgendaWholeMeetingNote($agenda, $meet_id = null)
     {
-        $htmls = self::getAgendaDocHTMLs($agenda);
-        $doms = self::getDOMsFromHTMLs($htmls);
+        if (is_array($agenda)) {
+            $doms = self::getDOMsFromHTMLs($agenda);
+        } elseif (is_scalar($agenda)) {
+            $doms = self::getDOMsFromHTMLs([$agenda]);
+        } else {
+            throw new Exception("不支援的參數型態");
+        }
 
         $ret = new StdClass;
         $ret->title = null;
@@ -621,14 +825,31 @@ class GazetteParser
         // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
         while (count($doms)) {
             $dom = array_shift($doms);
-            if ($dom->nodeName == 'p' and preg_match('#立法院第(\d+)#', $dom->nodeValue, $matches)) {
-                $ret->term = intval($matches[1]);
-                $ret->title = trim($dom->nodeValue);
-                break;
+            $dom->nodeValue = trim($dom->nodeValue);
+            $dom->nodeValue = str_replace('　', '', $dom->nodeValue);
+            if ($dom->nodeName == 'p' and preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->nodeValue), $matches)) {
+                $meet_type = null;
+                $current_meet_id = LYLib::meetNameToId($dom->nodeValue, $meet_type, $committees, $term);
+                if ($current_meet_id == $meet_id) {
+                    $ret->term = $term;
+                    $ret->title = trim($dom->nodeValue);
+                    break;
+                }
+                error_log("$current_meet_id {$dom->nodeValue} != $meet_id");
             }
         }
+        if ('全院委員會' == $meet_type) {
+            $columns = ['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'];
+        } elseif ('委員會' == $meet_type) {
+            $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席', '編審', '視訊委員'];
+        } else if ('聯席會議' == $meet_type) {
+            $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席', '編審', '列席官員', '視訊委員'];
+        } else {
+            echo $current_meet_id . "\n";
+            throw new Exception("不支援的會議型態: " . $meet_id);
+        }
         if (is_null($ret->title)) {
-            throw new Exception("找不到議事錄標題");
+            throw new Exception("找不到議事錄標題: " . $meet_id);
         }
         $ret->{'人員名單'} = [];
 
@@ -699,14 +920,19 @@ class GazetteParser
             $value = $dom->nodeValue;
             $value = str_replace('　', '', $value);
             $value = str_replace(' ', '', $value);
-            foreach (['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'] as $col) {
+            $value = str_replace('速記', '速紀', $value);
+            $value = trim($value);
+            foreach ($columns as $col) {
+                if (strpos($value, '主席宣告：') === 0) {
+                    break;
+                }
                 if (strpos($value, $col) === 0) {
                     $ret->{$col} = trim(substr($value, strlen($col)));
                     $prev_col = $col;
                     continue 2;
                 }
             }
-            if ($prev_col == '時間' and preg_match('#^(\d+年|\d+月|下午|\d+時)#u', $value)) {
+            if ($prev_col == '時間' and preg_match('#^(\d+年|\d+月|下午|\d+時|中華民國)#u', $value)) {
                 $ret->{'時間'} .= "\n" . trim($value);
                 continue;
             }
@@ -719,29 +945,56 @@ class GazetteParser
                 continue;
             }
 
-            if ($prev_col == '缺席委員') {
-                if (strpos($value, '（') !== false) {
-                    $prev_col = null;
-                    continue;
-                }
-                $ret->{'缺席委員'} .= trim($value);
-                continue;
-            }
-
-            if (strpos($value, '不予列載') !== false) {
-                $ret->{'備註'} = trim($value);
-                break;
-            }
-            if (strpos($value, '討論事項') === 0 or strpos($value, '報告事項') === 0) {
+            if (strpos(self::removeSpace($value), '討論事項') === 0
+                or strpos(self::removeSpace($value), '報告事項') === 0
+                or strpos(self::removeSpace($value), '其他事項') === 0
+                or strpos(self::removeSpace($value), '朝野協商結論') === 0
+                or strpos(self::removeSpace($value), '主席宣告：') === 0
+            ) {
                 // TODO: 留在章節名稱
                 break;
             }
-            if (preg_match('#^[一二三]、.*$#u', $value)) {
+            if (strpos(trim($value), '決議：') === 0) {
+                break;
+            }
+            if (preg_match('#^[一二三四五六七八]、(.*)$#u', $value, $matches) or
+                preg_match('#\([一二三四五六七八九十]\)(.*)#u', $value, $matches)
+            ) {
+                if (in_array($matches[1], ['討論事項', '報告事項'])) {
+                    $section_name = null;
+                    break;
+                }
                 if (!is_null($section_name)) {
+                    continue;
                     throw new Exception("章節名稱重複: " . $section_name);
                 }
                 $section_name = $value;
                 continue;
+            }
+
+            // 無故多個日期就把他幹掉
+            if (preg_match('#^（?\d+月\d+日#u', self::removeSpace($value))) {
+                continue;
+            }
+
+            if (in_array($prev_col, ['缺席委員', '列席委員', '請假委員', '列席人員', '紀錄', '編審'])) {
+                if (strpos($value, '（') !== false) {
+                    $prev_col = null;
+                    continue;
+                }
+                if (preg_match('#^\d+人#u', $value)) { // LCIDC01_1056801_00008.doc
+                    continue;
+                }
+                if (strpos($value, '：') === false) {
+                    $ret->{$prev_col} .= trim($value);
+                    continue;
+                }
+            }
+
+
+            if (strpos($value, '不予列載') !== false) {
+                $ret->{'備註'} = trim($value);
+                break;
             }
             if (strpos($value, '紀錄議事處處長') === 0
                 or strpos($value, '記錄議事處處長') === 0
@@ -750,17 +1003,36 @@ class GazetteParser
                 // TODO: 本來應該是表格寫成純文字了，跳過不處理
                 break;
             }
-            throw new Exception("未知的內容: " . json_encode($value, JSON_UNESCAPED_UNICODE));
+            continue;
+            throw new Exception("未知的內容(prev_col={$prev_col}): " . json_encode($value, JSON_UNESCAPED_UNICODE));
         }
         if (!is_null($section_name)) {
-            throw new Exception("章節名稱重複: " . $section_name);
+            // TODO: 處理章節名稱
         }
         $ret->{'出席委員'} = self::parsePeople($ret->{'出席委員'}, $ret->term);
-        if (property_exists($ret, '請假委員')) {
-            $ret->{'請假委員'} = self::parsePeople($ret->{'請假委員'}, $ret->term);
+        foreach (['請假委員', '缺席委員', '視訊委員'] as $c) {
+            if (property_exists($ret, $c)) {
+                $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
+            }
         }
-        if (property_exists($ret, '缺席委員')) {
-            $ret->{'缺席委員'} = self::parsePeople($ret->{'缺席委員'}, $ret->term);
+        if ($meet_type == '委員會' or $meet_type == '聯席會議') {
+            foreach (['主席', '列席委員', '請假委員'] as $c) {
+                if (property_exists($ret, $c) and is_string($ret->{$c})) {
+                    $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
+                }
+            }
+       
+            foreach ($columns as $c) {
+                if (property_exists($ret, $c) and is_string($ret->{$c})) {
+                    $ret->{$c} = preg_replace('#^：#', '', $ret->{$c});
+                }
+            }
+        }
+        // 把還沒辦法結構化的先跳過，之後再處理
+        foreach (["列席人員", "紀錄"] as $c) {
+            if (property_exists($ret, $c)) {
+                unset($ret->{$c});
+            }
         }
 
         return $ret;
