@@ -90,9 +90,10 @@ class LYLib
         }
 
         try {
-            $l = LYLib::meetNameToId($meet->meetingName, $type, $committees);
+            $l = LYLib::meetNameToId($meet->meetingName, $type, $committees, $term);
             $meet->meetingType = $type;
             $meet->committees = $committees;
+            $meet->term = $term;
         } catch (Exception $e) {
             if (strpos($meet->meetingName, '黨團協商') !== false) {
                 $meet->meetingType = '黨團協商';
@@ -136,7 +137,7 @@ class LYLib
         return $meet;
     }
 
-    public static function meetNameToId($oname, &$type, &$committees)
+    public static function meetNameToId($oname, &$type, &$committees, &$term)
     {
         $committees = [];
         $name = $oname;
@@ -159,15 +160,18 @@ class LYLib
         // 第8屆第4會期第2次全院委員會議
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次(全院委員會?)?會議$/u', $name, $matches)) {
             $type = '全院委員會';
+            $term = $matches[1];
             return 'all-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
         } elseif (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次全體委員會$/u', $name, $matches)) {
             $type = '全院委員會';
+            $term = $matches[1];
             // 第8屆第5會期第18次全體委員會
             return 'all-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
         }
 
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次(全院委員會)?(會議)?$/', $name, $matches)) {
             $type = '全院委員會';
+            $term = $matches[1];
             return 'tempall-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3] . '-' . $matches[4];
         }
         // 立法院第8屆第2會期財政委員會第5次全體委員會議
@@ -181,20 +185,29 @@ class LYLib
             $committee_id = self::getCommitteeId('程序');
             $committees[] = $committee_id;
             $type = '委員會';
-            return 'committee-' . $matches[2] . '-' . $matches[3] . '-' . $committee_id . '-' . $matches[1];
+            $term = $matches[1];
+            return 'committee-' . $matches[1] . '-' . $matches[2] . '-' . $committee_id . '-' . $matches[3];
         }
         // 第121屆經費稽核委員會第7次會議
         if (preg_match('/^第(\d+)屆經費稽核委員會第(\d+)次會議/u', $name, $matches)) {
             $committee_id = self::getCommitteeId('經費稽核');
             $committees[] = $committee_id;
             $type = '委員會';
-            return 'committee-' . $matches[1] . '-0-' . $committee_id . '-' . $matches[2];
+            if ($matches[1] >= 125) {
+                $term = 10;
+            } elseif ($matches[1] >= 121) {
+                $term = 9;
+            } else {
+                throw new Exception("unknown term: {$matches[1]}");
+            }
+            return 'committee-' . $term . '-' . $matches[1] . '-' . $committee_id . '-' . $matches[2];
         }
 
         if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?([^第0-9]*)第?(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
             try {
                 $committee_id = self::getCommitteeId($matches[5]);
+                $term = $matches[1];
                 $type = '委員會';
                 if ($matches[3]) {
                     return 'tempcommittee-' . $matches[1] . '-' . $matches[2] . '-' . $matches[4] . '-' . $committee_id . '-' . $matches[6];
@@ -208,6 +221,7 @@ class LYLib
         if (preg_match('/^第(\d+)屆([^第]*)委員會第(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
             $type = '委員會';
+            $term = $matches[1];
             try {
                 $committee_id = self::getCommitteeId($matches[2]);
                 $committees[] = $committee_id;
@@ -220,6 +234,7 @@ class LYLib
         // 立法院第9屆第4會期社會福利及衛生環境及經濟二委員會第1次聯席會議
         if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?(.*)第(\d+)次(聯席|全體委員)會議?/u', $name, $matches)) {
             $type = '聯席會議';
+            $term = $matches[1];
             $committeeIdMap = self::getCommitteeIdMap();
             $committee_ids = [];
             foreach (explode('、', $matches[5]) as $committee_name) {
