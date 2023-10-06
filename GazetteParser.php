@@ -6,6 +6,9 @@ class GazetteParser
 
     public static function getNameList($term)
     {
+        if (!$term) {
+            throw new Exception("term is null");
+        }
         if (is_null(self::$_name_list)) {
             self::$_name_list = new StdClass;
         }
