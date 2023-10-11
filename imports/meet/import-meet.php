@@ -1,6 +1,7 @@
 <?php
 
 include(__DIR__ . '/../../init.inc.php');
+throw new Exception('立法院的 meet open data 品質太差，不拿來當作 import 來源');
 $fp = fopen(__DIR__ . '/meet.jsonl', 'r');
 while ($line = fgets($fp)) {
     $meet = json_decode($line);
