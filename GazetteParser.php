@@ -829,7 +829,10 @@ class GazetteParser
             $dom->nodeValue = str_replace('　', '', $dom->nodeValue);
             if ($dom->nodeName == 'p' and preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->nodeValue), $matches)) {
                 $meet_type = null;
-                $current_meet_id = LYLib::meetNameToId($dom->nodeValue, $meet_type, $committees, $term);
+                $current_meet_info = LYLib::meetNameToId($dom->nodeValue);
+                $current_meet_id = $current_meet_info->id;
+                $meet_type = $current_meet_info->type;
+                $term = $current_meet_info->term;
                 if ($current_meet_id == $meet_id) {
                     $ret->term = $term;
                     $ret->title = trim($dom->nodeValue);
@@ -838,7 +841,7 @@ class GazetteParser
                 error_log("$current_meet_id {$dom->nodeValue} != $meet_id");
             }
         }
-        if ('全院委員會' == $meet_type) {
+        if ('院會' == $meet_type) {
             $columns = ['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'];
         } elseif ('委員會' == $meet_type) {
             $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席', '編審', '視訊委員'];
