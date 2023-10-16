@@ -747,7 +747,10 @@ class Dispatcher
                     'must' => [],
                 ],
             ],
-            'sort' => ['startTime' => 'desc'],
+            'sort' => [
+                'sessionPeriod' => 'asc',
+                'sessionTimes' => 'asc',
+            ],
             'size' => 100,
         ];
 
