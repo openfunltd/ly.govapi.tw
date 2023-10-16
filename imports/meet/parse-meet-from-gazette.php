@@ -24,22 +24,26 @@ for ($y = $start; $y >= 2012; $y --) {
                 continue;
             }
             error_log("parsing $htmlfile");
+            $meet = new StdClass;
             try {
                 $info = GazetteParser::parseAgendaWholeMeetingNote($htmlfile, $meet_obj->id);
             } catch (Exception $e) {
                 throw $e;
             }
+            $meet->meet_id = $meet_obj->id;
+            $meet->term = $meet_obj->term;
+            $meet->meet_type = $meet_obj->type;
+            $meet->committees = $meet_obj->committees;
+            $meet->sessionPeriod = $meet_obj->sessionPeriod;
+            $meet->sessionTimes = $meet_obj->sessionTimes;
+            $meet->title = str_replace('議事錄', '', $info->title);
+            $meet->{'議事錄'} = $info;
+            unset($info->meet_id);
             $info->comYear = $comYear;
             $info->comVolume = $comVolume;
             $info->comBookId = $comBookId;
-            $info->meet_id = $meet_obj->id;
-            $info->term = $meet_obj->term;
-            $info->meet_type = $meet_obj->type;
-            $info->committees = $meet_obj->committees;
-            $info->sessionPeriod = $meet_obj->sessionPeriod;
-            $info->sessionTimes = $meet_obj->sessionTimes;
                 
-            Elastic::dbBulkInsert('meet', $info->meet_id, $info);
+            Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
         }
     }
 }
