@@ -284,6 +284,7 @@ class LYLib
                 $committee_name = str_replace('兩委員會', '', $committee_name);
                 $committee_name = str_replace('二委員會', '', $committee_name);
                 $committee_name = str_replace('三委員會', '', $committee_name);
+                $committee_name = str_replace('五委員會', '', $committee_name);
                 $committee_name = str_replace('六委員會', '', $committee_name);
                 $committee_name = str_replace('８委員會', '', $committee_name);
                 $committee_name = str_replace('8委員會', '', $committee_name);
