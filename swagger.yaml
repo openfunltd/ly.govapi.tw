@@ -616,7 +616,7 @@ paths:
           required: true
           schema:
             type: string
-          example: LCIDC01_1126203
+          example: '1126203'
       responses:
         '200':
           description: 公報資料
@@ -698,7 +698,7 @@ paths:
           required: true
           schema:
             type: string
-          example: LCIDC01_1126203
+          example: '1126203'
         -
           name: page
           in: query
@@ -760,7 +760,7 @@ paths:
           required: true
           schema:
             type: string
-          example: LCIDC01_1126203_0001
+          example: '1126203_0001'
       responses:
         '200':
           description: 公報目錄資料
@@ -788,7 +788,7 @@ paths:
           required: true
           schema:
             type: string
-          example: LCIDC01_1077502_00003
+          example: '1077502_00003'
       responses:
         '200':
           description: '公報目錄 HTML'
@@ -1232,6 +1232,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Meet'
+  /ivod/:
+    get:
+      tags:
+        - ivod
+      summary: 從舊到新列出IVOD
+      operationId: bd339babbe82bf7c4df20e73577ea58d
+      parameters:
+        -
+          name: term
+          in: query
+          description: 屆期
+          required: false
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: iVod資料
   /interpellation:
     get:
       tags:

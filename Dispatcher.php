@@ -866,6 +866,110 @@ class Dispatcher
 
     /**
      * @OA\Get(
+     *   path="/ivod/", summary="從舊到新列出IVOD", tags={"ivod"},
+     *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="iVod資料")
+     * )
+     */
+    public static function ivod($params)
+    {
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+
+        if (array_key_exists('term', $_GET)) {
+            $records->term = $_GET['term'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meet.term' => $records->term,
+                ],
+            ];
+        }
+        if (array_key_exists('sessionPeriod', $_GET)) {
+            $records->sessionPeriod = $_GET['sessionPeriod'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meet.sessionPeriod' => $records->sessionPeriod,
+                ],
+            ];
+        }
+        if (array_key_exists('meet_id', $_GET)) {
+            $records->meet_id = $_GET['meet_id'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meet.id.keyword' => $records->meet_id,
+                ],
+            ];
+        }
+        if (array_key_exists('legislator', $_GET)) {
+            $records->legislator = $_GET['legislator'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    '委員名稱.keyword' => $records->legislator,
+                ],
+            ];
+        }
+
+        if (array_key_exists('committee_id', $_GET)) {
+            $records->committee_id = intval($_GET['committee_id']);
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meet.committees' => $records->committee_id,
+                ],
+            ];
+        }
+
+        if (array_key_exists('date_start', $_GET) and array_key_exists('date_end', $_GET)) {
+            $records->date_start = $_GET['date_start'];
+            $records->date_end = $_GET['date_end'];
+            $cmd['query']['bool']['must'][] = [
+                'range' => [
+                    '會議時間' => [
+                        'gte' => $records->date_start,
+                        'lte' => $records->date_end,
+                    ],
+                ],
+            ];
+        }
+
+        if (array_key_exists('q', $_GET)) {
+            $records->q = '"' . $_GET['q'] . '"';
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['會議名稱'],
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}ivod/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total->value / $records->limit);
+        $records->ivods = [];
+        foreach ($obj->hits->hits as $hit) {
+            $hit->_source->id = $hit->_id;
+            $records->ivods[] = ($hit->_source);
+        }
+        self::json_output($records);
+    }
+
+    /**
+     * @OA\Get(
      *   path="/interpellation", summary="搜尋質詢資料", tags={"interpellation"},
      *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
@@ -1083,6 +1187,8 @@ class Dispatcher
             self::bill($terms);
         } else if ('meet' == $method) {
             self::meet($terms);
+        } else if ('ivod' == $method) {
+            self::ivod($terms);
         } else if ('interpellation' == $method) {
             self::interpellation($terms);
         } else {
