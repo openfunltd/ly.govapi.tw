@@ -747,7 +747,10 @@ class Dispatcher
                     'must' => [],
                 ],
             ],
-            'sort' => ['startTime' => 'desc'],
+            'sort' => [
+                'sessionPeriod' => 'asc',
+                'sessionTimes' => 'asc',
+            ],
             'size' => 100,
         ];
 
@@ -796,7 +799,7 @@ class Dispatcher
             $records->meet_type = $_GET['meet_type'];
             $cmd['query']['bool']['must'][] = [
                 'term' => [
-                    'meetingType.keyword' => $records->meet_type,
+                    'meet_type.keyword' => $records->meet_type,
                 ],
             ];
         }
