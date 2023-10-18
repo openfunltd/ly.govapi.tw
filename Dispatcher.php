@@ -715,6 +715,17 @@ class Dispatcher
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="會議資料", @OA\JsonContent(ref="#/components/schemas/Meet")),
      * )
+     * @OA\Get(
+     *   path="/meet/{meet_id}", summary="取得特定會議資料", tags={"meet"},
+     *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
+     *   @OA\Response(response="200", description="會議資料", @OA\JsonContent(ref="#/components/schemas/Meet")),
+     *   @OA\Response(response="404", description="找不到會議資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     * )
+     * @OA\Get(
+     *   path="/meet/{meet_id}/ivod", summary="取得特定會議的 iVod 資料", tags={"meet"},
+     *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
+     *   @OA\Response(response="200", description="iVod 資料"),
+     * )
      * @OA\Schema(
      *   schema="Meet", type="object", required={"meetingName", "meetingContent", "meetingType", "meetingDateDesc", "meetingRoom", "attendLegislator"},
      *   @OA\Property(property="meetingName", type="string", description="會議名稱"),
@@ -760,6 +771,22 @@ class Dispatcher
         $records->limit = @intval($_GET['limit']) ?: 100;
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
+        if (count($params) > 0 and strpos($params[0], '-') !== false) {
+            $meet_id = $params[0];
+            if (count($params) == 1) {
+                $obj = Elastic::dbQuery("/{prefix}meet/_doc/" . urlencode($meet_id));
+                if (isset($obj->found) && $obj->found) {
+                    self::json_output(LYLib::buildMeet($obj->_source));
+                } else {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                return;
+            } else if ($params[1] == 'ivod') {
+                $_GET['meet_id'] = $meet_id;
+                return self::ivod([]);
+            }
+        }
         if (count($params) > 0) {
             $term = $params[0];
             $records->term = $term;

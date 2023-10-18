@@ -1232,6 +1232,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Meet'
+  '/meet/{meet_id}':
+    get:
+      tags:
+        - meet
+      summary: 取得特定會議資料
+      operationId: f61c2853df1d7b5228b14173fc7f0951
+      parameters:
+        -
+          name: meet_id
+          in: path
+          description: '會議 ID'
+          required: true
+          schema:
+            type: string
+          example: 院會-10-5-1
+      responses:
+        '200':
+          description: 會議資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meet'
+        '404':
+          description: 找不到會議資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/meet/{meet_id}/ivod':
+    get:
+      tags:
+        - meet
+      summary: '取得特定會議的 iVod 資料'
+      operationId: 0fac46e189ada81de93683a8394fbb4d
+      parameters:
+        -
+          name: meet_id
+          in: path
+          description: '會議 ID'
+          required: true
+          schema:
+            type: string
+          example: 院會-10-5-1
+      responses:
+        '200':
+          description: 'iVod 資料'
   /ivod/:
     get:
       tags:
