@@ -5,25 +5,47 @@ include(__DIR__ . '/../Importer.php');
 $cmd = [
     'size' => 10000,
     'query' => [
-        'term' => [
-            'meetingType.keyword' => '全院委員會',
+        'query_string' => [
+            'query' => 'meet_type.keyword:院會 AND _exists_:meet_data.meetingNo',
         ],
     ],
     'sort' => [
-        'date' => 'asc',
+        'term' => 'desc',
+        'sessionPeriod' => 'desc',
     ],
 ];
 $obj = Elastic::dbQuery("/{prefix}meet/_search", 'GET', json_encode($cmd));
 $showed_meets = [];
 foreach ($obj->hits->hits as $hit) {
     $source = LYLib::buildMeet($hit->_source);
-    if (array_key_exists($source->meetingNo, $showed_meets)) {
+
+    if (!is_array($source->meet_data)) {
+        echo json_encode($source, JSON_UNESCAPED_UNICODE) . "\n";
+        exit;
+    }
+
+    $meetingNo = null;
+    foreach ($source->meet_data as $meet_data) {
+        if ($meet_data->meetingNo == '2022101901') {
+            continue;
+        }
+        if (is_null($meetingNo)) {
+            $meetingNo = $meet_data->meetingNo;
+        } else {
+            if ($meetingNo !== $meet_data->meetingNo) {
+                echo $meet_data->ppg_url . "\n";
+                throw new Exception("{$hit->_id} has different meetingNo: {$meetingNo} vs {$meet_data->meetingNo}");
+            }
+        }
+    }
+
+    if (array_key_exists($meetingNo, $showed_meets)) {
         continue;
     }
-    $showed_meets[$source->meetingNo] = true;
-    $target = __DIR__ . "/files/{$source->meetingNo}-0.pdf";
+    $showed_meets[$meetingNo] = true;
+    $target = __DIR__ . "/files/{$meetingNo}-0.pdf";
     if (!file_exists($target)) {
-        $content = Importer::getURL($source->ppg_url);
+        $content = Importer::getURL($meet_data->ppg_url);
         $doc = new DOMDocument;
         $content = str_replace('<head>', '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">', $content);
         @$doc->loadHTML($content);
@@ -35,7 +57,7 @@ foreach ($obj->hits->hits as $hit) {
             $id = ltrim($button->getAttribute('data-bs-target'), '#');
         }
         if (is_null($id)) {
-            file_put_contents($target, "no data in url: {$source->ppg_url}");
+            file_put_contents($target, "no data in url: {$meet_data->ppg_url}");
             continue;
         }
         $data_dom = $doc->getElementById($id);
@@ -52,7 +74,7 @@ foreach ($obj->hits->hits as $hit) {
         }
 
         foreach ($files as $idx => $file) {
-            $target = __DIR__ . "/files/{$source->meetingNo}-{$idx}.pdf";
+            $target = __DIR__ . "/files/{$meetingNo}-{$idx}.pdf";
             system(sprintf("wget -4 -O %s %s", escapeshellarg($target), escapeshellarg($file)));
             // TODO: 應該要全部下載完再一次存入，這樣比較不會下載一半
         }
@@ -60,7 +82,7 @@ foreach ($obj->hits->hits as $hit) {
     if (filesize($target) < 300) {
         continue;
     }
-    foreach (glob(__DIR__ . "/files/{$source->meetingNo}-*.pdf") as $file) {
+    foreach (glob(__DIR__ . "/files/{$meetingNo}-*.pdf") as $file) {
         if (in_array(basename($file), [
             "201204066-1.pdf", // https://ppg.ly.gov.tw/ppg/SittingRelatedDocumentQuestionsEyReply/download/agenda1/02/pdf/08/01/06/LCEWA01_080106_00138.pdf
             '201302270-0.pdf', // https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/201302270/details?meetingDate=102/03/01
@@ -83,11 +105,11 @@ foreach ($obj->hits->hits as $hit) {
         $cmd = (sprintf("pdftotext -layout %s -", escapeshellarg($file)));
         $content = `$cmd`;
         file_put_contents(__DIR__ . '/tmp.txt', $content);
-        error_log("{$file} {$source->ppg_url}");
+        error_log("{$file} {$meet_data->ppg_url}");
         $info = GazetteParser::parseInterpellation($content);
         foreach ($info->interpellations as $interpellation) {
-            $interpellation->meetingNo = $source->meetingNo;
-            $interpellation->meetingDate = $source->date;
+            $interpellation->meet_id = $hit->_id;
+            $interpellation->meetingNo = $meetingNo;
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;
