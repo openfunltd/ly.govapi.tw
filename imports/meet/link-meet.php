@@ -6,21 +6,21 @@ $fp = fopen(__DIR__ . '/meet.jsonl', 'r');
 $meet_map = new StdClass;
 $ids = [];
 while ($line = fgets($fp)) {
-    $data = json_decode($line);
+    $meet = json_decode($line);
+    $meet = LYLib::filterMeetData($meet);
     try {
-        $meet_obj = LYLib::meetNameToId($data->meetingName);
+        $meet_obj = LYLib::meetNameToId($meet->meetingName);
         if (!$meet_obj) {
             continue;;
         }
     } catch (Exception $e) {
         continue;
     }
-    $data->attendLegislator = explode(',', $data->attendLegislator);
     if (!property_exists($meet_map, $meet_obj->id)) {
         $meet_map->{$meet_obj->id} = [];
         $ids[$meet_obj->id] = $meet_obj->id;
     }
-    $meet_map->{$meet_obj->id}[] = $data;
+    $meet_map->{$meet_obj->id}[] = $meet;
 }
 
 $cmd = [

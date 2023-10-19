@@ -35,12 +35,6 @@ class LYLib
 
     public static function filterMeetData($meet)
     {
-        if (!property_exists($meet, 'alias')) {
-            $meet->alias = [];
-        }
-        if (!property_exists($meet, 'committees')) {
-            $meet->committees = [];
-        }
         if ($meet->attendLegislator == '') {
             $meet->attendLegislator = [];
         } else {
@@ -92,51 +86,6 @@ class LYLib
             return $meet;
         }
 
-        try {
-            $l = LYLib::meetNameToId($meet->meetingName, $type, $committees, $term, $sessionPeriod, $sessionTimes);
-            $meet->meetingType = $type;
-            $meet->committees = $committees;
-            $meet->term = $term;
-        } catch (Exception $e) {
-            if (strpos($meet->meetingName, '黨團協商') !== false) {
-                $meet->meetingType = '黨團協商';
-                return $meet;
-            }
-            if (strpos($meet->meetingContent, '考察') !== false or
-                strpos($meet->meetingContent, '公聽會') !== false
-            ) {
-                $meet->meetingType = '其他會議';
-                return $meet;
-            }
-            // TODO: log it
-            $meet->meetingType = '其他會議';
-            return $meet;
-            throw new Exception('meetNameToId error');
-        }
-
-        if (is_null($l)) {
-            if (trim($meet->meetingName) == '') {
-                $meet->meetingName = $meet->meetingContent;
-            }
-
-            if (strpos($meet->meetingName, '黨團協商') !== false) {
-                $meet->meetingType = '黨團協商';
-                return $meet;
-            }
-            if (strpos($meet->meetingName, '公聽會') !== false or
-                strpos($meet->meetingName, '參訪') !== false or
-                strpos($meet->meetingName, '考察') !== false
-            ) {
-                $meet->meetingType = '其他會議';
-                return $meet;
-            }
-            // TODO: log it
-            $meet->meetingType = '其他會議';
-            return $meet;
-            throw new Exception('meetNameToId error');
-        } else {
-            $meet->alias[] = $l;
-        }
         return $meet;
     }
 
@@ -330,13 +279,18 @@ class LYLib
 
     public static function buildMeet($source)
     {
-        if (strlen($source->meetingNo) < 15) {
-            $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
-                $source->meetingNo,
-                date('Y', strtotime($source->date)) - 1911,
-                date('m', strtotime($source->date)),
-                date('d', strtotime($source->date))
-            );
+        if (is_array($source->meet_data) and count($source->meet_data)) {
+            foreach ($source->meet_data as $idx => $meet_data) {
+                if (strlen($meet_data->meetingNo) < 15) {
+                    $meet_data->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
+                        $meet_data->meetingNo,
+                        date('Y', strtotime($meet_data->date)) - 1911,
+                        date('m', strtotime($meet_data->date)),
+                        date('d', strtotime($meet_data->date))
+                    );
+                }
+                $source->meet_data[$idx] = $meet_data;
+            }
         }
         return $source;
     }
