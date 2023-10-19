@@ -1278,6 +1278,28 @@ paths:
       responses:
         '200':
           description: 'iVod 資料'
+  '/meet/{meet_id}/interpellation':
+    get:
+      tags:
+        - meet
+      summary: 取得特定會議的質詢資料
+      operationId: baa6a0bb13aaaed4c09c3e866b9bf699
+      parameters:
+        -
+          name: meet_id
+          in: path
+          description: '會議 ID'
+          required: true
+          schema:
+            type: string
+          example: 院會-10-5-1
+      responses:
+        '200':
+          description: 質詢資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interpellation'
   /ivod/:
     get:
       tags:
@@ -1360,6 +1382,14 @@ paths:
             type: string
           example: 黃國昌
         -
+          name: meet_id
+          in: query
+          description: '會議 ID'
+          required: false
+          schema:
+            type: string
+          example: 院會-10-5-1
+        -
           name: q
           in: query
           description: 搜尋質詢理由或內容
@@ -1429,6 +1459,14 @@ paths:
           schema:
             type: string
           example: 黃國昌
+        -
+          name: meet_id
+          in: query
+          description: '會議 ID'
+          required: false
+          schema:
+            type: string
+          example: 院會-10-5-1
         -
           name: q
           in: query
@@ -1500,6 +1538,14 @@ paths:
             type: string
           example: 黃國昌
         -
+          name: meet_id
+          in: query
+          description: '會議 ID'
+          required: false
+          schema:
+            type: string
+          example: 院會-10-5-1
+        -
           name: q
           in: query
           description: 搜尋質詢理由或內容
@@ -1569,6 +1615,14 @@ paths:
           schema:
             type: string
           example: 黃國昌
+        -
+          name: meet_id
+          in: query
+          description: '會議 ID'
+          required: false
+          schema:
+            type: string
+          example: 院會-10-5-1
         -
           name: q
           in: query

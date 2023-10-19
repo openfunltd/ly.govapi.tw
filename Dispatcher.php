@@ -726,6 +726,11 @@ class Dispatcher
      *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Response(response="200", description="iVod 資料"),
      * )
+     * @OA\Get(
+     *   path="/meet/{meet_id}/interpellation", summary="取得特定會議的質詢資料", tags={"meet"},
+     *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
+     *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
+     * )
      * @OA\Schema(
      *   schema="Meet", type="object", required={"meetingName", "meetingContent", "meetingType", "meetingDateDesc", "meetingRoom", "attendLegislator"},
      *   @OA\Property(property="meetingName", type="string", description="會議名稱"),
@@ -785,6 +790,9 @@ class Dispatcher
             } else if ($params[1] == 'ivod') {
                 $_GET['meet_id'] = $meet_id;
                 return self::ivod([]);
+            } else if ($params[1] == 'interpellation') {
+                $_GET['meet_id'] = $meet_id;
+                return self::interpellation([]);
             }
         }
         if (count($params) > 0) {
@@ -1002,6 +1010,7 @@ class Dispatcher
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
@@ -1013,6 +1022,7 @@ class Dispatcher
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
@@ -1024,6 +1034,7 @@ class Dispatcher
      *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="sessionTimes", in="query", description="會期次數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
@@ -1035,6 +1046,7 @@ class Dispatcher
      *   @OA\Parameter(name="sessionPeriod", in="path", description="會期", required=true, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="sessionTimes", in="path", description="會期次數", required=true, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="legislator", in="query", description="提案委員", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Parameter(name="q", in="query", description="搜尋質詢理由或內容", required=false, @OA\Schema(type="string"), example="平等"),
      *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
      * )
@@ -1131,6 +1143,16 @@ class Dispatcher
                 ],
             ];
         }
+
+        if (array_key_exists('meet_id', $_GET)) {
+            $records->meet_id = $_GET['meet_id'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'meet_id.keyword' => $records->meet_id,
+                ],
+            ];
+        }
+
         if (array_key_exists('sessionPeriod', $_GET)) {
             $records->sessionPeriod = $_GET['sessionPeriod'];
             $cmd['query']['bool']['must'][] = [
