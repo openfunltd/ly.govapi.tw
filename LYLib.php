@@ -107,6 +107,8 @@ class LYLib
         $name = str_replace('第六次', '第6次', $name);
         $name = preg_replace('#^立法院#', '', $name);
         $name = preg_replace('#議事錄$#', '', $name);
+
+        $ret->title = '立法院' . $name;
         // 第8屆第5會期第4次會議 -> all-8-5-4
         // 第8屆第1會期第1次全院委員會會議 -> all-8-1-1
         // 第8屆第1會期第1次臨時會第1次會議 -> temp-8-1-1-1
