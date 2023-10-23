@@ -41,6 +41,7 @@ class GazetteParser
             $queryname = strtolower($queryname);
             $queryname = str_replace('‧', '', $queryname);
             $queryname = str_replace('．', '', $queryname);
+            $queryname = str_replace('·', '', $queryname);
             self::$_name_list->{$term}[$queryname] = $hit->fields->name[0];
         }
         if ($term == 8) {
@@ -90,6 +91,7 @@ class GazetteParser
         $ostr = $str;
         $str = str_replace('召集', '', $str);
         $str = str_replace('委員', '', $str);
+        $str = str_replace('（代理）', '', $str);
         $str = str_replace('代理', '', $str);
         $str = str_replace('　', '', $str);
         $str = str_replace("\r", '', $str);
@@ -98,6 +100,7 @@ class GazetteParser
         $str = str_replace(' ', '', $str);
         $str = str_replace('‧', '', $str);
         $str = str_replace('．', '', $str);
+        $str = str_replace('·', '', $str);
         $str = str_replace('、', '', $str);
         $str = str_replace('&nbsp;', '', $str);
         $str = preg_replace('#^：#', '', $str);
@@ -117,6 +120,10 @@ class GazetteParser
             }
             if (preg_match('#^（\d+月\d+日）#', $str, $matches)) {
                 // TODO: 有部份委員只出席一天，需要特別處理
+                $str = substr($str, strlen($matches[0]));
+                continue;
+            }
+            if (preg_match('#^\d+月\d+日（星期.）#u', $str, $matches)) {
                 $str = substr($str, strlen($matches[0]));
                 continue;
             }
@@ -731,6 +738,7 @@ class GazetteParser
         $content = str_replace('', '堃', $content);
         $content = str_replace('', '崐', $content);
         $content = str_replace('', '崐', $content);
+        $content = str_replace('專鬥委員', '專門委員', $content);
         return $content;
     }
 
@@ -810,6 +818,203 @@ class GazetteParser
     }
 
     public static function parseAgendaWholeMeetingNote($agenda, $meet_id = null)
+    {
+        $fp = fopen($agenda, "r");
+        $doms = [];
+        while ($line = fgets($fp)) {
+            if ('' == trim($line)) {
+                continue;
+            }
+            $dom = new StdClass;
+            $dom->line = self::replaceWord($line);
+            $dom->cline = self::removeSpace($dom->line);
+            $doms[] = $dom;
+        }
+
+        $ret = new StdClass;
+        $ret->title = null;
+
+        // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
+        while (count($doms)) {
+            $dom = array_shift($doms);
+            $dom->cline = str_replace('[pic]', '', $dom->cline);
+            if (preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->cline), $matches)) {
+                $meet_type = null;
+                $current_meet_info = LYLib::meetNameToId($dom->cline);
+                $current_meet_id = $current_meet_info->id;
+                $meet_type = $current_meet_info->type;
+                $term = $current_meet_info->term;
+                if ($current_meet_id == $meet_id) {
+                    $ret->term = $term;
+                    $ret->title = trim($dom->cline);
+                    break;
+                }
+                error_log("$current_meet_id {$dom->cline} != $meet_id");
+            }
+        }
+
+        if ('院會' == $meet_type) {
+            $columns = ['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'];
+        } elseif ('委員會' == $meet_type) {
+            $columns = ['時間', '地點', '出席委員', '出席人員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席官員', '列席', '編審', '視訊委員'];
+        } else if ('聯席會議' == $meet_type) {
+            $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席官員', '列席', '編審', '列席官員', '視訊委員'];
+        } else {
+            echo $current_meet_id . "\n";
+            throw new Exception("不支援的會議型態: " . $meet_id . ' ' . $meet_type);
+        }
+        if (is_null($ret->title)) {
+            throw new Exception("找不到議事錄標題: " . $meet_id);
+        }
+        $ret->{'人員名單'} = [];
+
+        // 在 table 表格以前，會是 時間、出席委員、委員出席 ... 等資料
+        $prev_col = null;
+        $type = null;
+        $section_name = null;
+        while (count($doms)) {
+            $dom = array_shift($doms);
+            foreach ($columns as $col) {
+                $value = $dom->cline;
+                $value = preg_replace('#記錄#u', '紀錄', $value);
+                if (strpos($value, $col) === 0 and !property_exists($ret, $col)) {
+                    $prev_col = $col;
+                    $ret->{$col} = substr($value, strlen($col));
+                    if (strpos($ret->{$col}, '：') === 0) {
+                        $ret->{$col} = substr($ret->{$col}, strlen('：'));
+                    }
+                    continue 2;
+                } 
+            }
+
+            if ($prev_col == '時間' and preg_match('#^(\d+年|\d+月|下午|\d+時|中華民國)#u', $value)) {
+                $ret->{'時間'} .= "\n" . trim($value);
+                continue;
+            }
+
+            if (strpos(self::removeSpace($value), '討論事項') === 0
+                or strpos(self::removeSpace($value), '報告事項') === 0
+                or strpos(self::removeSpace($value), '其他事項') === 0
+                or strpos(self::removeSpace($value), '朝野協商結論') === 0
+                or strpos(self::removeSpace($value), '主席宣告：') === 0
+            ) {
+                // TODO: 留在章節名稱
+                break;
+            }
+
+
+            if (in_array($prev_col, ['列席委員', '出席委員', '列席人員', '紀錄', '地點', '請假委員', '列席官員', '編審', '主席']) and strpos($value, '|') !== 0) {
+                if (preg_match('#委員.*\d+人#u', $value)) { // LCIDC01_1056801_00008.doc
+                    $ret->{$prev_col} .= $value;
+                    if ($doms and $doms[0]->cline == '）') {
+                        $ret->{$prev_col} .= array_shift($doms)->cline;
+                    }
+                    $prev_col = null;
+                    continue;
+                }
+                $ret->{$prev_col} .= ' ' . trim($value);
+                continue;
+            }
+
+            if (strpos($value, '|主席|') === 0 or strpos($value, '|列席') === 0) {
+                $records = new StdClass;
+                $records->{'人員'} = [];
+                $records->{'備註'} = '';
+
+                $type = null;
+                while (true) {
+                    $terms = explode('|', $value);
+                    $terms = array_slice($terms, 1, -1);
+                    if ($terms[0]) {
+                        $type = $terms[0];
+                    } else {
+                        $terms[0] = $type;
+                    }
+                    $terms[0] = str_replace('：', '', $terms[0]);
+                    if (count($terms) == 1 and strpos($terms[0], '列席人員') === 0) {
+                        $type = '列席人員';
+                    } elseif (count($terms) == 1 and strpos($terms[0], '列席官員') === 0) {
+                        $type = '列席官員';
+                    } elseif (count($terms) == 1 and preg_match('#^二、#', $terms[0])) {
+                        // nothing
+                    } elseif (count($terms) == 1 and preg_match('#^（.*）$#', $terms[0])) {
+                        // nothing
+                    } else if (count($terms) == 3) {
+                        $record = new StdClass;
+                        $record->{'身份'} = $terms[0];
+                        $record->{'職稱'} = $terms[1];
+                        $record->{'姓名'} = $terms[2];
+                        if (preg_match('#(.*)（(.*)）#u', $record->{'姓名'}, $matches)) {
+                            $record->{'姓名'} = $matches[1];
+                            $record->{'備註'} = $matches[2];
+                        }
+                        $ret->{'人員名單'}[] = $record;
+                    } else if (count($terms) == 2) {
+                        $record = new StdClass;
+                        $record->{'身份'} = $terms[0];
+                        $record->{'姓名'} = $terms[2];
+                        if (preg_match('#(.*)（(.*)）#u', $record->{'姓名'}, $matches)) {
+                            $record->{'姓名'} = $matches[1];
+                            $record->{'備註'} = $matches[2];
+                        }
+                        $ret->{'人員名單'}[] = $record;
+                    } else if (count($terms) == 4) {
+                        $record = new StdClass;
+                        $record->{'身份'} = $terms[0];
+                        $record->{'機關'} = $terms[1];
+                        $record->{'職稱'} = $terms[2];
+                        $record->{'姓名'} = $terms[3];
+                        if (preg_match('#(.*)（(.*)）#u', $record->{'姓名'}, $matches)) {
+                            $record->{'姓名'} = $matches[1];
+                            $record->{'備註'} = $matches[2];
+                        }
+                        $ret->{'人員名單'}[] = $record;
+                    } else {
+                        echo 'error: ' . $value . "\n";
+                        print_r($terms);
+                        exit;
+                    }
+                    if (strpos($doms[0]->cline, '|') === false) {
+                        break;
+                    }
+                    $value = array_shift($doms)->cline;
+                }
+                continue;
+            }
+        }
+        if (!is_null($section_name)) {
+            // TODO: 處理章節名稱
+        }
+        $ret->{'出席委員'} = self::parsePeople($ret->{'出席委員'}, $ret->term);
+        foreach (['請假委員', '缺席委員', '視訊委員'] as $c) {
+            if (property_exists($ret, $c)) {
+                $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
+            }
+        }
+        if ($meet_type == '委員會' or $meet_type == '聯席會議') {
+            foreach (['主席', '列席委員', '請假委員'] as $c) {
+                if (property_exists($ret, $c) and is_string($ret->{$c})) {
+                    $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
+                }
+            }
+       
+            foreach ($columns as $c) {
+                if (property_exists($ret, $c) and is_string($ret->{$c})) {
+                    $ret->{$c} = preg_replace('#^：#', '', $ret->{$c});
+                }
+            }
+        }
+        // 把還沒辦法結構化的先跳過，之後再處理
+        foreach (["列席人員", "紀錄"] as $c) {
+            if (property_exists($ret, $c)) {
+                unset($ret->{$c});
+            }
+        }
+
+        return $ret;
+    }
+
+    public static function parseAgendaWholeMeetingNoteFromHTML($agenda, $meet_id = null)
     {
         if (is_array($agenda)) {
             $doms = self::getDOMsFromHTMLs($agenda);
