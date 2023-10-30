@@ -460,4 +460,111 @@ class BillParser
 
         return $record;
     }
+
+    public static function getBillTypes()
+    {
+        // https://data.ly.gov.tw/odw/BillNo.pdf
+        return [
+            '10' => '修憲案',
+            '11' => '不信任案',
+            '12' => '覆議案',
+            '13' => '緊急命令等',
+            '20' => '法律案',
+            '21' => '一般提案',
+            '22' => '臨時提案',
+            '23' => '質詢答復',
+            '30' => '中央政府總預算案',
+            '31' => '預(決) 算決議案、定期報告',
+            '32' => '法人預(決)算案',
+            '40' => '條約案',
+            '50' => '同意權案',
+            '60' => '--',
+            '70' => '行政命令(層級)',
+            '80' => '請願案',
+            '90' => '院內單位來文',
+            '99' => '其他',
+        ];
+    }
+
+    public static function getBillSources()
+    {
+        return [
+            '1' => '政府提案',
+            '2' => '委員提案',
+            '3' => '審查報告',
+            '4' => '請願案',
+        ];
+    }
+
+    public static function addBillInfo($values)
+    {
+        $types = self::getBillTypes();
+        $sources = self::getBillSources();
+        $billNo = $values->billNo;
+        if (strlen($billNo) == 15) {
+            $type = substr($billNo, 0, 2);
+            $source = substr($billNo, 2, 1);
+            $term = substr($billNo, 3, 2);
+            $no = substr($billNo, 5, 6);
+            $subno1 = substr($billNo, 11, 2);
+            $subno2 = substr($billNo, 13, 2);
+            if (array_key_exists($type, $types) and array_key_exists($source, $sources)) {
+                $values->{'議案類別'} = $types[$type];
+                $values->{'提案來源'} = $sources[$source];
+            }
+        }
+
+        if (property_exists($values, '議案流程') and $values->{'議案流程'}) {
+            $first_period = null;
+            foreach ($values->{'議案流程'} as $flow) {
+                $period = null;
+                if (is_object($flow)) {
+                    $date = $flow->{'日期'};
+                    if (property_exists($flow, '會期')) {
+                        $period = $flow->{'會期'};
+                    }
+                } else {
+                    $date = $flow['日期'];
+                    if (array_key_exists('會期', $flow)) {
+                        $period = $flow['會期'];
+                    }
+                }
+                if (!$date) {
+                    continue;
+                }
+                if ($period) {
+                    $terms = explode('-', $period);
+                    if (count($terms) > 0 and intval($terms[0]) > 0) {
+                        $values->{'屆期'} = intval($terms[0]);
+                    }
+                    if (is_null($first_period)) {
+                        $first_period = $period;
+                    }
+                }
+                foreach ($date as $d) {
+                    if (!property_exists($values, 'first_time')) {
+                        $values->first_time = $d;
+                    }
+                    $values->last_time = $d;
+                }
+            }
+
+            if (!is_null($first_period)) {
+                if (preg_match('#^\d+-\d+-\d+$#', $first_period)) {
+                    $values->meet_id = '院會-' . $first_period;
+                } elseif (preg_match('#^\d+-\d+-\d+-\d+$#', $first_period)) {
+                    $values->meet_id = '臨時會院會-' . $first_period;
+                } elseif (preg_match('#^\d+-\d+-T\d+\.\d+$#', $first_period)) { // 09-03-T02.01
+                    $first_period = str_replace('T', '', $first_period);
+                    $first_period = str_replace('.', '-', $first_period);
+                    $values->meet_id = '臨時會院會-' . $first_period;
+                } else {
+                    print_r($first_period);
+                    exit;
+                }
+            }
+        }
+
+        return $values;
+    }
 }
