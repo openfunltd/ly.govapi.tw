@@ -822,6 +822,46 @@ paths:
             type: string
           example: 黃國昌
         -
+          name: meet_id
+          in: query
+          description: '會議 ID'
+          required: false
+          schema:
+            type: string
+          example: 院會-10-1-1
+        -
+          name: term
+          in: query
+          description: 屆期
+          required: false
+          schema:
+            type: integer
+          example: 9
+        -
+          name: sessionPeriod
+          in: query
+          description: 會期
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: bill_type
+          in: query
+          description: 議案類別
+          required: false
+          schema:
+            type: integer
+          example: 法律案
+        -
+          name: proposal_type
+          in: query
+          description: 提案類別
+          required: false
+          schema:
+            type: integer
+          example: 委員提案
+        -
           name: page
           in: query
           description: 頁數
@@ -872,60 +912,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  '/bill/{term}':
-    get:
-      tags:
-        - bill
-      summary: 取得特定屆期的議案
-      operationId: 7a2d80bffed068a55f820bab1475ba77
-      parameters:
-        -
-          name: proposer
-          in: query
-          description: 提案人
-          required: false
-          schema:
-            type: string
-          example: 黃國昌
-        -
-          name: cosignatory
-          in: query
-          description: 連署人
-          required: false
-          schema:
-            type: string
-          example: 黃國昌
-        -
-          name: term
-          in: path
-          description: 屆期
-          required: true
-          schema:
-            type: integer
-          example: 9
-        -
-          name: page
-          in: query
-          description: 頁數
-          required: false
-          schema:
-            type: integer
-          example: 1
-        -
-          name: limit
-          in: query
-          description: 每頁筆數
-          required: false
-          schema:
-            type: integer
-          example: 100
-      responses:
-        '200':
-          description: 議案資料
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Bill'
   /meet/:
     get:
       tags:
@@ -1278,6 +1264,28 @@ paths:
       responses:
         '200':
           description: 'iVod 資料'
+  '/meet/{meet_id}/bill':
+    get:
+      tags:
+        - meet
+      summary: 取得特定會議的議案資料
+      operationId: c34c42b6994ed51266d00cd62c304d7a
+      parameters:
+        -
+          name: meet_id
+          in: path
+          description: '會議 ID'
+          required: true
+          schema:
+            type: string
+          example: 院會-10-5-1
+      responses:
+        '200':
+          description: 議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
   '/meet/{meet_id}/interpellation':
     get:
       tags:

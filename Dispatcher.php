@@ -561,6 +561,11 @@ class Dispatcher
      *   path="/bill", summary="取得依時間新至舊的議案", tags={"bill"},
      *   @OA\Parameter(name="proposer", in="query", description="提案人", required=false, @OA\Schema(type="string"), example="黃國昌"),
      *   @OA\Parameter(name="cosignatory", in="query", description="連署人", required=false, @OA\Schema(type="string"), example="黃國昌"),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-1-1"),
+     *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="bill_type", in="query", description="議案類別", required=false, @OA\Schema(type="integer"), example="法律案"),
+     *   @OA\Parameter(name="proposal_type", in="query", description="提案類別", required=false, @OA\Schema(type="integer"), example="委員提案"),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
      *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
@@ -587,15 +592,6 @@ class Dispatcher
      *    @OA\Property(property="first_time", type="string", description="初次提案時間"),
      *    @OA\Property(property="last_time", type="string", description="最後提案時間"),
      *    )
-     *  )
-     *  @OA\Get(
-     *    path="/bill/{term}", summary="取得特定屆期的議案", tags={"bill"},
-     *    @OA\Parameter(name="proposer", in="query", description="提案人", required=false, @OA\Schema(type="string"), example="黃國昌"),
-     *    @OA\Parameter(name="cosignatory", in="query", description="連署人", required=false, @OA\Schema(type="string"), example="黃國昌"),
-     *    @OA\Parameter(name="term", in="path", description="屆期", required=true, @OA\Schema(type="integer"), example=9),
-     *    @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
-     *    @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
-     *    @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
      *  )
      *
      */
@@ -634,6 +630,52 @@ class Dispatcher
                 ],
             ];
         }
+
+        if (array_key_exists('meet_id', $_GET)) {
+            $records->meet_id = $_GET['meet_id'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    'meet_id.keyword' => $records->meet_id,
+                ],
+            ];
+        }
+
+        if (array_key_exists('bill_type', $_GET)) {
+            $records->bill_type = $_GET['bill_type'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    '議案類別.keyword' => $records->bill_type,
+                ],
+            ];
+        }
+
+        if (array_key_exists('proposal_type', $_GET)) {
+            $records->proposal_type = $_GET['proposal_type'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    '提案來源.keyword' => $records->proposal_type,
+                ],
+            ];
+        }
+
+        if (array_key_exists('term', $_GET)) {
+            $records->term = $_GET['term'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    '屆期' => $records->term,
+                ],
+            ];
+        }
+
+        if (array_key_exists('sessionPeriod', $_GET)) {
+            $records->sessionPeriod = $_GET['sessionPeriod'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    '會期' => $records->sessionPeriod,
+                ],
+            ];
+        }
+
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
@@ -647,16 +689,6 @@ class Dispatcher
                 self::json_output(['error' => 'not found']);
             }
             return;
-        }
-
-        if (count($params) > 0) {
-            $term = intval($params[0]);
-            $records->term = $term;
-            $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    '屆期' => $term,
-                ],
-            ];
         }
 
         $obj = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode($cmd));
@@ -727,6 +759,11 @@ class Dispatcher
      *   @OA\Response(response="200", description="iVod 資料"),
      * )
      * @OA\Get(
+     *   path="/meet/{meet_id}/bill", summary="取得特定會議的議案資料", tags={"meet"},
+     *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
+     *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     * )
+     * @OA\Get(
      *   path="/meet/{meet_id}/interpellation", summary="取得特定會議的質詢資料", tags={"meet"},
      *   @OA\Parameter(name="meet_id", in="path", description="會議 ID", required=true, @OA\Schema(type="string"), example="院會-10-5-1"),
      *   @OA\Response(response="200", description="質詢資料", @OA\JsonContent(ref="#/components/schemas/Interpellation")),
@@ -790,6 +827,9 @@ class Dispatcher
             } else if ($params[1] == 'ivod') {
                 $_GET['meet_id'] = $meet_id;
                 return self::ivod([]);
+            } else if ($params[1] == 'bill') {
+                $_GET['meet_id'] = $meet_id;
+                return self::bill([]);
             } else if ($params[1] == 'interpellation') {
                 $_GET['meet_id'] = $meet_id;
                 return self::interpellation([]);
