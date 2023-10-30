@@ -9,6 +9,22 @@ class BillParser
 	    }
     }
 
+    public static function getListFromFileAndDir($list_file, $dir)
+    {
+        $fp = fopen($list_file, 'r');
+        while ($line = fgets($fp)) {
+            $obj = json_decode($line);
+            $id = $obj->id;
+            if (!file_Exists($dir . "/{$id}.gz")) {
+                continue;
+            }
+
+            $f = $dir . "/{$id}.gz";
+		    yield [basename($f), filemtime($f), $obj];
+
+        }
+    }
+
     public static function parsePerson($person)
     {
         $persons = preg_split('#　　#u', $person);
