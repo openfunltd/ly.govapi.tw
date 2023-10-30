@@ -2,7 +2,7 @@
 
 include(__DIR__ . '/../../init.inc.php');
 
-$list = BillParser::getListFromWeb(__DIR__ . "/bill-html");
+$list = BillParser::getListFromFileAndDir($_SERVER['argv'][1], __DIR__ . "/bill-html");
 /*$ret = Elastic::dbQuery("/bill/_search?format=json&human", "GET", json_encode([
     'size' => 0,
     'aggs' => [
@@ -12,8 +12,10 @@ $list = BillParser::getListFromWeb(__DIR__ . "/bill-html");
 $max_value = 0;
 //$max_value = json_decode($ret)->aggregations->max_mtime->value;
 
+$types = BillParser::getBillTypes();
+$sources = BillParser::getBillSources();
 foreach ($list as $idx => $v) {
-    list($filename, $time) = $v;
+    list($filename, $time, $obj) = $v;
     if ($time < $max_value) {
         //continue;
     }
@@ -27,33 +29,10 @@ foreach ($list as $idx => $v) {
         error_log("{$billNo} error: " . $e->getMessage());
         continue;
     }
+    $values->{'議案類別'} = $types[$obj->billType];
+    $values->{'提案來源'} = $sources[$obj->proposalType];
+    $values = BillParser::addBillInfo($values);
     $values->mtime = date('c', $mtime);
-    if ($values->{'議案流程'}) {
-        foreach ($values->{'議案流程'} as $flow) {
-            if (is_object($flow)) {
-                $date = $flow->{'日期'};
-                $period = $flow->{'會期'};
-            } else {
-                $date = $flow['日期'];
-                $period = $flow['會期'];
-            }
-            if (!$date) {
-                continue;
-            }
-            if ($period) {
-                list($period) = explode('-', $period);
-                if (intval($period) > 0) {
-                    $values->{'屆期'} = intval($period);
-                }
-            }
-            foreach ($date as $d) {
-                if (!property_exists($values, 'first_time')) {
-                    $values->first_time = $d;
-                }
-                $values->last_time = $d;
-            }
-        }
-    }
 
     Elastic::dbBulkInsert('bill', $billNo, $values);
 }
