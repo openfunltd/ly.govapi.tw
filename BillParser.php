@@ -176,7 +176,7 @@ class BillParser
         if (!$dom) {
             foreach ($h4_dom->parentNode->getElementsByTagName('span') as $span_dom) { 
                 if (strpos($span_dom->getAttribute('class'), 'mb-2  fw-bolder') !== false) {
-                    $dom = $span_dom;
+                    $dom = $span_dom->parentNode;
                     $obj->{'議案狀態'} = $span_dom->nodeValue;
                     break;
                 }
@@ -193,7 +193,28 @@ class BillParser
                 $obj->{'相關附件'}[] = $f;
             }
         }
+
+        $list_groups = [];
         foreach ($doc->getElementsByTagName('h3') as $h3_dom) {
+            $list_groups[] = $h3_dom;
+        }
+
+        if (!$list_groups) {
+            foreach ($doc->getElementsByTagName('span') as $span_dom) {
+                if (strpos($span_dom->getAttribute('class'), 'text-lagoon') === false) {
+                    continue;
+                }
+                $dom = $span_dom;
+                while ($dom = $dom->parentNode) {
+                    if ($dom->nodeName == 'article') {
+                        $list_groups[] = $span_dom;
+                        break;
+                    }
+                }
+            }
+        }
+
+        foreach ($list_groups as $h3_dom) {
             if ($h3_dom->nodeValue == '關聯議案') {
                 $dom = $h3_dom->parentNode;
                 foreach ($dom->getElementsByTagName('a') as $a_dom) {
@@ -220,11 +241,18 @@ class BillParser
                     if ($dt_dom->nodeValue == '') {
                         continue;
                     }
-                    $p->{'狀態'} = $dl_dom->getElementsByTagName('dt')->item(0)->getElementsByTagName('h5')->item(0)->nodeValue;
+                    if ($dt_dom->getElementsByTagName('h5')->length) {
+                        $p->{'狀態'} = $dt_dom->getElementsByTagName('h5')->item(0)->nodeValue;
+                    } else {
+                        $p->{'狀態'} = $dt_dom->getElementsByTagName('span')->item(0)->nodeValue;
+                    }
+
                     $dd_dom = $dl_dom->getElementsByTagName('dd')->item(0);
                     $text = '';
                     if ($dd_dom->getElementsByTagName('h5')->length) {
                         $text = trim($dd_dom->getElementsByTagName('h5')->item(0)->nodeValue);
+                    } else {
+                        $text = trim($dd_dom->getElementsByTagName('span')->item(0)->nodeValue);
                     }
                     if ($text == '') {
                         // TODO: 委員會發文？
@@ -234,7 +262,7 @@ class BillParser
                     } elseif (in_array($text, ['議事處', '資訊處']) or preg_match('#^[^\s]+委員會$#u', trim($text))) {
                         $p->{'院會/委員會'} = trim($text);
                     } else {
-                        throw new Exception("unknown {$billno}: wrong text {$text}");
+                        //throw new Exception("unknown {$billno}: wrong text {$text}");
                     }
                     foreach ($dl_dom->getElementsByTagName('p') as $p_dom) {
                         if (strpos($p_dom->getAttribute('class'), 'card-text') !== false) {
@@ -537,6 +565,9 @@ class BillParser
                     if (count($terms) > 0 and intval($terms[0]) > 0) {
                         $values->{'屆期'} = intval($terms[0]);
                     }
+                    if (count($terms) > 1 and intval($terms[1])) {
+                        $values->{'會期'} = intval($terms[1]);
+                    }
                     if (is_null($first_period)) {
                         $first_period = $period;
                     }
@@ -551,12 +582,15 @@ class BillParser
 
             if (!is_null($first_period)) {
                 if (preg_match('#^\d+-\d+-\d+$#', $first_period)) {
+                    $first_period = implode('-', array_map('intval', explode('-', $first_period)));
                     $values->meet_id = '院會-' . $first_period;
                 } elseif (preg_match('#^\d+-\d+-\d+-\d+$#', $first_period)) {
+                    $first_period = implode('-', array_map('intval', explode('-', $first_period)));
                     $values->meet_id = '臨時會院會-' . $first_period;
                 } elseif (preg_match('#^\d+-\d+-T\d+\.\d+$#', $first_period)) { // 09-03-T02.01
                     $first_period = str_replace('T', '', $first_period);
                     $first_period = str_replace('.', '-', $first_period);
+                    $first_period = implode('-', array_map('intval', explode('-', $first_period)));
                     $values->meet_id = '臨時會院會-' . $first_period;
                 } else {
                     print_r($first_period);
