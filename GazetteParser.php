@@ -1280,4 +1280,35 @@ class GazetteParser
 
         return $ret;
     }
+
+    public static function getAgendaDocHTMLs($agenda)
+    {
+        foreach ($agenda->docUrls as $url) {
+            if (!preg_match('#https://ppg.ly.gov.tw/ppg/download/communique1/work/\d+/\d+/(LCIDC01_\d+_\d+.doc)#', $url, $matches)) {
+                throw new Exception("找不到檔案: " . $url);
+            }
+            $filename = $matches[1];
+
+            $doc_file = __DIR__ . '/imports/gazette/agenda-doc/' . $filename;
+            if (!file_Exists($doc_file)) {
+                system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg($url)), $ret);
+                if ($ret) {
+                    throw new Exception("下載失敗: " . $url);
+                }
+                copy(__DIR__ . '/tmp.doc', $doc_file);
+                unlink(__DIR__ . '/tmp.doc');
+            }
+
+            $txt_file = __DIR__ . '/imports/gazette/agenda-txt/' . $filename;
+            if (!file_exists($txt_file)) {
+                error_log("轉檔: " . $txt_file);
+                system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
+                if ($ret) {
+                    throw new Exception("轉檔失敗: " . $doc_file);
+                }
+                copy(__DIR__ . '/tmp.txt', $txt_file);
+                unlink(__DIR__ . '/tmp.txt');
+            }
+        }
+    }
 }
