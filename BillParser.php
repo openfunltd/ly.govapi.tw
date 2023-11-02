@@ -290,8 +290,35 @@ class BillParser
         return preg_Replace('/\s+/', '', $str);
     }
 
-    public static function parseBillDoc($billNo, $content)
+    public static function parseTikaBillDoc($billNo, $content, $obj)
     {
+        $record = new StdClass;
+        $record->billNo = $billNo;
+
+        $doc = new DOMDocument;
+        if (!$content) {
+            throw new Exception("{$billNo} no content");
+        }
+        $content = str_replace('<head>', '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">', $content);
+        @$doc->loadHTML($content);
+
+        if ($obj->proposalType != 3) {
+            // 處理院總號
+            foreach ($doc->getElementsByTagName('p') as $p_dom) {
+                if ($p_dom->getAttribute('class') == '院總號') {
+                    $record->{'字號'} = preg_replace('#\s#', '', $p_dom->parentNode->parentNode->nodeValue);
+                }
+            }
+        }
+
+        return $record;
+    }
+
+    public static function parseBillDoc($billNo, $content, $obj = null)
+    {
+        if (strpos($content, 'org.apache.tika.parser.CompositeParser')) {
+            return self::parseTikaBillDoc($billNo, $content, $obj);
+        }
         $record = new StdClass;
         $record->billNo = $billNo;
 
