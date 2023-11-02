@@ -2,3 +2,10 @@
 config.php
 imports/gazette
 imports/meet/meet.jsonl
+imports/bill/bill-doc-parsed
+imports/bill/bill-docgz
+imports/bill/bill-html
+imports/bill/tmp.doc
+imports/bill/tmp.html
+imports/bill/output.jsonl
+imports/interpellation/files
