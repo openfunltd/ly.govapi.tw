@@ -81,6 +81,7 @@ class GazetteParser
             self::$_name_list->{$term}['吳秉數'] = '吳秉叡';
             self::$_name_list->{$term}['莊端雄'] = '莊瑞雄';
             self::$_name_list->{$term}['伍麗華'] = '伍麗華Saidhai‧Tahovecahe';
+            self::$_name_list->{$term}['羅美鈴'] = '羅美玲';
         }
 
         return self::$_name_list->{$term};
@@ -138,6 +139,18 @@ class GazetteParser
             if (preg_match('#^(請假|出席|列席|列|視訊)\d+人#u', $str, $matches)) {
                 $str = substr($str, strlen($matches[0]));
                 continue;
+            }
+            if (strpos($str, '及') === 0) {
+                $str = substr($str, strlen('及'));
+                continue;
+            }
+
+            if (preg_match('#^等\d+人#u', $str, $matches)) {
+                $str = substr($str, strlen($matches[0]));
+                continue;
+            }
+            if ($str == '等') {
+                break;
             }
             error_log(json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             error_log("ostr = " . json_encode($ostr, JSON_UNESCAPED_UNICODE));
@@ -980,6 +993,28 @@ class GazetteParser
                     $value = array_shift($doms)->cline;
                 }
                 continue;
+            }
+        }
+
+        $other_text = '';
+        foreach ($doms as $dom) {
+            if ($dom->cline == '散會') {
+                break;
+            }
+            $other_text .= $dom->cline;
+        }
+        if ($meet_type == '委員會' and $current_meet_info->committees[0] != 27) {
+            if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $other_text, $matches)) {
+                $ret->{'口頭質詢'} = self::parsePeople($matches[1], $ret->term);
+            } else {
+                //echo mb_strimwidth($other_text, 0, 100, '...', 'utf-8');
+                //throw new Exception("找不到口頭質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
+            }
+            if (preg_match('#委員([^；，。]*)(等\d+人)?所提書面質詢#u', $other_text, $matches)) {
+                $ret->{'書面質詢'} = self::parsePeople($matches[1], $ret->term);
+            } else {
+                //echo mb_strimwidth($other_text, 0, 100, '...', 'utf-8');
+                //throw new Exception("找不到書面質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
             }
         }
         if (!is_null($section_name)) {
