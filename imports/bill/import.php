@@ -33,6 +33,22 @@ foreach ($list as $idx => $v) {
     $values->{'提案來源'} = $sources[$obj->proposalType];
     $values = BillParser::addBillInfo($values);
     $values->mtime = date('c', $mtime);
+    if (file_exists(__DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz')) {
+        $file = __DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz';
+        $content = gzdecode(file_get_contents($file));
+    } else if (file_exists(__DIR__ . '/bill-doc-parsed/html/' . $billNo . '.doc.gz')) {
+        $file = __DIR__ . '/bill-doc-parsed/html/' . $billNo . '.doc.gz';
+        $obj = json_decode(gzdecode(file_get_contents($file)));
+        $content = (base64_decode($obj->content));
+    } else {
+        $content = null;
+    }
+    if (!is_null($content) and strlen($content) > 10) {
+        $docdata = BillParser::parseBillDoc($billNo, $content, $obj);
+        if (property_exists($docdata, '字號')) {
+            $values->{'字號'} = $docdata->{'字號'};
+        }
+    }
 
     Elastic::dbBulkInsert('bill', $billNo, $values);
 }
