@@ -1698,6 +1698,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Interpellation'
+  /stat:
+    get:
+      tags:
+        - stat
+      summary: 取得統計資料
+      operationId: 18504726dfafd6d3b2d098e0f0e55d4a
+      responses:
+        '200':
+          description: 統計資料
 components:
   schemas:
     Error:
@@ -2064,6 +2073,9 @@ components:
           type: integer
       type: object
 tags:
+  -
+    name: stat
+    description: 統計
   -
     name: legislator
     description: 立法委員
