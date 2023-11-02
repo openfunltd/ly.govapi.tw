@@ -1,5 +1,6 @@
 - php crawl-list.php > output.csv # 從搜尋功能抓取所有議案列表
 - php check-updated-bill.php output.csv # 處理將有異動的，html 搬到 old/ 資料夾
 - php crawl-entry.php output.csv # 抓取 HTML
-- php import.php # 匯入現在所有的議案
 - php crawl-doc.php output.csv # 抓取 doc
+- php parse-doc.php output.csv # 處理 doc => html
+- php import.php # 匯入現在所有的議案
