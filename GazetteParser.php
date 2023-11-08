@@ -1281,7 +1281,7 @@ class GazetteParser
         return $ret;
     }
 
-    public static function getAgendaDocHTMLs($agenda)
+    public static function getAgendaDocHTMLs($agenda, $retry = 0)
     {
         foreach ($agenda->docUrls as $url) {
             if (!preg_match('#https://ppg.ly.gov.tw/ppg/download/communique1/work/\d+/\d+/(LCIDC01_\d+_\d+.doc)#', $url, $matches)) {
@@ -1300,11 +1300,21 @@ class GazetteParser
             }
 
             $txt_file = __DIR__ . '/imports/gazette/agenda-txt/' . $filename;
-            if (!file_exists($txt_file)) {
+            if (!file_exists($txt_file) or filesize($txt_file) < 10) {
                 error_log("轉檔: " . $txt_file);
-                system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
+                $cmd = sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt'));
+                system($cmd, $ret);
+                //system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
                 if ($ret) {
                     throw new Exception("轉檔失敗: " . $doc_file);
+                }
+                if (filesize(__DIR__ . '/tmp.txt') < 10) {
+                    unlink($doc_file);
+                    if ($retry > 3) {
+                        readline('轉檔失敗: '  . $doc_file);
+                        throw new Exception("轉檔失敗: " . $doc_file);
+                    }
+                    return self::getAgendaDocHTMLs($agenda, $retry + 1);
                 }
                 copy(__DIR__ . '/tmp.txt', $txt_file);
                 unlink(__DIR__ . '/tmp.txt');
