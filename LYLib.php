@@ -270,7 +270,7 @@ class LYLib
 
     public static function buildInterpellation($source)
     {
-        $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
+        $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%02d/%02d",
             $source->meetingNo,
             date('Y', strtotime($source->meetingDate)) - 1911,
             date('m', strtotime($source->meetingDate)),
@@ -284,7 +284,7 @@ class LYLib
         if (is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $idx => $meet_data) {
                 if (strlen($meet_data->meetingNo) < 15) {
-                    $meet_data->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/%s/details?meetingDate=%d/%02d/%02d",
+                    $meet_data->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%02d/%02d",
                         $meet_data->meetingNo,
                         date('Y', strtotime($meet_data->date)) - 1911,
                         date('m', strtotime($meet_data->date)),
