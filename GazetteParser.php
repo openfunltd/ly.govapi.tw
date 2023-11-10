@@ -72,6 +72,8 @@ class GazetteParser
         }
         if ($term == 10) {
             self::$_name_list->{$term}['王琬諭'] = '王婉諭';
+            self::$_name_list->{$term}['王婉瑜'] = '王婉諭';
+            self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
             self::$_name_list->{$term}['廖國棟'] = '廖國棟Sufin‧Siluko';
             self::$_name_list->{$term}['廖國SufinSiluko'] = '廖國棟Sufin‧Siluko';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
@@ -83,12 +85,16 @@ class GazetteParser
             self::$_name_list->{$term}['伍麗華'] = '伍麗華Saidhai‧Tahovecahe';
             self::$_name_list->{$term}['羅美鈴'] = '羅美玲';
             self::$_name_list->{$term}['江啓臣'] = '江啟臣';
+            self::$_name_list->{$term}['陳秀寶'] = '陳秀寳';
+            self::$_name_list->{$term}['張蕙禎'] = '湯蕙禎';
+            self::$_name_list->{$term}['黃士杰'] = '黃世杰';
+            self::$_name_list->{$term}['謝依鳯'] = '謝衣鳯';
         }
 
         return self::$_name_list->{$term};
     }
 
-    public static function parsePeople($str, $term)
+    public static function parsePeople($str, $term, $type = null)
     {
         $ostr = $str;
         $str = str_replace('召集', '', $str);
@@ -99,6 +105,7 @@ class GazetteParser
         $str = str_replace("\r", '', $str);
         $str = str_replace("\n", '', $str);
         $str = str_replace("\t", '', $str);
+        $str = str_replace(json_decode('"\u00a0"'), '', $str);
         $str = str_replace(' ', '', $str);
         $str = str_replace('‧', '', $str);
         $str = str_replace('．', '', $str);
@@ -108,6 +115,7 @@ class GazetteParser
         $str = preg_replace('#^：#', '', $str);
         $str = str_replace('(一)會議室', '', $str);
         $str = str_replace('(二)視訊與會', '', $str);
+        $str = preg_replace('#^:#', '', $str);
         $hit = [];
 
         $names = self::getNameList($term);
@@ -153,6 +161,10 @@ class GazetteParser
             if ($str == '等') {
                 break;
             }
+            if ($type == '主席') { // 主席遇到錯誤就不急著處理了
+                break;
+            }
+            echo json_encode($str);
             error_log("ostr = " . json_encode($ostr, JSON_UNESCAPED_UNICODE));
             throw new Exception("{$term} 找不到人名: " . json_encode($str, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
@@ -751,7 +763,9 @@ class GazetteParser
         $content = str_replace('', '堃', $content);
         $content = str_replace('', '崐', $content);
         $content = str_replace('', '崐', $content);
+        $content = str_replace('年', '年', $content);
         $content = str_replace('專鬥委員', '專門委員', $content);
+        $content = preg_replace('#\[bookmark: [^\]]+\]#u', '', $content);
         return $content;
     }
 
@@ -1050,11 +1064,15 @@ class GazetteParser
                         '委員' => self::parsePeople($matches[1], $ret->term),
                     ];
                 } else if (preg_match('#委員([^；，。]*)提出質詢#u', $section->text, $matches)) {
-                    $ret->{'質詢'}[] = [
-                        '種類' => '口頭質詢',
-                        '日期' => date('Y-m-d', $section->date),
-                        '委員' => self::parsePeople($matches[1], $ret->term),
-                    ];
+                    try {
+                        $people = self::parsePeople($matches[1], $ret->term);
+                        $ret->{'質詢'}[] = [
+                            '種類' => '口頭質詢',
+                            '日期' => date('Y-m-d', $section->date),
+                            '委員' => $people,
+                        ];
+                    } catch (Exception $e) {
+                    }
                 } else {
                     //echo mb_strimwidth($section->text, 0, 100, '...', 'utf-8');
                     //throw new Exception("找不到口頭質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
@@ -1086,7 +1104,7 @@ class GazetteParser
         if ($meet_type == '委員會' or $meet_type == '聯席會議') {
             foreach (['主席', '列席委員', '請假委員'] as $c) {
                 if (property_exists($ret, $c) and is_string($ret->{$c})) {
-                    $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
+                    $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term, $c);
                 }
             }
        
