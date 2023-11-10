@@ -2,17 +2,15 @@
 
 include(__DIR__ . '/../../init.inc.php');
 
+// 因為公報裡面不會有最後一次會議的議事錄，改從議事錄抓取
+throw new Exception("已停用，改用 parse-meet-proceeding.php");
+
 $start = date('Y');
 for ($y = $start; $y >= 2012; $y --) {
     error_log($y);
    
     $meets = [];
     foreach (glob(__DIR__ . sprintf("/../gazette/agenda-txt/LCIDC01_%3d*", $y - 1911)) as $txtfile) {
-        preg_match('#LCIDC01_([0-9]+)#', $txtfile, $matches);
-        $comYear = intval(substr($matches[1], 0, 3));
-        $comVolume = intval(substr($matches[1], 3, -2));
-        $comBookId = intval(substr($matches[1], -2));
-
         $cmd = sprintf("grep '會議議事錄' %s | grep 立法院", escapeshellarg($txtfile));
         $ret = trim(`$cmd`);
         if (!strlen($ret)) {
@@ -40,6 +38,11 @@ for ($y = $start; $y >= 2012; $y --) {
 
     foreach ($meets as $meet) {
         list($meet_id, $txtfile, $meet_obj, $subject, $meet_data) = $meet;
+        preg_match('#LCIDC01_([0-9]+)#', $txtfile, $matches);
+        $comYear = intval(substr($matches[1], 0, 3));
+        $comVolume = intval(substr($matches[1], 3, -2));
+        $comBookId = intval(substr($matches[1], -2));
+
 
         error_log("parsing $txtfile");
         if ($meet_data) {
