@@ -129,7 +129,7 @@ class GazetteParser
                 $str = substr($str, strlen($matches[0]));
                 continue;
             }
-            if (preg_match('#^（[^）]+）#u', $str, $matches)) {
+            if (preg_match('#^[（(][^）\)]+[）)]#u', $str, $matches)) {
                 // TODO: 一些備註
                 $str = substr($str, strlen($matches[0]));
                 continue;
