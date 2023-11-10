@@ -163,6 +163,7 @@ class LYLib
         ) {
             $committee_id = self::getCommitteeId('程序');
             $ret->type = '委員會';
+            $ret->title = $matches[0];
             $ret->term = intval($matches[1]);
             $ret->sessionPeriod = intval($matches[2]);
             $ret->sessionTimes = intval($matches[3]);
@@ -173,6 +174,7 @@ class LYLib
         // 第121屆經費稽核委員會第7次會議
         if (preg_match('/^第(\d+)屆經費稽核委員會第(\d+)次會議/u', $name, $matches)) {
             $committee_id = self::getCommitteeId('經費稽核');
+            $ret->title = $matches[0];
             $ret->committees[] = $committee_id;
             $ret->type = '委員會';
             if ($matches[1] >= 125) {
@@ -191,6 +193,7 @@ class LYLib
 
         if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?([^第0-9]*)第?(\d+)次全體委員會議?/u', $name, $matches)) {
             $committeeIdMap = self::getCommitteeIdMap();
+            $ret->title = $matches[0];
             try {
                 $committee_id = self::getCommitteeId($matches[5]);
                 $ret->term = intval($matches[1]);
