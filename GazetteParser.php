@@ -153,7 +153,6 @@ class GazetteParser
             if ($str == '等') {
                 break;
             }
-            error_log(json_encode($names, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             error_log("ostr = " . json_encode($ostr, JSON_UNESCAPED_UNICODE));
             throw new Exception("{$term} 找不到人名: " . json_encode($str, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
@@ -831,7 +830,28 @@ class GazetteParser
         return $str;
     }
 
-    public static function parseAgendaWholeMeetingNote($agenda, $meet_id = null)
+    public static function parseSectionWithDate($doms, $current_date)
+    {
+        $section = new StdClass;
+        $section->date = $current_date;
+        $section->text = '';
+
+        foreach ($doms as $dom) {
+            if ($dom->cline == '散會') {
+                break;
+            }
+            if (preg_match('#^(\d+)年(\d+)月(\d+)日[\(（]星期.[\)）]$#u', trim($dom->line), $matches)) {
+                yield $section;
+                $section->date = mktime(0, 0, 0, $matches[2], $matches[3], $matches[1] + 1911);
+                $section->text = '';
+                continue;
+            }
+            $section->text .= $dom->line;
+        }
+        yield $section;
+    }
+
+    public static function parseAgendaWholeMeetingNote($agenda, $meet_id = null, $meet_obj= null)
     {
         $fp = fopen($agenda, "r");
         $doms = [];
@@ -848,22 +868,35 @@ class GazetteParser
         $ret = new StdClass;
         $ret->title = null;
 
-        // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
-        while (count($doms)) {
-            $dom = array_shift($doms);
-            $dom->cline = str_replace('[pic]', '', $dom->cline);
-            if (preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->cline), $matches)) {
-                $meet_type = null;
-                $current_meet_info = LYLib::meetNameToId($dom->cline);
-                $current_meet_id = $current_meet_info->id;
-                $meet_type = $current_meet_info->type;
-                $term = $current_meet_info->term;
-                if ($current_meet_id == $meet_id) {
-                    $ret->term = $term;
-                    $ret->title = trim($dom->cline);
-                    break;
+        if ($meet_obj) {
+            $current_meet_info = $meet_obj;
+            $current_meet_id = $meet_obj->id;
+            $meet_type = $meet_obj->type;
+            $term = $meet_obj->term;
+            $ret->term = $term;
+            $ret->title = trim($meet_obj->title);
+        } else {
+            // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
+            $meet_type = null;
+            while (count($doms)) {
+                $dom = array_shift($doms);
+                $dom->cline = str_replace('[pic]', '', $dom->cline);
+                if (preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->cline), $matches)) {
+                    $meet_type = null;
+                    $current_meet_info = LYLib::meetNameToId($dom->cline);
+                    $current_meet_id = $current_meet_info->id;
+                    $meet_type = $current_meet_info->type;
+                    $term = $current_meet_info->term;
+                    if ($current_meet_id == $meet_id) {
+                        $ret->term = $term;
+                        $ret->title = trim($dom->cline);
+                        break;
+                    }
+                    error_log("$current_meet_id {$dom->cline} != $meet_id");
                 }
-                error_log("$current_meet_id {$dom->cline} != $meet_id");
+            }
+            if (is_null($meet_type)) {
+                throw new Exception("找不到會議開始");
             }
         }
 
@@ -874,7 +907,7 @@ class GazetteParser
         } else if ('聯席會議' == $meet_type) {
             $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席官員', '列席', '編審', '列席官員', '視訊委員'];
         } else {
-            echo $current_meet_id . "\n";
+            echo $meet_id . "\n";
             throw new Exception("不支援的會議型態: " . $meet_id . ' ' . $meet_type);
         }
         if (is_null($ret->title)) {
@@ -924,6 +957,12 @@ class GazetteParser
                         $ret->{$prev_col} .= array_shift($doms)->cline;
                     }
                     $prev_col = null;
+                    continue;
+                }
+
+                if (strpos($value, '：') and in_array(explode('：', trim($value))[0], ['列席委員', '出席委員', '列席人員', '紀錄', '地點', '請假委員', '列席官員', '編審', '主席'])) {
+                    $prev_col = explode('：', $value)[0];
+                    $ret->{$prev_col} = explode('：', $value)[1];
                     continue;
                 }
                 $ret->{$prev_col} .= ' ' . trim($value);
@@ -997,261 +1036,46 @@ class GazetteParser
             }
         }
 
-        $other_text = '';
-        foreach ($doms as $dom) {
-            if ($dom->cline == '散會') {
-                break;
-            }
-            $other_text .= $dom->cline;
+        if (!preg_match('#^(中華民國)?(\d+)年(\d+)月(\d+)日#u', $ret->{'時間'}, $matches)) {
+            throw new Exception("時間格式不正確: {$ret->{'時間'}}");
         }
+        $current_date = mktime(0, 0, 0, $matches[3], $matches[4], $matches[2] + 1911);
         if ($meet_type == '委員會' and $current_meet_info->committees[0] != 27) {
-            if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $other_text, $matches)) {
-                $ret->{'口頭質詢'} = self::parsePeople($matches[1], $ret->term);
-            } else {
-                //echo mb_strimwidth($other_text, 0, 100, '...', 'utf-8');
-                //throw new Exception("找不到口頭質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
-            }
-            if (preg_match('#委員([^；，。]*)(等\d+人)?所提書面質詢#u', $other_text, $matches)) {
-                $ret->{'書面質詢'} = self::parsePeople($matches[1], $ret->term);
-            } else {
-                //echo mb_strimwidth($other_text, 0, 100, '...', 'utf-8');
-                //throw new Exception("找不到書面質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
-            }
-        }
-        if (!is_null($section_name)) {
-            // TODO: 處理章節名稱
-        }
-        $ret->{'出席委員'} = self::parsePeople($ret->{'出席委員'}, $ret->term);
-        foreach (['請假委員', '缺席委員', '視訊委員'] as $c) {
-            if (property_exists($ret, $c)) {
-                $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
-            }
-        }
-        if ($meet_type == '委員會' or $meet_type == '聯席會議') {
-            foreach (['主席', '列席委員', '請假委員'] as $c) {
-                if (property_exists($ret, $c) and is_string($ret->{$c})) {
-                    $ret->{$c} = self::parsePeople($ret->{$c}, $ret->term);
-                }
-            }
-       
-            foreach ($columns as $c) {
-                if (property_exists($ret, $c) and is_string($ret->{$c})) {
-                    $ret->{$c} = preg_replace('#^：#', '', $ret->{$c});
-                }
-            }
-        }
-        // 把還沒辦法結構化的先跳過，之後再處理
-        foreach (["列席人員", "紀錄"] as $c) {
-            if (property_exists($ret, $c)) {
-                unset($ret->{$c});
-            }
-        }
-
-        return $ret;
-    }
-
-    public static function parseAgendaWholeMeetingNoteFromHTML($agenda, $meet_id = null)
-    {
-        if (is_array($agenda)) {
-            $doms = self::getDOMsFromHTMLs($agenda);
-        } elseif (is_scalar($agenda)) {
-            $doms = self::getDOMsFromHTMLs([$agenda]);
-        } else {
-            throw new Exception("不支援的參數型態");
-        }
-
-        $ret = new StdClass;
-        $ret->title = null;
-
-        // 先確認「立法院第8屆第1會期第1次會議議事錄」從何時開始
-        while (count($doms)) {
-            $dom = array_shift($doms);
-            $dom->nodeValue = trim($dom->nodeValue);
-            $dom->nodeValue = str_replace('　', '', $dom->nodeValue);
-            if ($dom->nodeName == 'p' and preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->nodeValue), $matches)) {
-                $meet_type = null;
-                $current_meet_info = LYLib::meetNameToId($dom->nodeValue);
-                $current_meet_id = $current_meet_info->id;
-                $meet_type = $current_meet_info->type;
-                $term = $current_meet_info->term;
-                if ($current_meet_id == $meet_id) {
-                    $ret->term = $term;
-                    $ret->title = trim($dom->nodeValue);
-                    break;
-                }
-                error_log("$current_meet_id {$dom->nodeValue} != $meet_id");
-            }
-        }
-        if ('院會' == $meet_type) {
-            $columns = ['時間', '出席委員', '委員出席', '請假委員', '委員請假', '地點', '缺席委員', '委員缺席'];
-        } elseif ('委員會' == $meet_type) {
-            $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席', '編審', '視訊委員'];
-        } else if ('聯席會議' == $meet_type) {
-            $columns = ['時間', '地點', '出席委員', '主席', '專門委員', '主任秘書', '紀錄', '速紀', '列席委員', '列席人員', '請假委員', '列席', '編審', '列席官員', '視訊委員'];
-        } else {
-            echo $current_meet_id . "\n";
-            throw new Exception("不支援的會議型態: " . $meet_id);
-        }
-        if (is_null($ret->title)) {
-            throw new Exception("找不到議事錄標題: " . $meet_id);
-        }
-        $ret->{'人員名單'} = [];
-
-        // 在 table 表格以前，會是 時間、出席委員、委員出席 ... 等資料
-        $prev_col = null;
-        $section_name = null;
-        while (count($doms)) {
-            if ($doms[0]->nodeName == 'p' and $doms[0]->getAttribute('class') == '事項標題') {
-                break;
-            }
-            $dom = array_shift($doms);
-            if ($dom->nodeName == 'table') {
-                if ($dom->getElementsByTagName('p')->item(0)->nodeValue == '列席官員') {
-                    $type = '列席官員';
-                } elseif (self::removeSpace($dom->getElementsByTagName('p')->item(0)->nodeValue) == '主席') {
-                    $type = '主席';
-                } elseif (self::removeSpace($dom->getElementsByTagName('p')->item(0)->nodeValue) == '紀錄') {
-                    $type = '紀錄';
+            $ret->{'質詢'} = [];
+            foreach (self::parseSectionWithDate($doms, $current_date) as $section) {
+                if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $section->text, $matches)) {
+                    $ret->{'質詢'}[] = [
+                        '種類' => '口頭質詢',
+                        '日期' => date('Y-m-d', $section->date),
+                        '委員' => self::parsePeople($matches[1], $ret->term),
+                    ];
+                } else if (preg_match('#委員([^；，。]*)提出質詢#u', $section->text, $matches)) {
+                    $ret->{'質詢'}[] = [
+                        '種類' => '口頭質詢',
+                        '日期' => date('Y-m-d', $section->date),
+                        '委員' => self::parsePeople($matches[1], $ret->term),
+                    ];
                 } else {
-                    $type = '列席官員';
-                    continue;
-                    throw new Exception("不認得的 table 表格: " . $dom->nodeValue);
+                    //echo mb_strimwidth($section->text, 0, 100, '...', 'utf-8');
+                    //throw new Exception("找不到口頭質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
                 }
-                $records = new StdClass;
-                $records->{'人員'} = [];
-                $records->{'備註'} = '';
-                foreach ($dom->getElementsByTagName('tr') as $tr_dom) {
-                    $td_doms = $tr_dom->getElementsByTagName('td');
-                    if (trim($td_doms->item(0)->nodeValue)) {
-                        $type = self::removeSpace($td_doms->item(0)->nodeValue);
-                    }
-
-                    if (count($td_doms) == 3) {
-                        $record = new StdClass;
-                        $record->{'身份'} = $type;
-                        $record->{'職稱'} = self::removeSpace($td_doms->item(1)->nodeValue);
-                        $record->{'姓名'} = self::removeSpace($td_doms->item(2)->nodeValue);
-                        if (preg_match('#(.*)（(.*)）#u', $record->{'姓名'}, $matches)) {
-                            $record->{'姓名'} = $matches[1];
-                            $record->{'備註'} = $matches[2];
-                        }
-                        $records->{'人員'}[] = $record;
-                    } elseif (count($td_doms) == 2 and strpos($td_doms[1]->nodeValue, '列席時間')) {
-                        $records->{'備註'} = trim($td_doms[1]->nodeValue) . "\n";
-                    } elseif (count($td_doms) == 2 and strpos($td_doms[0]->nodeValue, '列席時間')) {
-                        $records->{'備註'} = trim($td_doms[0]->nodeValue) . "\n";
-                    } elseif (count($td_doms) == 2 and strpos($td_doms[1]->nodeValue, '組：')) {
-                        $records->{'備註'} = trim($td_doms[1]->nodeValue) . "\n";
-                    } elseif (count($td_doms) == 2 and strpos($td_doms[0]->nodeValue, '組：')) {
-                        $records->{'備註'} = trim($td_doms[0]->nodeValue) . "\n";
-                    } elseif (count($td_doms) == 0) {
-                        continue;
-                    } else {
-                        error_log("不認得的 tr: " . $tr_dom->nodeValue);
-                        continue;
-                        throw new Exception("不支援的 tr: " . $tr_dom->nodeValue);
-                    }
-                }
-                if (!is_null($section_name)) {
-                    $records->{'討論項目'} = $section_name;
-                    $section_name = null;
-                }
-
-                $records->{'備註'} = trim($records->{'備註'});
-                $ret->{'人員名單'}[] = $records;
-                continue;
-            }
-            $value = $dom->nodeValue;
-            $value = str_replace('　', '', $value);
-            $value = str_replace(' ', '', $value);
-            $value = str_replace('速記', '速紀', $value);
-            $value = trim($value);
-            foreach ($columns as $col) {
-                if (strpos($value, '主席宣告：') === 0) {
-                    break;
-                }
-                if (strpos($value, $col) === 0) {
-                    $ret->{$col} = trim(substr($value, strlen($col)));
-                    $prev_col = $col;
-                    continue 2;
+                if (preg_match('#委員([^；，。]*)(等\d+人)?所提書面質詢#u', $section->text, $matches)) {
+                    $ret->{'質詢'}[] = [
+                        '種類' => '書面質詢',
+                        '日期' => date('Y-m-d', $section->date),
+                        '委員' => self::parsePeople($matches[1], $ret->term),
+                    ];
+                } elseif (preg_match('#委員([^；，。]*)提出書面質詢#u', $section->text, $matches)) {
+                    $ret->{'質詢'}[] = [
+                        '種類' => '書面質詢',
+                        '日期' => date('Y-m-d', $section->date),
+                        '委員' => self::parsePeople($matches[1], $ret->term),
+                    ];
+                } else {
+                    //echo mb_strimwidth($other_text, 0, 100, '...', 'utf-8');
+                    //throw new Exception("找不到書面質詢: " . json_encode($current_meet_info, JSON_UNESCAPED_UNICODE));
                 }
             }
-            if ($prev_col == '時間' and preg_match('#^(\d+年|\d+月|下午|\d+時|中華民國)#u', $value)) {
-                $ret->{'時間'} .= "\n" . trim($value);
-                continue;
-            }
-            if ($prev_col == '出席委員') {
-                if (preg_match('#^\d+人#u', $value)) { // LCIDC01_1056801_00008.doc
-                    $prev_col = '缺席委員';
-                    continue;
-                }
-                $ret->{'出席委員'} .= trim($value);
-                continue;
-            }
-
-            if (strpos(self::removeSpace($value), '討論事項') === 0
-                or strpos(self::removeSpace($value), '報告事項') === 0
-                or strpos(self::removeSpace($value), '其他事項') === 0
-                or strpos(self::removeSpace($value), '朝野協商結論') === 0
-                or strpos(self::removeSpace($value), '主席宣告：') === 0
-            ) {
-                // TODO: 留在章節名稱
-                break;
-            }
-            if (strpos(trim($value), '決議：') === 0) {
-                break;
-            }
-            if (preg_match('#^[一二三四五六七八]、(.*)$#u', $value, $matches) or
-                preg_match('#\([一二三四五六七八九十]\)(.*)#u', $value, $matches)
-            ) {
-                if (in_array($matches[1], ['討論事項', '報告事項'])) {
-                    $section_name = null;
-                    break;
-                }
-                if (!is_null($section_name)) {
-                    continue;
-                    throw new Exception("章節名稱重複: " . $section_name);
-                }
-                $section_name = $value;
-                continue;
-            }
-
-            // 無故多個日期就把他幹掉
-            if (preg_match('#^（?\d+月\d+日#u', self::removeSpace($value))) {
-                continue;
-            }
-
-            if (in_array($prev_col, ['缺席委員', '列席委員', '請假委員', '列席人員', '紀錄', '編審'])) {
-                if (strpos($value, '（') !== false) {
-                    $prev_col = null;
-                    continue;
-                }
-                if (preg_match('#^\d+人#u', $value)) { // LCIDC01_1056801_00008.doc
-                    continue;
-                }
-                if (strpos($value, '：') === false) {
-                    $ret->{$prev_col} .= trim($value);
-                    continue;
-                }
-            }
-
-
-            if (strpos($value, '不予列載') !== false) {
-                $ret->{'備註'} = trim($value);
-                break;
-            }
-            if (strpos($value, '紀錄議事處處長') === 0
-                or strpos($value, '記錄議事處處長') === 0
-                or strpos($value, '主席院長') === 0
-            ) {
-                // TODO: 本來應該是表格寫成純文字了，跳過不處理
-                break;
-            }
-            continue;
-            throw new Exception("未知的內容(prev_col={$prev_col}): " . json_encode($value, JSON_UNESCAPED_UNICODE));
-        }
-        if (!is_null($section_name)) {
-            // TODO: 處理章節名稱
         }
         $ret->{'出席委員'} = self::parsePeople($ret->{'出席委員'}, $ret->term);
         foreach (['請假委員', '缺席委員', '視訊委員'] as $c) {
