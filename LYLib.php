@@ -182,9 +182,10 @@ class LYLib
             } else {
                 throw new Exception("unknown term: {$matches[1]}");
             }
-            $ret->sessionPeriod = intval($matches[2]);
-            $ret->sessionTimes = intval($matches[3]);
-            $ret->id = '委員會-' . $term . '-' . $matches[1] . '-' . $committee_id . '-' . $matches[2];
+            $ret->sessionPeriod = 0;
+            $ret->sessionTimes = intval($matches[2]);
+
+            $ret->id = '委員會-' . $ret->term . '-' . $matches[1] . '-' . $committee_id . '-' . $matches[2];
             return $ret;
         }
 
