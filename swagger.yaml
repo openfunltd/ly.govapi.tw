@@ -39,6 +39,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  '/legislator/{bioId}':
+    get:
+      tags:
+        - legislator
+      summary: 取得特定立委歷次擔任紀錄
+      operationId: eecbd9609aac3f91ddcb667db4f08d66
+      parameters:
+        -
+          name: bioId
+          in: path
+          description: '立委 ID'
+          required: true
+          schema:
+            type: integer
+          example: '0952'
+      responses:
+        '200':
+          description: 歷屆立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Legislator'
+        '404':
+          description: 找不到立法委員資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   '/legislator/{term}':
     get:
       tags:

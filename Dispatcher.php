@@ -43,6 +43,12 @@ class Dispatcher
      *   @OA\Response(response="404", description="找不到立法委員資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *  )
      * @OA\Get(
+     *   path="/legislator/{bioId}", summary="取得特定立委歷次擔任紀錄", tags={"legislator"},
+     *   @OA\Parameter(name="bioId", in="path", description="立委 ID", required=true, @OA\Schema(type="integer"), example="0952"),
+     *   @OA\Response(response="200", description="歷屆立法委員資料", @OA\JsonContent(ref="#/components/schemas/Legislator")),
+     *   @OA\Response(response="404", description="找不到立法委員資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     * )
+     * @OA\Get(
      *   path="/legislator/{term}", summary="第 {term} 屆立法委員資料", tags={"legislator"},
      *   @OA\Parameter(name="term", in="path", description="屆別", required=true, @OA\Schema(type="integer"), example=9),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
@@ -112,7 +118,6 @@ class Dispatcher
 
                 return self::interpellation([$params[0]]);
             }
-
         }
 
         $cmd = [
@@ -132,14 +137,27 @@ class Dispatcher
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
         if (count($params) > 0) {
-            $term = intval($params[0]);
-            $records->term = $term;
-            $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'term' => $term,
-                ],
-            ];
+            if (preg_match('#^\d\d\d\d$#', $params[0])) {
+                $records->bioId = $params[0];
+                $records->name = '';
+                $records->ename = '';
+                $records->sex = '';
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'bioId' => intval($records->bioId),
+                    ],
+                ];
+            } else {
+                $term = intval($params[0]);
+                $records->term = $term;
+                $cmd['query']['bool']['must'][] = [
+                    'term' => [
+                        'term' => $term,
+                    ],
+                ];
+            }
         }
+
         if (count($params) > 1) {
             $obj = Elastic::dbQuery("/{prefix}legislator/_doc/" . intval($records->term) . '-' . urlencode($params[1]));
             if (isset($obj->found) && $obj->found) {
@@ -157,6 +175,20 @@ class Dispatcher
         $records->legislators = [];
         foreach ($obj->hits->hits as $hit) {
             $records->legislators[] = $hit->_source;
+        }
+        if (property_exists($records, 'bioId')) {
+            unset($records->total);
+            unset($records->total_page);
+            unset($records->page);
+            unset($records->limit);
+            if (!count($records->legislators)) {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+                return;
+            }
+            foreach (['name', 'ename', 'sex'] as $k) {
+                $records->{$k} = $records->legislators[count($records->legislators) - 1]->{$k};
+            }
         }
         self::json_output($records);
     }
