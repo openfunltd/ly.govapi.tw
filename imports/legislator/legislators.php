@@ -2,17 +2,18 @@
 
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/../Importer.php');
-$cmd = sprintf("wget -4 https://data.ly.gov.tw/odw/legislator.pdf -O legislator.pdf");
+$cmd = sprintf("wget -4 https://data.ly.gov.tw/odw/legislator.pdf -O %s", escapeshellarg(__DIR__ . '/legislator.pdf'));
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("wget legislator.pdf failed");
 }
 
-$cmd = sprintf("pdftotext -layout legislator.pdf");
+$cmd = sprintf("pdftotext -layout %s %s", escapeshellarg(__DIR__ . '/legislator.pdf'), escapeshellarg(__DIR__ . '/legislator.txt'));
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("pdftotext legislator.pdf failed");
 }
+unlink(__DIR__ . '/legislator.pdf');
 
 $content = file_get_contents(__DIR__ . '/legislator.txt');
 preg_match_all('#(\d{1,2})\s+(\d\d\d\d)\s+([^0-9 ]+)#u', $content, $matches);
@@ -75,4 +76,5 @@ while ($rows = fgetcsv($fp)) {
 }
 Elastic::dbBulkCommit();
 
+unlink(__DIR__ . '/legislator.txt');
 unlink(__DIR__ . '/16_CSV.csv');
