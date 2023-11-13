@@ -1054,7 +1054,7 @@ class GazetteParser
             throw new Exception("時間格式不正確: {$ret->{'時間'}}");
         }
         $current_date = mktime(0, 0, 0, $matches[3], $matches[4], $matches[2] + 1911);
-        if ($meet_type == '委員會' and $current_meet_info->committees[0] != 27) {
+        if ($meet_type == '聯席會議' or ($meet_type == '委員會' and $current_meet_info->committees[0] != 27)) {
             $ret->{'質詢'} = [];
             foreach (self::parseSectionWithDate($doms, $current_date) as $section) {
                 if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $section->text, $matches)) {
