@@ -859,6 +859,11 @@ class GazetteParser
                 $section->date = mktime(0, 0, 0, $matches[2], $matches[3], $matches[1] + 1911);
                 $section->text = '';
                 continue;
+            } elseif (preg_match('#^(\d+)月(\d+)日$#u', trim($dom->line), $matches)) {
+                yield $section;
+                $section->date = mktime(0, 0, 0, $matches[1], $matches[2], date('Y', $section->date));
+                $section->text = '';
+                continue;
             }
             $section->text .= $dom->line;
         }
@@ -1057,6 +1062,7 @@ class GazetteParser
         if ($meet_type == '聯席會議' or ($meet_type == '委員會' and $current_meet_info->committees[0] != 27)) {
             $ret->{'質詢'} = [];
             foreach (self::parseSectionWithDate($doms, $current_date) as $section) {
+                $section->text = preg_replace('#【\d+份】#u', '', $section->text);
                 if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $section->text, $matches)) {
                     $ret->{'質詢'}[] = [
                         '種類' => '口頭質詢',
