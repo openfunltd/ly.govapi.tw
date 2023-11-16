@@ -28,7 +28,6 @@ $read_line = function($fp){
 
 $filename = __DIR__ . '/law.pdf';
 
-if (false) {
 $url = "https://data.ly.gov.tw/odw/LawNo.pdf";
 system(sprintf("wget -4 -O %s %s", escapeshellarg($filename), escapeshellarg($url)), $ret);
 if ($ret != 0) {
@@ -36,7 +35,6 @@ if ($ret != 0) {
 }
 
 system(sprintf("pdftotext -layout %s %s", escapeshellarg($filename), escapeshellarg($filename . '.txt')), $ret);
-}
 
 $fp = fopen($filename . '.txt', 'r');
 foreach ($read_line($fp) as $id => $name) {
