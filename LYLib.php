@@ -283,6 +283,11 @@ class LYLib
         return $source;
     }
 
+    public static function buildLaw($source)
+    {
+        return $source;
+    }
+
     public static function buildMeet($source)
     {
         if (is_array($source->meet_data) and count($source->meet_data)) {

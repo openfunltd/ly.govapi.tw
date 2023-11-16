@@ -9,6 +9,7 @@
  * @OA\Tag(name="committee", description="委員會")
  * @OA\Tag(name="meet", description="會議")
  * @OA\Tag(name="bill", description="議案")
+ * @OA\Tag(name="law", description="法規")
  * @OA\Tag(name="interpellation", description="質詢")
  * @OA\Tag(name="gazette", description="公報")
  * @OA\Schema(schema="Error", type="object", required={"error"}, @OA\Property(property="error", type="string"))
@@ -1267,6 +1268,102 @@ class Dispatcher
 
     /**
      * @OA\Get(
+     *   path="/law", summary="搜尋法案資料", tags={"law"},
+     *   @OA\Parameter(name="type", in="query", description="法案類型（Ex: 母法、子法）", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="parent", in="query", description="母法 ID（Ex: 01014）", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="q", in="query", description="搜尋法案名稱或其他名稱", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Response(response="200", description="法案資料", @OA\JsonContent(ref="#/components/schemas/Law")),
+     * )
+     * @OA\Get(
+     *   path="/law/{law_id}", summary="取得特定法案資料", tags={"law"},
+     *   @OA\Parameter(name="law_id", in="path", description="法案 ID", required=true, @OA\Schema(type="string"), example="01014"),
+     *   @OA\Response(response="200", description="法案資料", @OA\JsonContent(ref="#/components/schemas/Law")),
+     *   @OA\Response(response="404", description="找不到法案資料", @OA\JsonContent(ref="#/components/schemas/Law")),
+     * )
+     * @OA\Schema(
+     *   schema="Law", type="object", required={"id", "type", "parent", "name", "name_other"},
+     *   @OA\Property(property="id", type="string", description="法案 ID"),
+     *   @OA\Property(property="type", type="string", description="法案類型"),
+     *   @OA\Property(property="parent", type="string", description="母法 ID"),
+     *   @OA\Property(property="name", type="string", description="法案名稱"),
+     *   @OA\Property(property="name_other", type="array", description="其他名稱", @OA\Items(type="string")),
+     * )
+     */
+    public static function law($params)
+    {
+        // sample: {"id":"01014","type":"母法","parent":"","name":"國防部組織法","name_other":[]}
+        $cmd = [
+            'query' => [
+                'bool' => [
+                    'must' => [],
+                ],
+            ],
+            'sort' => ['id.keyword' => 'asc'],
+            'size' => 100,
+        ];
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $cmd['size'] = $records->limit;
+        $cmd['from'] = ($records->page - 1) * $records->limit;
+
+        if (count($params) == 1) {
+            $id = $params[0];
+            $obj = Elastic::dbQuery("/{prefix}law/_doc/{$id}");
+            if (isset($obj->found) && $obj->found) {
+                self::json_output(LYLib::buildLaw($obj->_source));
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+            }
+            return;
+        }
+
+        if (array_key_exists('type', $_GET)) {
+            $records->type = $_GET['type'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'type.keyword' => $records->type,
+                ],
+            ];
+        }
+
+        if (array_key_exists('parent', $_GET)) {
+            $records->parent = $_GET['parent'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    'parent.keyword' => $records->parent,
+                ],
+            ];
+        }
+
+        if (array_key_exists('q', $_GET)) {
+            $records->q = '"' . $_GET['q'] . '"';
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['name', 'name_other'],
+                ],
+            ];
+        }
+
+        $obj = Elastic::dbQuery("/{prefix}law/_search", 'GET', json_encode($cmd));
+        $records->total = $obj->hits->total;
+        $records->total_page = ceil($records->total->value / $records->limit);
+        $records->laws = [];
+        foreach ($obj->hits->hits as $hit) {
+            $hit->_source->id = $hit->_id;
+            $records->laws[] = LYLib::buildLaw($hit->_source);
+        }
+        self::json_output($records);
+    }
+
+    /**
+     * @OA\Get(
      *   path="/stat", summary="取得統計資料", tags={"stat"},
      *   @OA\Response(response="200", description="統計資料")
      * )
@@ -1475,6 +1572,8 @@ class Dispatcher
             self::ivod($terms);
         } else if ('interpellation' == $method) {
             self::interpellation($terms);
+        } else if ('law' == $method) {
+            self::law($terms);
         } else if ('stat' == $method) {
             self::stat();
         } else {

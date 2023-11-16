@@ -1726,6 +1726,85 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Interpellation'
+  /law:
+    get:
+      tags:
+        - law
+      summary: 搜尋法案資料
+      operationId: 07230dfbb7a2f34f6440643414eb6866
+      parameters:
+        -
+          name: type
+          in: query
+          description: '法案類型（Ex: 母法、子法）'
+          required: false
+          schema:
+            type: string
+        -
+          name: parent
+          in: query
+          description: '母法 ID（Ex: 01014）'
+          required: false
+          schema:
+            type: string
+        -
+          name: q
+          in: query
+          description: 搜尋法案名稱或其他名稱
+          required: false
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 頁數
+          required: false
+          schema:
+            type: integer
+          example: 1
+        -
+          name: limit
+          in: query
+          description: 每頁筆數
+          required: false
+          schema:
+            type: integer
+          example: 100
+      responses:
+        '200':
+          description: 法案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Law'
+  '/law/{law_id}':
+    get:
+      tags:
+        - law
+      summary: 取得特定法案資料
+      operationId: 2cbdfb381ecbd1d92fc80736b8e51367
+      parameters:
+        -
+          name: law_id
+          in: path
+          description: '法案 ID'
+          required: true
+          schema:
+            type: string
+          example: '01014'
+      responses:
+        '200':
+          description: 法案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Law'
+        '404':
+          description: 找不到法案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Law'
   /stat:
     get:
       tags:
@@ -2100,6 +2179,32 @@ components:
           description: 會期次數
           type: integer
       type: object
+    Law:
+      required:
+        - id
+        - type
+        - parent
+        - name
+        - name_other
+      properties:
+        id:
+          description: '法案 ID'
+          type: string
+        type:
+          description: 法案類型
+          type: string
+        parent:
+          description: '母法 ID'
+          type: string
+        name:
+          description: 法案名稱
+          type: string
+        name_other:
+          description: 其他名稱
+          type: array
+          items:
+            type: string
+      type: object
 tags:
   -
     name: stat
@@ -2116,6 +2221,9 @@ tags:
   -
     name: bill
     description: 議案
+  -
+    name: law
+    description: 法規
   -
     name: interpellation
     description: 質詢
