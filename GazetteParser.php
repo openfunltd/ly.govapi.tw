@@ -44,15 +44,33 @@ class GazetteParser
             $queryname = str_replace('·', '', $queryname);
             self::$_name_list->{$term}[$queryname] = $hit->fields->name[0];
         }
+
+        if ($term == 7) {
+            self::$_name_list->{$term}['郭添財'] = '許添財';
+            self::$_name_list->{$term}['鐘紹和'] = '鍾紹和';
+        }
+
         if ($term == 8) {
             self::$_name_list->{$term}['(SraKacaw)'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['吳宜瑧'] = '吳宜臻';
             self::$_name_list->{$term}['陳淑惠'] = '陳淑慧';
+            self::$_name_list->{$term}['高金素'] = '高金素梅';
+            self::$_name_list->{$term}['潘維綱'] = '潘維剛';
+            self::$_name_list->{$term}['邱文'] = '邱文彥';
+            self::$_name_list->{$term}['顏寬恆'] = '顏寬恒';
+            self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
+            self::$_name_list->{$term}['陳歐柏'] = '陳歐珀';
         }
 
         if ($term == 9) {
+            self::$_name_list->{$term}['高金素'] = '高金素梅';
+            self::$_name_list->{$term}['周陳秀'] = '周陳秀霞';
+            self::$_name_list->{$term}['林麗嬋'] = '林麗蟬';
+            self::$_name_list->{$term}['王惠'] = '王惠美';  
+            self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['Kolasotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用·巴魕剌KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
@@ -69,6 +87,9 @@ class GazetteParser
             self::$_name_list->{$term}['陳歐柏'] = '陳歐珀';
             self::$_name_list->{$term}['林政憲'] = '林俊憲';
             self::$_name_list->{$term}['陳賴素'] = '陳賴素美';
+            self::$_name_list->{$term}['吳志楊'] = '吳志揚';
+            self::$_name_list->{$term}['鍾孔紹'] = '鍾孔炤';
+            self::$_name_list->{$term}['蔡宜津'] = '葉宜津';
         }
         if ($term == 10) {
             self::$_name_list->{$term}['王琬諭'] = '王婉諭';
@@ -78,6 +99,9 @@ class GazetteParser
             self::$_name_list->{$term}['廖國SufinSiluko'] = '廖國棟Sufin‧Siluko';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['葉毓蘭'] = '游毓蘭';
+            self::$_name_list->{$term}[json_decode('"\u5085\ue82f\u5d10\u8401"')] = '傅崐萁';
+            self::$_name_list->{$term}[json_decode('"\u5085\u5d10\ue82f\u8401"')] = '傅崐萁';
+            self::$_name_list->{$term}[json_decode('"\u5085\ue8e4\u8401"')] = '傅崐萁';
             self::$_name_list->{$term}['謝衣鳳'] = '謝衣鳯';
             self::$_name_list->{$term}['林楚菌'] = '林楚茵';
             self::$_name_list->{$term}['吳秉數'] = '吳秉叡';
@@ -86,9 +110,17 @@ class GazetteParser
             self::$_name_list->{$term}['羅美鈴'] = '羅美玲';
             self::$_name_list->{$term}['江啓臣'] = '江啟臣';
             self::$_name_list->{$term}['陳秀寶'] = '陳秀寳';
+            self::$_name_list->{$term}[json_decode('"\u9673\u79c0\uf077"')] = '陳秀寳';
             self::$_name_list->{$term}['張蕙禎'] = '湯蕙禎';
             self::$_name_list->{$term}['黃士杰'] = '黃世杰';
             self::$_name_list->{$term}['謝依鳯'] = '謝衣鳯';
+            self::$_name_list->{$term}[json_decode('"\u8b1d\u8863\ue93f"')] = '謝衣鳯';
+            self::$_name_list->{$term}[json_decode('"\u8b1d\u8863\uebd4"')] = '謝衣鳯';
+            self::$_name_list->{$term}['蔡璧如'] = '蔡壁如';
+            self::$_name_list->{$term}['莊啟程'] = '莊競程';
+            self::$_name_list->{$term}['陳柏維'] = '陳柏惟';
+            self::$_name_list->{$term}['高家瑜'] = '高嘉瑜';
+            self::$_name_list->{$term}['蘇志芬'] = '蘇治芬';
         }
 
         return self::$_name_list->{$term};
@@ -119,6 +151,18 @@ class GazetteParser
         $hit = [];
 
         $names = self::getNameList($term);
+        if ($type == '提案') {
+            $names['聯盟立法院黨團'] = '台灣團結聯盟立法院黨團';
+            $names['台灣民眾黨黨團'] = '台灣民眾黨立法院黨團';
+            $names['台灣民眾黨立法院黨團'] = '台灣民眾黨立法院黨團';
+            $names['時代力量立法院黨團'] = '時代力量立法院黨團';
+            $names['中國國民黨立法院黨團'] = '中國國民黨立法院黨團';
+            $names['民主進步黨立法院黨團'] = '民主進步黨立法院黨團';
+            $names['親民黨立法院黨團'] = '親民黨立法院黨團';
+            $names['台灣團結聯盟立法院黨團'] = '台灣團結聯盟立法院黨團';
+            $names['立院新聯盟立法院政團'] = '立院新聯盟立法院政團';
+            $names['無黨團結聯盟立法院黨團'] = '無黨團結聯盟立法院黨團';
+        }
 
         while (strlen($str)) {
             foreach ($names as $qname => $name) {
