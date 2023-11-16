@@ -14,12 +14,19 @@ $max_value = 0;
 
 $types = BillParser::getBillTypes();
 $sources = BillParser::getBillSources();
+$skip = $_SERVER['argv'][2];
 foreach ($list as $idx => $v) {
     list($filename, $time, $obj) = $v;
     if ($time < $max_value) {
         //continue;
     }
     list($billNo) = explode('.', $filename);
+    if ($skip and $billNo != $skip) {
+        continue;
+    }
+    if ($billNo == $skip) {
+        $skip = false;
+    }
     error_log($idx . ' ' . $billNo);
     $mtime = filemtime(__DIR__ . "/bill-html/{$billNo}.gz");
     $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$billNo}.gz"));
