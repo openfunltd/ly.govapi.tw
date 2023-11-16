@@ -584,9 +584,6 @@ class BillParser
                         $period = $flow['會期'];
                     }
                 }
-                if (!$date) {
-                    continue;
-                }
                 if ($period) {
                     $terms = explode('-', $period);
                     if (count($terms) > 0 and intval($terms[0]) > 0) {
@@ -599,11 +596,13 @@ class BillParser
                         $first_period = $period;
                     }
                 }
-                foreach ($date as $d) {
-                    if (!property_exists($values, 'first_time')) {
-                        $values->first_time = $d;
+                if ($date) {
+                    foreach ($date as $d) {
+                        if (!property_exists($values, 'first_time')) {
+                            $values->first_time = $d;
+                        }
+                        $values->last_time = $d;
                     }
-                    $values->last_time = $d;
                 }
             }
 
@@ -620,12 +619,31 @@ class BillParser
                     $first_period = implode('-', array_map('intval', explode('-', $first_period)));
                     $values->meet_id = '臨時會院會-' . $first_period;
                 } else {
-                    print_r($first_period);
-                    exit;
+                    //print_r($first_period);
+                    //exit;
                 }
             }
         }
 
+        // 處理提案人、連署人
+        foreach (['提案人', '連署人'] as $k) {
+            if (property_exists($values, $k)) {
+                $values->{$k} = self::filterPerson($values->{$k}, $values->{'屆期'});
+            }
+        }
+
         return $values;
+    }
+
+    public static function filterPerson($names, $term)
+    {
+        if (!is_array($names)) {
+            if ($names === '') {
+                return [];
+            }
+            var_dump($names);
+            throw new Exception('提案人不是陣列');
+        }
+        return GazetteParser::parsePeople(implode('', $names), $term, '提案');
     }
 }
