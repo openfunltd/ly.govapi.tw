@@ -656,6 +656,14 @@ class Dispatcher
                 ],
             ];
         }
+        if (array_key_exists('law', $_GET)) {
+            $records->law = $_GET['law'];
+            $cmd['query']['bool']['must'][] = [
+                'match' => [
+                    'laws.keyword' => $records->law,
+                ],
+            ];
+        }
         if (array_key_exists('cosignatory', $_GET)) {
             $records->cosignatory = $_GET['cosignatory'];
             $cmd['query']['bool']['must'][] = [
@@ -1321,6 +1329,10 @@ class Dispatcher
                 self::json_output(['error' => 'not found']);
             }
             return;
+        }
+        if (count($params) == 2 and $params[1] == 'bill') {
+            $_GET['law'] = $params[0];
+            return self::bill([]);
         }
 
         if (array_key_exists('type', $_GET)) {
