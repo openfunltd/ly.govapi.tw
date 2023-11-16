@@ -593,15 +593,16 @@ class Dispatcher
     /**
      * @OA\Get(
      *   path="/bill", summary="取得依時間新至舊的議案", tags={"bill"},
-     *   @OA\Parameter(name="proposer", in="query", description="提案人", required=false, @OA\Schema(type="string"), example="黃國昌"),
-     *   @OA\Parameter(name="cosignatory", in="query", description="連署人", required=false, @OA\Schema(type="string"), example="黃國昌"),
-     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID", required=false, @OA\Schema(type="string"), example="院會-10-1-1"),
-     *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
-     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
-     *   @OA\Parameter(name="bill_type", in="query", description="議案類別", required=false, @OA\Schema(type="integer"), example="法律案"),
-     *   @OA\Parameter(name="proposal_type", in="query", description="提案類別", required=false, @OA\Schema(type="integer"), example="委員提案"),
-     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
-     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
+     *   @OA\Parameter(name="proposer", in="query", description="提案人(Ex: 黃國昌)", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="cosignatory", in="query", description="連署人(Ex: 黃國昌)", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="law", in="query", description="法案代碼(Ex: 01010)", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="meet_id", in="query", description="會議 ID(Ex: 院會-10-1-1)", required=false, @OA\Schema(type="string")),
+     *   @OA\Parameter(name="term", in="query", description="屆期(Ex: 9)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="sessionPeriod", in="query", description="會期(Ex: 1)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="bill_type", in="query", description="議案類別(Ex: 法律案, 臨時提案)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="proposal_type", in="query", description="提案類別(Ex: 委員提案, 政府提案, 審查報告)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer", default=1)),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), default=100),
      *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
      *  )
      *  @OA\Get(

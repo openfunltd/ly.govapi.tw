@@ -836,59 +836,59 @@ paths:
         -
           name: proposer
           in: query
-          description: 提案人
+          description: '提案人(Ex: 黃國昌)'
           required: false
           schema:
             type: string
-          example: 黃國昌
         -
           name: cosignatory
           in: query
-          description: 連署人
+          description: '連署人(Ex: 黃國昌)'
           required: false
           schema:
             type: string
-          example: 黃國昌
+        -
+          name: law
+          in: query
+          description: '法案代碼(Ex: 01010)'
+          required: false
+          schema:
+            type: string
         -
           name: meet_id
           in: query
-          description: '會議 ID'
+          description: '會議 ID(Ex: 院會-10-1-1)'
           required: false
           schema:
             type: string
-          example: 院會-10-1-1
         -
           name: term
           in: query
-          description: 屆期
+          description: '屆期(Ex: 9)'
           required: false
           schema:
             type: integer
-          example: 9
         -
           name: sessionPeriod
           in: query
-          description: 會期
+          description: '會期(Ex: 1)'
           required: false
           schema:
             type: integer
-          example: 1
         -
           name: bill_type
           in: query
-          description: 議案類別
+          description: '議案類別(Ex: 法律案, 臨時提案)'
           required: false
           schema:
             type: integer
-          example: 法律案
         -
           name: proposal_type
           in: query
-          description: 提案類別
+          description: '提案類別(Ex: 委員提案, 政府提案, 審查報告)'
           required: false
           schema:
             type: integer
-          example: 委員提案
         -
           name: page
           in: query
@@ -896,7 +896,7 @@ paths:
           required: false
           schema:
             type: integer
-          example: 1
+            default: 1
         -
           name: limit
           in: query
