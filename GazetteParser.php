@@ -90,6 +90,7 @@ class GazetteParser
             self::$_name_list->{$term}['吳志楊'] = '吳志揚';
             self::$_name_list->{$term}['鍾孔紹'] = '鍾孔炤';
             self::$_name_list->{$term}['蔡宜津'] = '葉宜津';
+            self::$_name_list->{$term}['施義方'] = '施義芳';
         }
         if ($term == 10) {
             self::$_name_list->{$term}['王琬諭'] = '王婉諭';
@@ -120,7 +121,12 @@ class GazetteParser
             self::$_name_list->{$term}['莊啟程'] = '莊競程';
             self::$_name_list->{$term}['陳柏維'] = '陳柏惟';
             self::$_name_list->{$term}['高家瑜'] = '高嘉瑜';
+            self::$_name_list->{$term}['陳婉惠'] = '陳琬惠';
             self::$_name_list->{$term}['蘇志芬'] = '蘇治芬';
+            self::$_name_list->{$term}['蔡副院長其昌'] = '蔡其昌';
+            self::$_name_list->{$term}['羅政政'] = '羅致政';
+            self::$_name_list->{$term}['傅萁'] = '傅崐萁';
+            self::$_name_list->{$term}['陳文明'] = '陳明文';
         }
 
         return self::$_name_list->{$term};
