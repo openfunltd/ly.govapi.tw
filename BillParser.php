@@ -551,6 +551,63 @@ class BillParser
         ];
     }
 
+    protected static $_law_names = null;
+    public static function searchLaw($s)
+    {
+        if (is_null(self::$_law_names)) {
+            $cmd = [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            ['term' => ['type.keyword' => '母法']],
+                        ],
+                    ],
+                ],
+                'size' => 10000,
+            ];
+            $obj = Elastic::dbQuery("/{prefix}law/_search", 'GET', json_encode($cmd));
+            self::$_law_names = [];
+            foreach ($obj->hits->hits as $hit) {
+                $source = $hit->_source;
+                $id = $source->id;
+                $name = $source->name;
+                $name_other = $source->name_other;
+                foreach (array_merge([$name], $name_other) as $n) {
+                    if (!array_key_exists($n, self::$_law_names)) {
+                        self::$_law_names[$n] = [];
+                    }
+                    self::$_law_names[$n][$id] = $id;
+                }
+            }
+        }
+        for ($i = 0; $i < mb_strlen($s); $i ++) {
+            $cs = mb_substr($s, 0, -1 * $i);
+            if (!array_key_exists($cs, self::$_law_names)) {
+                continue;
+            }
+            $ids = self::$_law_names[$cs];
+            if (count($ids) == 1) {
+                return array_values($ids)[0];
+            }
+            error_log("{$s} 有多個可能的法律名稱: " . implode(',', $ids));
+            return null;
+            throw new Exception("{$s} 有多個可能的法律名稱: " . implode(',', $ids));
+        }
+        return null;
+    }
+
+    public static function parseLaws($name)
+    {
+        $ret = [];
+        preg_match_all('#「([^」]+)」#u', $name, $matches);
+        foreach ($matches[1] as $n) {
+            if ($id = self::searchLaw($n)) {
+                $ret[] = $id;
+            }
+        }
+        return $ret;
+    }
+
     public static function addBillInfo($values)
     {
         $types = self::getBillTypes();
@@ -630,6 +687,11 @@ class BillParser
             if (property_exists($values, $k)) {
                 $values->{$k} = self::filterPerson($values->{$k}, $values->{'屆期'});
             }
+        }
+
+        // 處理法案
+        if ($values->{'議案類別'} == '法律案') {
+            $values->laws = self::parseLaws($values->{'議案名稱'});
         }
 
         return $values;
