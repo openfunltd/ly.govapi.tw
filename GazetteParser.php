@@ -1226,4 +1226,112 @@ class GazetteParser
             }
         }
     }
+
+    public static function getSpeechFromGazette($txtfile)
+    {
+        $fp = fopen($txtfile, 'r');
+        $lines = [];
+        // 找 本期委員發言紀錄索引
+        while (false !== ($line = fgets($fp))) {
+            // remove ^L
+            $line = preg_replace('#\x0c#', '', $line);
+            if (trim($line) == '本期委員發言紀錄索引') {
+                break;
+            }
+        }
+
+        if (false === $line) {
+            throw new Exception("找不到 本期委員發言紀錄索引");
+        }
+
+        while (false !== ($line = fgets($fp))) {
+            if (strpos($line, '補刊：') !== false or strpos($line, '本期冊別') !== false) {
+                break;
+            }
+            if (strpos($line, '勘誤：') !== false) {
+                break;
+            }
+            if (strpos($line, '其他：') !== false) {
+                break;
+            }
+            $line = preg_replace('#\x0c#', '', $line);
+            if (preg_match('#^[0-9]+$#', trim($line))) {
+                continue;
+            }
+            if (preg_match('#^第\d+屆第\d+會期第\d+期$#', trim($line))) {
+                continue;
+            }
+            if (preg_match('#^出版日期:\d+年\d+月\d+日$#', trim($line))) {
+                continue;
+            }
+            $line = preg_replace('#（[上下]接第.冊）#u', '', $line);
+            if (trim($line) == '') {
+                continue;
+            }
+            $line = preg_replace('#格式化: (.*)$#u', '', $line);
+            $lines[] = $line;
+        }
+        fclose($fp);
+
+        $ret = new StdClass;
+        $ret->meet_name = $ret->content = $ret->speakers = '';
+        // 先抓 立法院xxx 開頭的
+        while (count($lines)) {
+            $line = array_shift($lines);
+            if (preg_match('#^立法院(.*)會議#', $line, $matches)) {
+                if ($ret->content) {
+                    yield $ret;
+                }
+                $ret->meet_name = trim($line);
+                $ret->content = '';
+                $ret->speakers = null;
+                continue;
+            } elseif (preg_match('#^立法院(.*)#', $line) and preg_match('#紀錄#', $lines[0])) {
+                if ($ret->content) {
+                    yield $ret;
+                }
+                $ret->meet_name = trim($line) . trim(array_shift($lines));
+                $ret->content = '';
+                $ret->speakers = null;
+                continue;
+
+            }
+
+            if (preg_match('#（頁次[^）]*）$#u', trim($line))) {
+                if (!is_null($ret->speakers)) {
+                    yield $ret;
+                    $ret->content = '';
+                    $ret->speakers = '';
+                }
+                $ret->content .= $line;
+                $ret->speakers = '';
+                continue;
+            }
+
+            if (strpos(str_replace(' ', '', $line), '發言者') === 0) {
+                if (is_null($ret->speakers)) {
+                    $ret->speakers = '';
+                }
+                $ret->speakers .= str_replace('發言者', '', str_replace(' ', '', $line));
+                continue;
+            }
+
+            if (is_null($ret->speakers)) {
+                $ret->content .= $line;
+                continue;
+            }
+
+            if (ltrim($line) == $line) {
+                yield $ret;
+                $ret->content = $line;
+                $ret->speakers = null;
+                continue;
+            }
+            $ret->speakers .= $line;
+        }
+
+        if ($ret->content) {
+            yield $ret;
+        }
+    }
 }
