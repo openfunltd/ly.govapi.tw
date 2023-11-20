@@ -904,7 +904,7 @@ paths:
           required: false
           schema:
             type: integer
-          example: 100
+            default: 100
       responses:
         '200':
           description: 議案資料
@@ -926,7 +926,7 @@ paths:
           required: true
           schema:
             type: string
-          example: '1090001'
+          example: '1111102070100100'
       responses:
         '200':
           description: 議案資料
@@ -934,6 +934,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Bill'
+        '404':
+          description: 找不到議案資料
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/bill/{billNo}/html':
+    get:
+      tags:
+        - bill
+      summary: '取得特定議案 HTML'
+      operationId: 1eedafb84ee3ff0ba6e69cc70596478b
+      parameters:
+        -
+          name: billNo
+          in: path
+          description: 議案編號
+          required: true
+          schema:
+            type: string
+          example: '1111102070100100'
+      responses:
+        '200':
+          description: '議案 HTML'
         '404':
           description: 找不到議案資料
           content:

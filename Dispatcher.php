@@ -602,13 +602,19 @@ class Dispatcher
      *   @OA\Parameter(name="bill_type", in="query", description="議案類別(Ex: 法律案, 臨時提案)", required=false, @OA\Schema(type="integer")),
      *   @OA\Parameter(name="proposal_type", in="query", description="提案類別(Ex: 委員提案, 政府提案, 審查報告)", required=false, @OA\Schema(type="integer")),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer", default=1)),
-     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), default=100),
+     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer", default=100)),
      *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
      *  )
      *  @OA\Get(
      *    path="/bill/{billNo}", summary="取得特定議案資料", tags={"bill"},
-     *    @OA\Parameter(name="billNo", in="path", description="議案編號", required=true, @OA\Schema(type="string"), example="1090001"),
+     *    @OA\Parameter(name="billNo", in="path", description="議案編號", required=true, @OA\Schema(type="string"), example="1111102070100100"),
      *    @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
+     *    @OA\Response(response="404", description="找不到議案資料", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *  )
+     *  @OA\Get(
+     *    path="/bill/{billNo}/html", summary="取得特定議案 HTML", tags={"bill"},
+     *    @OA\Parameter(name="billNo", in="path", description="議案編號", required=true, @OA\Schema(type="string"), example="1111102070100100"),
+     *    @OA\Response(response="200", description="議案 HTML"),
      *    @OA\Response(response="404", description="找不到議案資料", @OA\JsonContent(ref="#/components/schemas/Error")),
      *  )
      *  @OA\Schema(
@@ -644,6 +650,10 @@ class Dispatcher
             ],
             'size' => 100,
         ];
+
+        if (count($params) == 2 and $params[1] == 'html') {
+            return self::bill_html($params[0]);
+        }
 
         $records = new StdClass;
         $records->total = 0;
@@ -742,6 +752,22 @@ class Dispatcher
             $records->bills[] = $hit->_source;
         }
         self::json_output($records);
+    }
+
+    public static function bill_html($billNo)
+    {
+        // agenda_id: LCIDC01_1077502_00003 
+        $agenda_id = $params[0] . '.doc';
+        header('Content-Type: text/html');
+        $content = file_get_contents(sprintf("https://lydata.ronny-s3.click/bill-doc-parsed/html/%s.doc.gz", $billNo));
+        $content = gzdecode($content);
+        if (strpos($content, '{') === 0) {
+            $content = json_decode($content);
+            $content = $content->content;
+            echo base64_decode($content);
+        } else {
+            echo $content;
+        }
     }
 
     /**
