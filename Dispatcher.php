@@ -729,10 +729,44 @@ class Dispatcher
             ];
         }
 
+        if (array_key_exists('billWord', $_GET)) {
+            $records->billWord = $_GET['billWord'];
+            $cmd['query']['bool']['must'][] = [
+                'term' => [
+                    '提案編號.keyword' => $records->billWord,
+                ],
+            ];
+        }
+
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
-        if (count($params) > 0 and strlen($params[0] > 10)) {
+        if (count($params) > 0 and (strpos($params[0], '委') or strpos($params[0], '政'))) {
+            $billWord = $params[0];
+            $obj = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode([
+                'query' => [
+                    'term' => [
+                        '提案編號.keyword' => $billWord,
+                    ],
+                ],
+            ]));
+            if (count($obj->hits->hits) == 1) {
+                return self::json_output($obj->hits->hits[0]->_source);
+            } elseif (count($obj->hits->hits) > 1) {
+                $records->total = $obj->hits->total;
+                $records->total_page = ceil($records->total->value / $records->limit);
+                $records->bills = [];
+                foreach ($obj->hits->hits as $hit) {
+                    $records->bills[] = $hit->_source;
+                }
+                return self::json_output($records);
+            } else {
+                header('HTTP/1.0 404 Not Found');
+                self::json_output(['error' => 'not found']);
+            }
+            self::json_output($obj->hits->hits);
+            exit;
+        } else if (count($params) > 0 and strlen($params[0] > 10)) {
             $billNo = $params[0];
             $obj = Elastic::dbQuery("/{prefix}bill/_doc/" . urlencode($billNo));
             if (isset($obj->found) && $obj->found) {
@@ -742,6 +776,7 @@ class Dispatcher
                 self::json_output(['error' => 'not found']);
             }
             return;
+
         }
 
         $obj = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode($cmd));
