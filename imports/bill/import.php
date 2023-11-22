@@ -50,11 +50,46 @@ foreach ($list as $idx => $v) {
     } else {
         $content = null;
     }
-    if (!is_null($content) and strlen($content) > 10) {
-        $docdata = BillParser::parseBillDoc($billNo, $content, $obj);
-        if (property_exists($docdata, '字號')) {
-            $values->{'字號'} = $docdata->{'字號'};
+    while (!is_null($content) and strlen($content) > 10) {
+        if (in_array($billNo, [
+            '1060519070202300', // 看起來對錯文件
+            '1021223070201700', // 看起來對錯文件
+            '1030102070200300', // 看起來對錯文件
+            '1020415070202900', // 看起來對錯文件
+        ])) {
+            break;
         }
+        $docdata = BillParser::parseBillDoc($billNo, $content, $obj);
+        if (property_exists($docdata, '字號') and $docdata->{'字號'}) {
+            $values->{'字號'} = $docdata->{'字號'};
+            // 移掉全形空白
+            $values->{'字號'} = str_replace('　', '', $values->{'字號'});
+            if ($billNo == '1070810071002400') {
+                $values->{'字號'} = '院總第887號政府提案第16100號';
+            }
+            if (preg_match('#^院總第(\d+)號(.*)提案第(\d+)號(之(\d*))?$#u', $values->{'字號'}, $matches)) {
+            } else if (preg_match('#^院總第(\d+)號(.*)提案第(\d+)號((\d+))$#u', $values->{'字號'}, $matches)) {
+            } else {
+                break;
+                throw new Exception('字號格式不正確: ' . $values->{'字號'});
+            }
+            if ($matches[2] == '委員') {
+                $type = '委';
+            } elseif ($matches[2] == '政府') {
+                $type = '政';
+            } else {
+                throw new Exception('字號格式不正確: ' . $values->{'字號'});
+            }
+            $values->{'提案編號'} = sprintf("%d%s%d",
+                intval($matches[1]),
+                $type,
+                intval($matches[3])
+            );
+            if (count($matches) > 4 and $matches[4] and intval($matches[5])) {
+                $values->{'提案編號'} .= '之' . intval($matches[5]);
+            }
+        }
+        break;
     }
 
     Elastic::dbBulkInsert('bill', $billNo, $values);
