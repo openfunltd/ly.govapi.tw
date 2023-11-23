@@ -311,6 +311,48 @@ class BillParser
             }
         }
 
+        if ($obj->proposalType == 2) { // 委員提案
+            foreach ($doc->getElementsByTagName('p') as $p_dom) {
+                $text = ltrim($p_dom->nodeValue);
+                if (preg_match('#立法院第(\d+)屆第(\d+)會期第(\d+)次會議議案關係文書#', $text, $matches)) {
+                    $record->term = intval($matches[1]);
+                    $record->sessionPeriod = intval($matches[2]);
+                    $record->sessionTimes = intval($matches[3]);
+                } elseif (preg_match('#立法院第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次會議議案關係文書#', $text, $matches)) {
+                    $record->term = intval($matches[1]);
+                    $record->sessionPeriod = intval($matches[2]);
+                    $record->sessionTimes = intval($matches[3]);
+                } elseif (preg_match('#立法院第(\d+)屆第(\d+)會期第(\d+)次全院委員會議案關係文書#', $text, $matches)) {
+                    $record->term = intval($matches[1]);
+                    $record->sessionPeriod = intval($matches[2]);
+                    $record->sessionTimes = intval($matches[3]);
+                } else if (strpos($text, '案由：') === 0) {
+                    $record->{'案由'} = trim(mb_substr($text, 3));
+                } elseif (strpos($text, '說明：') === 0) {
+                    $record->{'說明'} = trim(mb_substr($text, 3));
+                    while ($p_dom = $p_dom->nextSibling) {
+                        if ($p_dom->nodeName != 'p') {
+                            continue;
+                        }
+                        if (strpos($p_dom->getAttribute('class'), '說明') === 0) {
+                            $record->{'說明'} .= "\n" . trim($p_dom->nodeValue);
+                        }
+                    }
+                    $record->{'說明'} = trim($record->{'說明'});
+                } elseif (strpos($text, '提案人：') === 0 or strpos($text, '連署人：') === 0) {
+                    $type = explode('：', $text)[0];
+                    if ($record->term) {
+                        $term = $record->term;
+                    } elseif ($obj->term) {
+                        $term = $obj->term;
+                    } else {
+                        throw new Exception("{$billNo} no term");
+                    }
+                    $record->{$type} = GazetteParser::parsePeople(mb_substr($text, 3), $term, '提案');
+                }
+            }
+        }
+
         return $record;
     }
 
