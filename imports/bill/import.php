@@ -59,6 +59,9 @@ foreach ($list as $idx => $v) {
         ])) {
             break;
         }
+        if (property_exists($values, '屆期') and $values->{'屆期'}) {
+            $obj->term = $values->{'屆期'};
+        }
         $docdata = BillParser::parseBillDoc($billNo, $content, $obj);
         if (property_exists($docdata, '字號') and $docdata->{'字號'}) {
             $values->{'字號'} = $docdata->{'字號'};
@@ -87,6 +90,12 @@ foreach ($list as $idx => $v) {
             );
             if (count($matches) > 4 and $matches[4] and intval($matches[5])) {
                 $values->{'提案編號'} .= '之' . intval($matches[5]);
+            }
+        }
+
+        foreach (['案由', '說明', '提案人', '連署人'] as $k) {
+            if (property_exists($docdata, $k) and $docdata->{$k}) {
+                $values->{$k} = $docdata->{$k};
             }
         }
         break;
