@@ -757,7 +757,7 @@ class Dispatcher
                 $records->total_page = ceil($records->total->value / $records->limit);
                 $records->bills = [];
                 foreach ($obj->hits->hits as $hit) {
-                    $records->bills[] = $hit->_source;
+                    $records->bills[] = LYLib::buildBill($hit->_source);
                 }
                 return self::json_output($records);
             } else {
@@ -770,7 +770,7 @@ class Dispatcher
             $billNo = $params[0];
             $obj = Elastic::dbQuery("/{prefix}bill/_doc/" . urlencode($billNo));
             if (isset($obj->found) && $obj->found) {
-                self::json_output($obj->_source);
+                self::json_output(LYLib::buildBill($obj->_source));
             } else {
                 header('HTTP/1.0 404 Not Found');
                 self::json_output(['error' => 'not found']);

@@ -273,6 +273,12 @@ class LYLib
         throw new Exception("{$oname} 有問題");
     }
 
+    public static function buildBill($source)
+    {
+        $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/bills/%s/details", $source->billNo);
+        return $source;
+    }
+
     public static function buildInterpellation($source)
     {
         $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%02d/%02d",
