@@ -17,6 +17,8 @@ class GazetteParser
         }
         self::$_name_list->{$term} = [];
 
+        self::$_name_list->{10}['陳秀寳'] = '陳秀寶';
+
         $cmd = [
             'query' => [
                 'bool' => [
@@ -48,6 +50,7 @@ class GazetteParser
         if ($term == 7) {
             self::$_name_list->{$term}['郭添財'] = '許添財';
             self::$_name_list->{$term}['鐘紹和'] = '鍾紹和';
+            self::$_name_list->{$term}['紀國楝'] = '紀國楝';
         }
 
         if ($term == 8) {
@@ -61,6 +64,7 @@ class GazetteParser
             self::$_name_list->{$term}['顏寬恆'] = '顏寬恒';
             self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
             self::$_name_list->{$term}['陳歐柏'] = '陳歐珀';
+            self::$_name_list->{$term}['張碧涵'] = '陳碧涵';
         }
 
         if ($term == 9) {
@@ -71,6 +75,7 @@ class GazetteParser
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['Kolasotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['KolasYotak'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用·巴魕剌KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
@@ -89,6 +94,7 @@ class GazetteParser
             self::$_name_list->{$term}['陳賴素'] = '陳賴素美';
             self::$_name_list->{$term}['吳志楊'] = '吳志揚';
             self::$_name_list->{$term}['鍾孔紹'] = '鍾孔炤';
+            self::$_name_list->{$term}['鐘孔炤'] = '鍾孔炤';
             self::$_name_list->{$term}['蔡宜津'] = '葉宜津';
             self::$_name_list->{$term}['施義方'] = '施義芳';
         }
@@ -111,6 +117,7 @@ class GazetteParser
             self::$_name_list->{$term}['羅美鈴'] = '羅美玲';
             self::$_name_list->{$term}['江啓臣'] = '江啟臣';
             self::$_name_list->{$term}['陳秀寶'] = '陳秀寳';
+            self::$_name_list->{$term}['陳秀'] = '陳秀寳';
             self::$_name_list->{$term}[json_decode('"\u9673\u79c0\uf077"')] = '陳秀寳';
             self::$_name_list->{$term}['張蕙禎'] = '湯蕙禎';
             self::$_name_list->{$term}['黃士杰'] = '黃世杰';
@@ -126,6 +133,7 @@ class GazetteParser
             self::$_name_list->{$term}['蔡副院長其昌'] = '蔡其昌';
             self::$_name_list->{$term}['羅政政'] = '羅致政';
             self::$_name_list->{$term}['傅萁'] = '傅崐萁';
+            self::$_name_list->{$term}['傅萁'] = '傅崐萁';
             self::$_name_list->{$term}['陳文明'] = '陳明文';
         }
 
@@ -168,9 +176,13 @@ class GazetteParser
             $names['時代力量'] = '時代力量立法院黨團';
             $names['中國國民黨立法院黨團'] = '中國國民黨立法院黨團';
             $names['國民黨黨團'] = '中國國民黨立法院黨團';
+            $names['立法院國民黨黨團'] = '中國國民黨立法院黨團';
             $names['民主進步黨立法院黨團'] = '民主進步黨立法院黨團';
             $names['民進黨黨團'] = '民主進步黨立法院黨團';
             $names['親民黨立法院黨團'] = '親民黨立法院黨團';
+            $names['立法院親民黨黨團'] = '親民黨立法院黨團';
+            $names['親民黨立院黨團'] = '親民黨立法院黨團';
+            $names['親民黨黨團立法院黨團'] = '親民黨立法院黨團';
             $names['台灣團結聯盟立法院黨團'] = '台灣團結聯盟立法院黨團';
             $names['立院新聯盟立法院政團'] = '立院新聯盟立法院政團';
             $names['無黨團結聯盟立法院黨團'] = '無黨團結聯盟立法院黨團';
