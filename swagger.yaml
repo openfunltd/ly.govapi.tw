@@ -881,7 +881,9 @@ paths:
           description: '議案類別(Ex: 法律案, 臨時提案)'
           required: false
           schema:
-            type: integer
+            type: array
+            items:
+              type: string
         -
           name: proposal_type
           in: query

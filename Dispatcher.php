@@ -599,7 +599,7 @@ class Dispatcher
      *   @OA\Parameter(name="meet_id", in="query", description="會議 ID(Ex: 院會-10-1-1)", required=false, @OA\Schema(type="string")),
      *   @OA\Parameter(name="term", in="query", description="屆期(Ex: 9)", required=false, @OA\Schema(type="integer")),
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期(Ex: 1)", required=false, @OA\Schema(type="integer")),
-     *   @OA\Parameter(name="bill_type", in="query", description="議案類別(Ex: 法律案, 臨時提案)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="bill_type", in="query", description="議案類別(Ex: 法律案, 臨時提案)", required=false, @OA\Schema(type="array", items={"type":"string"}, @OA\Items(type="string"))),
      *   @OA\Parameter(name="proposal_type", in="query", description="提案類別(Ex: 委員提案, 政府提案, 審查報告)", required=false, @OA\Schema(type="integer")),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer", default=1)),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer", default=100)),
@@ -693,10 +693,10 @@ class Dispatcher
             ];
         }
 
-        if (array_key_exists('bill_type', $_GET)) {
-            $records->bill_type = $_GET['bill_type'];
+        if (self::hasParam('bill_type')) {
+            $records->bill_type = self::getParam('bill_type', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     '議案類別.keyword' => $records->bill_type,
                 ],
             ];
@@ -1609,6 +1609,32 @@ class Dispatcher
             echo json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
     }
+
+    public static function hasParam($key)
+    {
+        return array_key_exists($key, $_GET) && $_GET[$key];
+    }
+
+    public static function getParam($key, $opt = null)
+    {
+        $uri = explode('?', $_SERVER['REQUEST_URI'])[1];
+        $matches = [];
+        foreach (explode('&', $uri) as $term) {
+            list($k, $v) = explode('=', $term);
+            $v = urldecode($v);
+            if ($k == $key) {
+                $matches[] = $v;
+            }
+        }
+        if (is_array($opt) and array_key_exists('array', $opt) and $opt['array']) {
+            return $matches;
+        }
+        if (count($matches) == 1){
+            return $matches[0];
+        }
+        return $matches;
+    }
+
     public static function dispatch()
     {
         $uri = $_SERVER['REQUEST_URI'];
