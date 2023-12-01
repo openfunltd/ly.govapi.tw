@@ -1454,6 +1454,14 @@ class Dispatcher
                         'field' => '屆期',
                         'order' => [ '_key' => 'desc' ],
                     ],
+                    'aggs' => [
+                        'sessionPeriod_count' => [
+                            'terms' => [
+                                'field' => '會期',
+                                'order' => [ '_key' => 'desc' ],
+                            ],
+                        ],
+                    ],
                 ],
                 'max_mtime' => [
                     'max' => [
@@ -1470,7 +1478,14 @@ class Dispatcher
             $records->bill->terms[] = [
                 'term' => $bucket->key,
                 'count' => $bucket->doc_count,
+                'sessionPeriod_count' => [],
             ];
+            foreach ($bucket->sessionPeriod_count->buckets as $sessionPeriod_bucket) {
+                $records->bill->terms[count($records->bill->terms) - 1]['sessionPeriod_count'][] = [
+                    'sessionPeriod' => $sessionPeriod_bucket->key,
+                    'count' => $sessionPeriod_bucket->doc_count,
+                ];
+            }
         }
         $records->bill->max_mtime = $ret->aggregations->max_mtime->value;
         $records->bill->max_mtime_human = date('Y-m-d H:i:s', $records->bill->max_mtime / 1000);
@@ -1575,6 +1590,12 @@ class Dispatcher
                                 'exists' => ['field' => '議事錄' ],
                             ],
                         ],
+                        'sessionPeriod_count' => [
+                            'terms' => [
+                                'field' => 'sessionPeriod',
+                                'order' => [ '_key' => 'desc' ],
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -1592,6 +1613,13 @@ class Dispatcher
             $records->meet->terms[$bucket->key]['max_meeting_date_human'] = date('Y-m-d H:i:s', $bucket->max_meeting_date->value / 1000);
             $records->meet->terms[$bucket->key]['meetdata_count'] = $bucket->term_meetdata_count->doc_count;
             $records->meet->terms[$bucket->key]['議事錄_count'] = $bucket->term_議事錄_count->doc_count;
+            $records->meet->terms[$bucket->key]['sessionPeriod_count'] = [];
+            foreach ($bucket->sessionPeriod_count->buckets as $sessionPeriod_bucket) {
+                $records->meet->terms[$bucket->key]['sessionPeriod_count'][] = [
+                    'sessionPeriod' => $sessionPeriod_bucket->key,
+                    'count' => $sessionPeriod_bucket->doc_count,
+                ];
+            }
         }
         $records->meet->terms = array_values($records->meet->terms);
         return self::json_output($records);
