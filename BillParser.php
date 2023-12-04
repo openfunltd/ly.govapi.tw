@@ -353,7 +353,202 @@ class BillParser
             }
         }
 
+        $tr_doms = [];
+        $skip_table = false;
+        foreach ($doc->getElementsByTagName('table') as $table_dom) {
+            if (!$table_dom->getElementsByTagName('td')->length) {
+                continue;
+            }
+
+            $tr_dom = $table_dom->getElementsByTagName('tr')->item(0);
+            $first_td_doms = $tr_dom->getElementsByTagName('td');
+
+            $title = trim($table_dom->getElementsByTagName('td')->item(0)->nodeValue);
+            $title = str_replace('　', '', $title);
+            if ($p_dom = $table_dom->getElementsByTagName('p')->item(0)) {
+                if ($p_dom->getAttribute('class') == '院總號') {
+                    continue;
+                }
+                if ($p_dom->getAttribute('class') == '官員提案') {
+                    continue;
+                }
+                if ($p_dom->getAttribute('class') == '表格內文頂頭') {
+                    error_log("skip $title");
+                    continue;
+                }
+            }
+            if (strpos($title, '附表：') === 0 or strpos($title, '院總第') === 0) {
+                continue;
+            }
+
+            if ($first_td_doms->length == 1) {
+                if (preg_match('#.*(草案|草案對照表|條文對照表)$#u', $title)) {
+                    $skip_table = false;
+                } else {
+                    $skip_table = true;
+                    error_log($title);
+                    continue;
+                }
+            }
+
+            if ($skip_table) {
+                continue;
+            }
+
+            foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
+                $tr_doms[] = $tr_dom;
+            }
+        }
+
+        if ($tr_doms) {
+            $record->{'對照表'} = [];
+            try {
+                foreach (self::getDiffTableFromTrs($tr_doms, $doc, $billNo) as $diff) {
+                    $record->{'對照表'}[] = $diff;
+                }
+            } catch (Exception $e) {
+                error_log("{$billNo} {$e->getMessage()}");
+            }
+        }
+
         return $record;
+    }
+
+    public static function getDiffTableFromTrs($tr_doms, $doc, $billNo)
+    {
+        if (in_array($billNo, [
+            "1010224070100900", // 缺少欄位？
+            "1000309070100300", 
+            "1000331070100400",
+            "1101206070200300",
+            "1090707070200200",
+        ])) {
+            return;
+        }
+        $diff = null;
+        $cols = null;
+
+        while (count($tr_doms)) {
+            $tr_dom = array_shift($tr_doms);
+            $td_doms = $tr_dom->getElementsByTagName('td');
+
+            if ($td_doms->length == 1) {
+                $title = trim($td_doms->item(0)->nodeValue);
+                if (!is_null($diff)) {
+                    yield $diff;
+                }
+                $diff = new StdClass;
+                $diff->title = $title;
+                $diff->{'立法種類'} = null;
+                continue;
+            }
+
+            $values = [];
+            foreach ($td_doms as $td_dom) {
+                $v = trim($td_dom->nodeValue);
+                $v = preg_replace('#（.*）#u', '', $v);
+                $v = trim($v);
+                $v = str_replace('　', '', $v);
+                $values[] = $v;
+            }
+            if (implode('', $values) == '') {
+                continue;
+            }
+
+            switch (implode(',', $values)) {
+            case '再修正條文,修正條文,現行條文,說明':
+                if (!is_null($diff->{'立法種類'})) {
+                    yield $diff;
+                    $title = $diff->title;
+                    $diff = new StdClass;
+                    $diff->title = $title;
+                }
+                $diff->{'立法種類'} = '再修正條文';
+                $cols = ['再修正', '修正', '現行', '說明'];
+                continue 2;
+
+            case '修正條文,現行條文,說明':
+            case '修正條文,現行條文,修正說明':
+            case '修正條文,現行規定,說明':
+            case '修正規定,現行規定,說明':
+            case '修正前言,現行前言,說明':
+            case '修正條文,現行公布條文,說明':
+            case '修正草案,現行條文,說明':
+                if (is_null($diff)) {
+                    throw new Exception("{$billNo} 沒有標題");
+                }
+                if (!is_null($diff->{'立法種類'})) {
+                    yield $diff;
+                    $title = $diff->title;
+                    $diff = new StdClass;
+                    $diff->title = $title;
+                }
+                $diff->{'立法種類'} = '修正條文';
+                $cols = ['修正', '現行', '說明'];
+                continue 2;
+            case '增訂條文,說明':
+            case '條文,說明':
+                if (is_null($diff)) {
+                    throw new Exception("{$billNo} 沒有標題");
+                }
+                if (!is_null($diff->{'立法種類'})) {
+                    yield $diff;
+                    $title = $diff->title;
+                    $diff = new StdClass;
+                    $diff->title = $title;
+                }
+                $diff->{'立法種類'} = '增訂條文';
+                $cols = ['增訂', '說明'];
+                continue 2;
+            case '名稱,說明':
+                if (is_null($diff)) {
+                    throw new Exception("{$billNo} 沒有標題");
+                }
+                if (!is_null($diff->{'立法種類'})) {
+                    yield $diff;
+                    $title = $diff->title;
+                    $diff = new StdClass;
+                    $diff->title = $title;
+                }
+                $diff->{'立法種類'} = '增訂條文名稱';
+                $cols = ['名稱', '說明'];
+                continue 2;
+
+            case '修正名稱,現行名稱,說明':
+            case '修正名稱,現行條文,說明':
+                if (!is_null($diff->{'立法種類'})) {
+                    yield $diff;
+                    $title = $diff->title;
+                    $diff = new StdClass;
+                    $diff->title = $title;
+                }
+                $diff->{'立法種類'} = '修正名稱';
+                $cols = ['修正', '現行', '說明'];
+                continue 2;
+            }
+
+            if (is_null($cols)) {
+                echo $doc->saveHTML($tr_dom);
+                throw new Exception("{$billNo} no cols: " . implode(',', $values));
+            }
+
+
+            if ($td_doms->length != count($cols)) {
+                echo implode(',', $cols) . "\n";
+                echo $doc->saveHTML($tr_dom);
+                throw new Exception("{$billNo} unknown td length");
+            }
+
+            $values = [];
+            foreach ($td_doms as $td_dom) {
+                $v = trim($td_dom->nodeValue);
+                $v = preg_replace("#\n +#", '', $v);
+                $values[] = $v;
+            }
+            $diff->rows[] = array_combine($cols, $values);
+        }
+        yield $diff;
+
     }
 
     public static function parseBillDoc($billNo, $content, $obj = null)

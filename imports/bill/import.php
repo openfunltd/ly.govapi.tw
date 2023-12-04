@@ -93,7 +93,7 @@ foreach ($list as $idx => $v) {
             }
         }
 
-        foreach (['案由', '說明', '提案人', '連署人'] as $k) {
+        foreach (['案由', '說明', '提案人', '連署人', '對照表'] as $k) {
             if (property_exists($docdata, $k) and $docdata->{$k} and (!property_exists($values, $k) or !$values->{$k})) {
                 $values->{$k} = $docdata->{$k};
             }
