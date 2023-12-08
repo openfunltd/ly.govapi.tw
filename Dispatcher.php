@@ -758,8 +758,8 @@ class Dispatcher
         }
 
         if (self::hasParam('field')) {
-           $reuqestFields = self::getParam('field', ['array' => true]);
-           if (in_array('all', $reuqestFields)) {
+           $requestFields = self::getParam('field', ['array' => true]);
+           if (in_array('all', $requestFields)) {
                unset($records->field);
            } else {
                $records->field = array_merge($records->field, $requestFields);
