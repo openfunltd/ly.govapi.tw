@@ -650,6 +650,21 @@ class Dispatcher
             ],
             'size' => 100,
         ];
+        $fields = [
+            'billNo',
+            '相關附件',
+            '議案名稱',
+            '提案單位/提案委員',
+            '議案狀態',
+            'mtime',
+            '屆期',
+            '議案類別',
+            '提案來源',
+            'meet_id',
+            '會期',
+            '字號',
+            '提案編號',
+        ];
 
         if (count($params) == 2 and $params[1] == 'html') {
             return self::bill_html($params[0]);
