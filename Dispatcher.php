@@ -650,6 +650,22 @@ class Dispatcher
             ],
             'size' => 100,
         ];
+        $displayFields = [
+            'billNo',
+            '相關附件',
+            '議案名稱',
+            '提案單位/提案委員',
+            '議案狀態',
+            'mtime',
+            '屆期',
+            '議案類別',
+            '提案來源',
+            'meet_id',
+            '會期',
+            '字號',
+            '提案編號',
+        ];
+
 
         if (count($params) == 2 and $params[1] == 'html') {
             return self::bill_html($params[0]);
@@ -660,6 +676,7 @@ class Dispatcher
         $records->page = @intval($_GET['page']) ?: 1;
         $records->limit = @intval($_GET['limit']) ?: 100;
         if (array_key_exists('proposer', $_GET)) {
+            array_push($displayFields, '提案人');
             $records->proposer = $_GET['proposer'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -668,6 +685,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('law', $_GET)) {
+            array_push($displayFields, 'laws');
             $records->law = $_GET['law'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -676,6 +694,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('cosignatory', $_GET)) {
+            array_push($displayFields, '連署人');
             $records->cosignatory = $_GET['cosignatory'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -738,6 +757,14 @@ class Dispatcher
             ];
         }
 
+        if (self::hasParam('field')) {
+            $displayFields = array_merge($displayFields, self::getParam('field', ['array' => true]));
+        }
+
+        if (!in_array('all', $displayFields)) {
+            $records->field = $displayFields;
+            $cmd['_source'] = $displayFields;
+        }
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
