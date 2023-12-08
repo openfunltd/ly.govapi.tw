@@ -753,6 +753,15 @@ class Dispatcher
             ];
         }
 
+        $param_pairs = explode('&', $_SERVER['QUERY_STRING']);
+        foreach ($param_pairs as $param_pair) {
+            $key_value = explode('=', $param_pair);
+            if ($key_value[0] == 'field' && !in_array(urldecode($key_value[1]), $fields)) {
+                $fields[] = urldecode($key_value[1]);
+            }
+        }
+
+        $cmd['_source'] = $fields;
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
