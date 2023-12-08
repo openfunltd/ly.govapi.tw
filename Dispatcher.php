@@ -650,7 +650,16 @@ class Dispatcher
             ],
             'size' => 100,
         ];
-        $fields = [
+
+        if (count($params) == 2 and $params[1] == 'html') {
+            return self::bill_html($params[0]);
+        }
+
+        $records = new StdClass;
+        $records->total = 0;
+        $records->page = @intval($_GET['page']) ?: 1;
+        $records->limit = @intval($_GET['limit']) ?: 100;
+        $records->fields = [
             'billNo',
             '相關附件',
             '議案名稱',
@@ -666,16 +675,8 @@ class Dispatcher
             '提案編號',
         ];
 
-        if (count($params) == 2 and $params[1] == 'html') {
-            return self::bill_html($params[0]);
-        }
-
-        $records = new StdClass;
-        $records->total = 0;
-        $records->page = @intval($_GET['page']) ?: 1;
-        $records->limit = @intval($_GET['limit']) ?: 100;
         if (array_key_exists('proposer', $_GET)) {
-            $fields[] = '提案人';
+            array_push($records->fields, '提案人');
             $records->proposer = $_GET['proposer'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -684,7 +685,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('law', $_GET)) {
-            $fields[] = 'laws';
+            array_push($records->fields, 'laws');
             $records->law = $_GET['law'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -693,7 +694,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('cosignatory', $_GET)) {
-            $fields[] = '連署人';
+            array_push($records->fields, '連署人');
             $records->cosignatory = $_GET['cosignatory'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -756,15 +757,11 @@ class Dispatcher
             ];
         }
 
-        $param_pairs = explode('&', $_SERVER['QUERY_STRING']);
-        foreach ($param_pairs as $param_pair) {
-            $key_value = explode('=', $param_pair);
-            if ($key_value[0] == 'field' && !in_array(urldecode($key_value[1]), $fields)) {
-                $fields[] = urldecode($key_value[1]);
-            }
+        if (self::hasParam('field')) {
+           $records->fields = array_merge($records->fields, self::getParam('field', ['array' => true]));
         }
 
-        $cmd['_source'] = $fields;
+        $cmd['_source'] = $records->fields;
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
