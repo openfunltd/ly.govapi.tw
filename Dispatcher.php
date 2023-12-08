@@ -675,6 +675,7 @@ class Dispatcher
         $records->page = @intval($_GET['page']) ?: 1;
         $records->limit = @intval($_GET['limit']) ?: 100;
         if (array_key_exists('proposer', $_GET)) {
+            $fields[] = '提案人';
             $records->proposer = $_GET['proposer'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -683,6 +684,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('law', $_GET)) {
+            $fields[] = 'laws';
             $records->law = $_GET['law'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -691,6 +693,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('cosignatory', $_GET)) {
+            $fields[] = '連署人';
             $records->cosignatory = $_GET['cosignatory'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
