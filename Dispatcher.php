@@ -758,15 +758,14 @@ class Dispatcher
         }
 
         if (self::hasParam('field')) {
-           $requestFields = self::getParam('field', ['array' => true]);
-           if (in_array('all', $requestFields)) {
-               unset($records->field);
-           } else {
-               $records->field = array_merge($records->field, $requestFields);
-           }
+            $records->field = array_merge($records->field, self::getParam('field', ['array' => true]));
         }
 
-        $cmd['_source'] = isset($records->field) ? $records->field : [];
+        if (!in_array('all', $records->field)) {
+            $cmd['_source'] = $records->field;
+        } else {
+            unset($records->field);
+        }
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
