@@ -659,7 +659,7 @@ class Dispatcher
         $records->total = 0;
         $records->page = @intval($_GET['page']) ?: 1;
         $records->limit = @intval($_GET['limit']) ?: 100;
-        $records->fields = [
+        $records->field = [
             'billNo',
             '相關附件',
             '議案名稱',
@@ -676,7 +676,7 @@ class Dispatcher
         ];
 
         if (array_key_exists('proposer', $_GET)) {
-            array_push($records->fields, '提案人');
+            array_push($records->field, '提案人');
             $records->proposer = $_GET['proposer'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -685,7 +685,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('law', $_GET)) {
-            array_push($records->fields, 'laws');
+            array_push($records->field, 'laws');
             $records->law = $_GET['law'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -694,7 +694,7 @@ class Dispatcher
             ];
         }
         if (array_key_exists('cosignatory', $_GET)) {
-            array_push($records->fields, '連署人');
+            array_push($records->field, '連署人');
             $records->cosignatory = $_GET['cosignatory'];
             $cmd['query']['bool']['must'][] = [
                 'match' => [
@@ -758,10 +758,10 @@ class Dispatcher
         }
 
         if (self::hasParam('field')) {
-           $records->fields = array_merge($records->fields, self::getParam('field', ['array' => true]));
+           $records->field = array_merge($records->field, self::getParam('field', ['array' => true]));
         }
 
-        $cmd['_source'] = $records->fields;
+        $cmd['_source'] = $records->field;
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
