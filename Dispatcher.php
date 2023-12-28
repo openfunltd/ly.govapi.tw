@@ -650,6 +650,33 @@ class Dispatcher
             ],
             'size' => 100,
         ];
+
+        $all_fields = [
+            'billNo' => [],
+            '相關附件' => [],
+            '議案名稱' => [],
+            '提案單位/提案委員' => [],
+            '議案狀態' => ['aggs' => true, 'type' => 'keyword'],
+            'mtime' => ['aggs' => true, 'type' => 'datetime'],
+            '屆期' => ['aggs' => true, 'type' => 'integer'],
+            '會期' => ['aggs' => true, 'type' => 'integer'],
+            '議案類別' => ['aggs' => true, 'type' => 'keyword'],
+            '提案來源' => ['aggs' => true, 'type' => 'keyword'],
+            'meet_id' => [],
+            '字號' => [],
+            '提案編號' => [],
+            '議案流程' => [],
+            '關連議案' => [],
+            '提案人' => ['aggs' => true, 'type' => 'keyword'],
+            '連署人' => ['aggs' => true, 'type' => 'keyword'],
+            'first_time' => ['aggs' => true, 'type' => 'datetime'],
+            'last_time' => ['aggs' => true, 'type' => 'datetime'],
+            'laws' => ['aggs' => true, 'type' => 'keyword'],
+            '案由' => [],
+            '說明' => [],
+            '對照表' => [],
+        ];
+
         $displayFields = [
             'billNo',
             '相關附件',
@@ -675,6 +702,33 @@ class Dispatcher
         $records->total = 0;
         $records->page = @intval($_GET['page']) ?: 1;
         $records->limit = @intval($_GET['limit']) ?: 100;
+
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                if (!array_key_exists($agg, $all_fields)) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                if (!array_key_exists('aggs', $all_fields[$agg])) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                if (in_array($all_fields[$agg]['type'], ['integer'])) {
+                    $cmd['aggs'][$agg] = [
+                        'terms' => [
+                            'field' => $agg,
+                        ],
+                    ];
+                } else {
+                    $cmd['aggs'][$agg] = [
+                        'terms' => [
+                            'field' => $agg . '.keyword',
+                        ],
+                    ];
+                }
+            }
+        }
+
         if (array_key_exists('proposer', $_GET)) {
             array_push($displayFields, '提案人');
             $records->proposer = $_GET['proposer'];
@@ -812,6 +866,17 @@ class Dispatcher
         $records->bills = [];
         foreach ($obj->hits->hits as $hit) {
             $records->bills[] = $hit->_source;
+        }
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                $records->aggs[$agg] = [];
+                foreach ($obj->aggregations->$agg->buckets as $bucket) {
+                    $records->aggs[$agg][] = [
+                        'value' => $bucket->key,
+                        'count' => $bucket->doc_count,
+                    ];
+                }
+            }
         }
         self::json_output($records);
     }
