@@ -159,6 +159,15 @@ class Dispatcher
             }
         }
 
+        if (self::hasParam('term')) {
+            $term = self::getParam('term', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    'term' => $term,
+                ],
+            ];
+        }
+
         if (count($params) > 1) {
             $obj = Elastic::dbQuery("/{prefix}legislator/_doc/" . intval($records->term) . '-' . urlencode($params[1]));
             if (isset($obj->found) && $obj->found) {
