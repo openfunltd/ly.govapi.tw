@@ -16,8 +16,9 @@ class GazetteParser
             return self::$_name_list->{$term};
         }
         self::$_name_list->{$term} = [];
-
-        self::$_name_list->{10}['陳秀寳'] = '陳秀寶';
+        if ($term == 10) {
+            self::$_name_list->{$term}['陳秀寳'] = '陳秀寶';
+        }
 
         $cmd = [
             'query' => [
@@ -148,6 +149,7 @@ class GazetteParser
         $str = str_replace('委員', '', $str);
         $str = preg_replace('#（[^）]+）#u', '', $str);
         $str = str_replace('代理', '', $str);
+        $str = str_replace('代表', '', $str);
         $str = str_replace('　', '', $str);
         $str = str_replace("\r", '', $str);
         $str = str_replace("\n", '', $str);
