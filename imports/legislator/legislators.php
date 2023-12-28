@@ -2,7 +2,7 @@
 
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/../Importer.php');
-$cmd = sprintf("wget -4 https://data.ly.gov.tw/odw/legislator.pdf -O %s", escapeshellarg(__DIR__ . '/legislator.pdf'));
+$cmd = sprintf("wget -q -4 https://data.ly.gov.tw/odw/legislator.pdf -O %s", escapeshellarg(__DIR__ . '/legislator.pdf'));
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("wget legislator.pdf failed");
@@ -53,6 +53,7 @@ file_put_contents(__DIR__ . '/16_CSV.csv', $content);
 $fp = fopen(__DIR__ . '/16_CSV.csv', 'r');
 $columns = fgetcsv($fp);
 $columns[0] = 'term';
+Elastic::$_show_log = false;
 while ($rows = fgetcsv($fp)) {
     $values = array_combine($columns, $rows);
     unset($values['']);

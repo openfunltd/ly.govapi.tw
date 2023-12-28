@@ -9,6 +9,7 @@ file_put_contents(__DIR__ . '/13_CSV.csv', $content);
 $fp = fopen(__DIR__ . '/13_CSV.csv', 'r');
 $columns = fgetcsv($fp);
 $columns[0] = 'comtCd';
+Elastic::$_show_log = false;
 while ($rows = fgetcsv($fp)) {
     $values = array_combine($columns, $rows);
     unset($values['']);
