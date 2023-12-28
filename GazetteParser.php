@@ -135,6 +135,7 @@ class GazetteParser
             self::$_name_list->{$term}['傅萁'] = '傅崐萁';
             self::$_name_list->{$term}['傅萁'] = '傅崐萁';
             self::$_name_list->{$term}['陳文明'] = '陳明文';
+            self::$_name_list->{$term}['吳怡汀'] = '吳怡玎';
         }
 
         return self::$_name_list->{$term};
@@ -145,7 +146,7 @@ class GazetteParser
         $ostr = $str;
         $str = str_replace('召集', '', $str);
         $str = str_replace('委員', '', $str);
-        $str = str_replace('（代理）', '', $str);
+        $str = preg_replace('#（[^）]+）#u', '', $str);
         $str = str_replace('代理', '', $str);
         $str = str_replace('　', '', $str);
         $str = str_replace("\r", '', $str);
