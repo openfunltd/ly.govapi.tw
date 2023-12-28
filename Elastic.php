@@ -35,6 +35,8 @@ class Elastic
 
     public static $_db_bulk_pool = [];
 
+    public static $_show_log = true;
+
     public static function dbBulkCommit($mapping = null)
     {
         if (is_null($mapping)) {
@@ -58,7 +60,9 @@ class Elastic
                 }
             }
 
-            error_log(sprintf("bulk commit, update (%d) %s", count($ids), mb_strimwidth(implode(',', $ids), 0, 200)));
+            if (self::$_show_log) {
+                error_log(sprintf("bulk commit, update (%d) %s", count($ids), mb_strimwidth(implode(',', $ids), 0, 200)));
+            }
             self::$_db_bulk_pool[$mapping] = '';
         }
     }
