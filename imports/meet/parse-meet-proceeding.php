@@ -39,7 +39,7 @@ while ($line = fgets($fp)) {
     } catch (Exception $e) {
         throw $e;
     }
-    $meets[$meet_obj->id] = [$info, $meet_obj];
+    $meets[$meet_obj->id] = [$info, $meet_obj, false];
 }
 
 $ret = Elastic::dbQuery('/{prefix}meet/_search', 'GET', json_encode([
