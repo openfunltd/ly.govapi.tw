@@ -765,6 +765,15 @@ class Dispatcher
                 ],
             ];
         }
+        if (self::hasParam('議案狀態')) {
+            array_push($displayFields, '議案狀態');
+            $records->{'議案狀態'} = self::getParam('議案狀態', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    '議案狀態.keyword' => $records->議案狀態,
+                ],
+            ];
+        }
 
         if (array_key_exists('meet_id', $_GET)) {
             $records->meet_id = $_GET['meet_id'];
@@ -1750,6 +1759,7 @@ class Dispatcher
         $matches = [];
         foreach (explode('&', $uri) as $term) {
             list($k, $v) = explode('=', $term);
+            $k = urldecode($k);
             $v = urldecode($v);
             if ($k == $key) {
                 $matches[] = $v;
