@@ -842,6 +842,7 @@ class BillParser
                 $ret[] = $id;
             }
         }
+        $ret = array_unique($ret);
         return $ret;
     }
 
@@ -927,7 +928,7 @@ class BillParser
         }
 
         // 處理法案
-        if ($values->{'議案類別'} == '法律案') {
+        if ($values->{'議案類別'} == '法律案' or $values->{'議案類別'} == '--') {
             $values->laws = self::parseLaws($values->{'議案名稱'});
         }
 
