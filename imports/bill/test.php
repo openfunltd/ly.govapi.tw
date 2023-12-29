@@ -13,10 +13,15 @@ $obj = json_decode(`grep $billNo output.jsonl`);
 $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$billNo}.gz"));
 try {
     $values = BillParser::parseBillDetail($billNo, $content);
-    echo json_encode($values, JSON_UNESCAPED_UNICODE) . "\n";
 } catch (Exception $e) {
     error_log("{$billNo} error: " . $e->getMessage());
 }
+$types = BillParser::getBillTypes();
+$sources = BillParser::getBillSources();
+$values->{'議案類別'} = $types[$obj->billType];
+$values->{'提案來源'} = $sources[$obj->proposalType];
+$values = BillParser::addBillInfo($values);
+echo json_encode($values, JSON_UNESCAPED_UNICODE) . "\n";
 
 if (file_exists(__DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz')) {
     $file = __DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz';
@@ -29,6 +34,7 @@ if (file_exists(__DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz')) {
 } else {
     exit;
 }
+echo json_encode($values, JSON_UNESCAPED_UNICODE) . "\n";
 echo "=======\n";
 $docdata = BillParser::parseBillDoc($billNo, $content, $obj);
 echo json_encode($docdata, JSON_UNESCAPED_UNICODE) . "\n";
