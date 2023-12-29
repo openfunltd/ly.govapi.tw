@@ -1,8 +1,8 @@
 <?php
 
 $current_id = intval(file_get_contents('current-id'));
-//for ($v = max($current_id, 146300); ; $v ++) {
-for ($v = 146300; ; $v --) {
+for ($v = max($current_id, 146300); ; $v ++) {
+//for ($v = 146300; ; $v --) {
     $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
     $html_target = __DIR__ . "/html/{$v}.html";
     if (file_exists($html_target)) {
