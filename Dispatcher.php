@@ -1294,7 +1294,7 @@ class Dispatcher
 
     /**
      * @OA\Get(
-     *   path="/ivod/", summary="從舊到新列出IVOD", tags={"ivod"},
+     *   path="/ivod/", summary="從新到舊列出IVOD", tags={"ivod"},
      *   @OA\Parameter(name="term", in="query", description="屆期", required=false, @OA\Schema(type="integer"), example=9),
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期", required=false, @OA\Schema(type="integer"), example=1),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
@@ -1309,6 +1309,9 @@ class Dispatcher
                 'bool' => [
                     'must' => [],
                 ],
+            ],
+            'sort' => [
+                '會議時間' => 'desc',
             ],
             'size' => 100,
         ];
