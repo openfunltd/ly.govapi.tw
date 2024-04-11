@@ -892,6 +892,13 @@ paths:
           schema:
             type: integer
         -
+          name: q
+          in: query
+          description: 關鍵字搜尋
+          required: false
+          schema:
+            type: string
+        -
           name: page
           in: query
           description: 頁數
@@ -1366,7 +1373,7 @@ paths:
     get:
       tags:
         - ivod
-      summary: 從舊到新列出IVOD
+      summary: 從新到舊列出IVOD
       operationId: bd339babbe82bf7c4df20e73577ea58d
       parameters:
         -
