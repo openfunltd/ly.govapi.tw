@@ -610,6 +610,7 @@ class Dispatcher
      *   @OA\Parameter(name="sessionPeriod", in="query", description="會期(Ex: 1)", required=false, @OA\Schema(type="integer")),
      *   @OA\Parameter(name="bill_type", in="query", description="議案類別(Ex: 法律案, 臨時提案)", required=false, @OA\Schema(type="array", items={"type":"string"}, @OA\Items(type="string"))),
      *   @OA\Parameter(name="proposal_type", in="query", description="提案類別(Ex: 委員提案, 政府提案, 審查報告)", required=false, @OA\Schema(type="integer")),
+     *   @OA\Parameter(name="q", in="query", description="關鍵字搜尋", required=false, @OA\Schema(type="string")),
      *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer", default=1)),
      *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer", default=100)),
      *   @OA\Response(response="200", description="議案資料", @OA\JsonContent(ref="#/components/schemas/Bill")),
@@ -827,6 +828,16 @@ class Dispatcher
             $cmd['query']['bool']['must'][] = [
                 'term' => [
                     '提案編號.keyword' => $records->billWord,
+                ],
+            ];
+        }
+
+        if (array_key_exists('q', $_GET)) {
+            $records->q = $_GET['q'];
+            $cmd['query']['bool']['must'][] = [
+                'query_string' => [
+                    'query' => $records->q,
+                    'fields' => ['議案名稱', '提案單位/提案委員', '提案人', '連署人', '案由', '說明'],
                 ],
             ];
         }
