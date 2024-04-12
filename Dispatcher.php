@@ -1006,10 +1006,77 @@ class Dispatcher
                 }
             }
         } else {
-            return self::json_output([
-                'error' => true,
-                'message' => '尚未實作議案狀態是' . $source->{'議案狀態'} . '的相關議案查詢',
-            ]);
+            // 找同一條法律並且提案時間在兩個月內的
+            if (!count($source->laws)) {
+                return self::json_output([
+                    'error' => true,
+                    'message' => '找不到法律代碼，無法查詢',
+                ]);
+            }
+            $ret = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode([
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            [
+                                'terms' => [
+                                    'laws' => $source->laws,
+                                ],
+                            ],
+                            [
+                                'range' => [
+                                    'last_time' => [
+                                        'gte' => date('Y-m-d', strtotime($source->last_time . ' -2 month')),
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]));
+            $pools = [];
+            foreach ($ret->hits->hits as $hit) {
+                if ($hit->_id == $billNo) {
+                    continue;
+                }
+                $pools[$hit->_id] = $hit->_source;
+                $source = $hit->_source;
+                foreach ($hit->_source->{'關連議案'} as $relbill) {
+                    if (!array_key_exists($relbill->billNo, $pools)) {
+                        $pools[$relbill->billNo] = true;
+                    }
+                }
+                unset($pools[$hit->_id]->{'關連議案'});
+                if ($hit->_source->{'議案狀態'} == '三讀') {
+                    $ret = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode([
+                        'query' => [
+                            'bool' => [
+                                'must' => [
+                                    [
+                                        'term' => [
+                                            'laws' => $source->laws[0],
+                                        ],
+                                    ],
+                                    [
+                                        'term' => [
+                                            'last_time' => $source->last_time,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ]));
+                    foreach ($ret->hits->hits as $hit) {
+                        $pools[$hit->_id] = $hit->_source;
+                        foreach ($hit->_source->{'關連議案'} as $relbill) {
+                            if (!array_key_exists($relbill->billNo, $pools)) {
+                                $pools[$relbill->billNo] = true;
+                            }
+                        }
+                        unset($pools[$hit->_id]->{'關連議案'});
+                    }
+                    break;
+                }
+            }
         }
 
         // 把關連議案都補齊
