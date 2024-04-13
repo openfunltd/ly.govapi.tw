@@ -1232,8 +1232,9 @@ class Dispatcher
                 ],
             ],
             'sort' => [
-                'sessionPeriod' => 'asc',
-                'sessionTimes' => 'asc',
+                'term' => 'desc',
+                'sessionPeriod' => 'desc',
+                'sessionTimes' => 'desc',
             ],
             'size' => 100,
         ];
