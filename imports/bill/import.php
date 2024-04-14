@@ -38,6 +38,9 @@ foreach ($list as $idx => $v) {
     }
     $values->{'議案類別'} = $types[$obj->billType];
     $values->{'提案來源'} = $sources[$obj->proposalType];
+    if ($billNo == '1020304070200400') {
+        $values->{'提案人'} = ['親民黨立法院黨團', '李桐豪'];
+    }
     $values = BillParser::addBillInfo($values);
     $values->mtime = date('c', $mtime);
     if (file_exists(__DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz')) {
