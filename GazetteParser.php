@@ -138,6 +138,10 @@ class GazetteParser
             self::$_name_list->{$term}['陳文明'] = '陳明文';
             self::$_name_list->{$term}['吳怡汀'] = '吳怡玎';
         }
+        if ($term == 11) {
+            self::$_name_list->{$term}['鄭天財SraKaca'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+        }
 
         return self::$_name_list->{$term};
     }
@@ -171,6 +175,7 @@ class GazetteParser
         if ($type == '提案') {
             $names['聯盟立法院黨團'] = '台灣團結聯盟立法院黨團';
             $names['台聯黨團'] = '台灣團結聯盟立法院黨團';
+            $names['台灣團結聯盟黨團'] = '台灣團結聯盟立法院黨團';
             $names['台灣民眾黨黨團'] = '台灣民眾黨立法院黨團';
             $names['台灣民眾黨立法院黨團'] = '台灣民眾黨立法院黨團';
             $names['民眾黨黨團'] = '台灣民眾黨立法院黨團';
@@ -1246,6 +1251,7 @@ class GazetteParser
     {
         $fp = fopen($txtfile, 'r');
         $lines = [];
+        $lineno = 0;
         // 找 本期委員發言紀錄索引
         while (false !== ($line = fgets($fp))) {
             // remove ^L
@@ -1295,6 +1301,7 @@ class GazetteParser
             $line = array_shift($lines);
             if (preg_match('#^立法院(.*)會議#', $line, $matches)) {
                 if ($ret->content) {
+                    $ret->line = $line;
                     yield $ret;
                 }
                 $ret->meet_name = trim($line);
@@ -1303,6 +1310,7 @@ class GazetteParser
                 continue;
             } elseif (preg_match('#^立法院(.*)#', $line) and preg_match('#紀錄#', $lines[0])) {
                 if ($ret->content) {
+                    $ret->line = $line;
                     yield $ret;
                 }
                 $ret->meet_name = trim($line) . trim(array_shift($lines));
@@ -1314,6 +1322,7 @@ class GazetteParser
 
             if (preg_match('#（頁次[^）]*）$#u', trim($line))) {
                 if (!is_null($ret->speakers)) {
+                    $ret->line = $line;
                     yield $ret;
                     $ret->content = '';
                     $ret->speakers = '';
@@ -1337,6 +1346,7 @@ class GazetteParser
             }
 
             if (ltrim($line) == $line) {
+                $ret->line = $line;
                 yield $ret;
                 $ret->content = $line;
                 $ret->speakers = null;
@@ -1346,6 +1356,7 @@ class GazetteParser
         }
 
         if ($ret->content) {
+            $ret->line = $line;
             yield $ret;
         }
     }
