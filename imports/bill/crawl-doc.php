@@ -16,7 +16,11 @@ while ($obj = json_decode(fgets($fp))) {
         continue;
     }
     $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$billNo}.gz"));
-    $values = BillParser::parseBillDetail($billNo, $content);
+    try {
+        $values = BillParser::parseBillDetail($billNo, $content);
+    } catch (Exception $e) {
+        continue;
+    }
 
     $docUrls = array();
 
