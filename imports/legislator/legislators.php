@@ -28,6 +28,15 @@ foreach ($matches[1] as $k => $v) {
     $map_id["{$term}-{$name}"] = $id;
 }
 $map_id["鄭天財 Sra Kacaw"] = 1146;
+$map_id['鄭天財Sra Kacaw'] = 1146;
+$map_id['江啟臣'] = 1116;
+$map_id['沈發惠'] = 1015;
+$map_id['林國成'] = 1268;
+$map_id['邱若華'] = 1270;
+$map_id['陳俊宇'] = '1282';
+$map_id['11-黃國昌'] = '1190';
+$map_id['賴惠員'] = '1250';
+$map_id['11-謝龍介'] = 1298;
 $map_id["簡東明Uliw．Qaljupayare"] = 1103;
 $map_id['廖國棟Sufin．Siluko'] = '0964';
 $map_id['廖國棟Sufin‧Siluko'] = '0964';
@@ -66,7 +75,8 @@ while ($rows = fgetcsv($fp)) {
     } elseif (isset($map_id[$values['name']])) {
         $bioId = intval($map_id[$values['name']]);
     } else {
-        throw new Exception("{$term}-{$values['name']} not found");
+        $bioId = null;
+        error_log("{$term}-{$values['name']} not found");
     }
     $values['bioId'] = $bioId;
     $values['committee'] = explode(';', trim($values['committee'], ';'));
