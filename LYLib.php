@@ -306,10 +306,22 @@ class LYLib
                         date('m', strtotime($meet_data->date)),
                         date('d', strtotime($meet_data->date))
                     );
+                    if ($source->{'議事錄'} ?? false) {
+                        $source->{'議事錄'}->ppg_url = $meet_data->ppg_url;
+                    }
                 }
                 $source->meet_data[$idx] = $meet_data;
             }
         }
+        if ($source->{'議事錄'} ?? false) {
+            $source->{'議事錄'}->doc_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-doc/%s.doc", urlencode($source->meet_id));
+            $source->{'議事錄'}->txt_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-txt/%s.txt", urlencode($source->meet_id));
+            $source->{'議事錄'}->html_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-html/%s.html", urlencode($source->meet_id));
+        }
+
+        if ($source->{'公報發言紀錄'} ?? false) {
+        }
+
         return $source;
     }
 
