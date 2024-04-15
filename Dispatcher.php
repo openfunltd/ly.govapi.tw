@@ -581,17 +581,27 @@ class Dispatcher
     public static function gazette_agenda_html($params)
     {
         // agenda_id: LCIDC01_1077502_00003 
-        $agenda_id = $params[0] . '.doc';
-        $content = file_get_contents('https://lydata.ronny-s3.click/publication-html/' . urlencode($agenda_id));
-        if (!$obj = json_decode($content)) {
+        $agenda_id = 'LCIDC01_' . $params[0] . '.doc.html';
+        $url = 'https://lydata.ronny-s3.click/agenda-html/' . urlencode($agenda_id);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $content = curl_exec($curl);
+        $info = curl_getinfo($curl);
+        if ($info['http_code'] != 200) {
             header('HTTP/1.1 404 Not Found');
             echo '404 not found';
             return;
         }
-        $content = base64_decode($obj->content);
-        $content = preg_replace_callback('#<img src="([^"]*)"#', function($matches) use ($agenda_id) {
-            $id = explode('_html_', $matches[1])[1];
-            return '<img src="https://lydata.ronny-s3.click/picfile/' . $agenda_id. '-' . $id . '"';
+
+        $content = preg_replace_callback('#<img ([^>]*)src="([^"]*)"#', function($matches) use ($agenda_id) {
+            $attr = $matches[1];
+            $src = $matches[2];
+            if (!preg_match('#pic://(.*)\.([^.]*)$#', $src, $matches)) {
+                return $matches[0];
+            }
+            $src = sprintf("https://lydata.ronny-s3.click/agenda-pic/%s.%s", $matches[1], $matches[2]);
+            return "<img $attr src=\"$src\"";
         }, $content);
 
         header('Content-Type: text/html; charset=utf-8');
