@@ -320,6 +320,14 @@ class LYLib
         }
 
         if ($source->{'公報發言紀錄'} ?? false) {
+            foreach ($source->{'公報發言紀錄'} as &$agenda) {
+                $agenda->html_files = [];
+                $agenda->txt_files = [];
+                foreach ($agenda->agenda_lcidc_ids ?? [] as $id ){
+                    $agenda->html_files[] = sprintf("https://%s/gazette_agenda/%s/html", $_SERVER['HTTP_HOST'], urlencode($id));
+                    $agenda->txt_files[] = sprintf("https://lydata.ronny-s3.click/agenda-txt/LCIDC01_%s.doc", urlencode($id));
+                }
+            }
         }
 
         return $source;
