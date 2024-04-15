@@ -297,6 +297,18 @@ class LYLib
 
     public static function buildMeet($source)
     {
+        $source->dates = [];
+        if (is_array($source->meet_data) and count($source->meet_data)) {
+            foreach ($source->meet_data as $meet) {
+                $source->dates[] = $meet->date;
+            }
+            $source->dates = array_unique($source->dates);
+        } elseif (is_array($source->{'發言紀錄'}) and count($source->{'發言紀錄'})) {
+            foreach ($source->{'發言紀錄'} as $agenda) {
+                $source->dates[] = $agenda->smeetingDate;
+            }
+            $source->dates = array_unique($source->dates);
+        }
         if (is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $idx => $meet_data) {
                 if (strlen($meet_data->meetingNo) < 15) {
