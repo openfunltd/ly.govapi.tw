@@ -66,6 +66,7 @@ class GazetteParser
             self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
             self::$_name_list->{$term}['陳歐柏'] = '陳歐珀';
             self::$_name_list->{$term}['張碧涵'] = '陳碧涵';
+            self::$_name_list->{$term}['詹臣凱'] = '詹凱臣';
         }
 
         if ($term == 9) {
@@ -78,6 +79,8 @@ class GazetteParser
             self::$_name_list->{$term}['Kolasotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['KolasYotak'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacial'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['高潞以用巴魕刺KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用·巴魕剌KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['簡東明UliwAljupayare'] = '簡東明Uliw．Qaljupayare';
@@ -102,6 +105,13 @@ class GazetteParser
             self::$_name_list->{$term}['林福德'] = '林德福';
             self::$_name_list->{$term}['林麗禪'] = '林麗蟬';
             self::$_name_list->{$term}['蔡春米'] = '周春米';
+            self::$_name_list->{$term}['徐臻蔚'] = '徐榛蔚';
+            self::$_name_list->{$term}['費得泰'] = '費鴻泰';
+            self::$_name_list->{$term}['鐘佳濱'] = '鍾佳濱';
+            self::$_name_list->{$term}['李俊邑'] = '李俊俋';
+            self::$_name_list->{$term}['莊瑞隆'] = '賴瑞隆';
+            self::$_name_list->{$term}['呂孫稜'] = '呂孫綾';
+            self::$_name_list->{$term}['徐世榮'] = '徐志榮';
         }
         if ($term == 10) {
             self::$_name_list->{$term}['王琬諭'] = '王婉諭';
