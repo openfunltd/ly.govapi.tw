@@ -429,50 +429,54 @@ class LYLib
     {
         error_log("parse doc $file");
         $basename = basename($file);
-        if (file_exists($dir . "/htmlfile/{$basename}")) {
-            $pics = json_decode(file_get_contents($dir . "/htmlfile/{$basename}"))->pics;
-            if ($pics) {
-            }
-            return $pics;
+        if (file_exists($dir . "/agenda-html/{$basename}.html") and filesize($dir . "/agenda-html/{$basename}.html") > 0){
+            return;
         }
-        $cmd = sprintf("curl -X POST -F %s -F \"output_type=html\" https://soffice.ronny.tw/", escapeshellarg('file=@' . $file));
-        $fp = popen($cmd, 'r');
-        $base = basename($file);
-        $images = new StdClass;
-        $ret = new StdClass;
-        while ($line = fgets($fp)) {
-            if (!$obj = json_decode($line)) {
-                echo $line;
-                echo 'error line';
-                exit;
-            }
-            if ($obj[0] == 'attachments') {
-                $attachment = $obj[1];
-                $img_name = explode('_html_', $attachment->file_name)[1];
-                file_put_contents($dir . '/picfile/' . $base . '-' . $img_name, base64_decode($attachment->content));
-                //S3Lib::put(__DIR__ . "/picfile/{$basename}-{$img_name}", "data/picfile/{$basename}-{$img_name}");
-                //unlink(__DIR__ . "/picfile/{$basename}-{$img_name}");
+        $cmd = sprintf("curl --output %s --request POST --url 'https://unoserver.openfun.dev/request' --header 'Content-Type: multipart/form-data' --form %s --form 'convert-to=html'",
+            escapeshellarg('tmp.html'),
+            escapeshellarg('file=@' . $file)
+        );
 
-                $images->{$img_name} = true;
-            } elseif ($obj[0] == 'content') {
-                $ret->content = $obj[1];
-                $content = base64_decode($obj[1]);
-                preg_match_all('#<img src="([^"]+)"[^>]*"#', $content, $matches);
-                $pics = [];
-                foreach ($matches[1] as $idx => $file_name) {
-                    $img_name = explode('_html_', $file_name)[1];
-                    if (!preg_match('/width="(\d+)" height="(\d+)"/', $matches[0][$idx], $matches2)) {
-                    }
-                    $pics[] = [$img_name, $matches2[1], $matches2[2], $idx];
-                }
-                $ret->pics = $pics;
+        system($cmd, $ret);
+        if ($ret) {
+            error_log("curl error: {$file}");
+            return;
+        }
+        $content = file_get_contents('tmp.html');
+
+        ini_set("pcre.backtrack_limit", "10000000");
+        $content = preg_replace_callback('#<img ([^>]+)src="data:([^"]+)"#u', function($matches) use ($file, $basename, $dir) {
+            $attr = $matches[1];
+            $data_uri = $matches[2];
+
+            if (preg_match('#^image/png;base64,(.*)$#', $data_uri, $matches)) {
+                $type = 'png';
+            } elseif (preg_match('#^image/jpeg;base64,(.*)$#', $data_uri, $matches)) {
+                $type = 'jpg';
+            } elseif (preg_match('#^;base64,(.*)$#', $data_uri, $matches)) {
+                $type = '';
             } else {
-                $ret->{$obj[0]} = $obj[1];
+                throw new Exception("{$file} no png data image: " . $data_uri);
             }
+            $img = base64_decode($matches[1]);
+            $hash = md5($img);
+            $target = "{$dir}/agenda-pic/{$basename}-{$hash}.{$type}";
+            error_log("write $target");
+            file_put_contents($target, $img);
+
+            $s = "<img {$attr}src=\"pic://{$basename}-{$hash}.{$type}\"";
+            error_log($s);
+            return $s;
+        }, $content);
+
+        if (!$content) {
+            var_dump($content);
+            $ret = preg_last_error_msg();
+            error_log("preg_last_error: $ret");
+            throw new Exception("{$file} no content");
         }
 
-        file_put_contents($dir . "/htmlfile/{$basename}", json_encode($ret));
-        return $pics;
+        file_put_contents($dir . "/agenda-html/{$basename}.html", $content);
     }
 
     public static function getAgendaHTML($url)
@@ -501,21 +505,16 @@ class LYLib
             if (filesize(__DIR__ . '/tmp.docx') < 1000) {
                 copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
                 touch($agenda_htmlfile);
-                throw new Exception("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
+                error_log("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
+                //throw new Exception("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
             }
             copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
             unlink(__DIR__ . "/tmp.docx");
             error_log("to docx done: " . ($agenda_docxfile));
         }
-        if (!file_exists($agenda_htmlfile)) {
+        if (!file_exists($agenda_htmlfile) or filesize($agenda_htmlfile) == 0 ){
             error_log("to html $agenda_docxfile");
-            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($agenda_docxfile), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
-            if ($ret) {
-                print_r($agenda);
-                throw new Exception('curl failed');
-            }
-            copy(__DIR__ . "/tmp.html", $agenda_htmlfile);
-            unlink(__DIR__ . "/tmp.html");
+            self::parseDoc($agenda_docxfile, __DIR__ . '/imports/gazette/');
         }
         return $agenda_htmlfile;
     }
