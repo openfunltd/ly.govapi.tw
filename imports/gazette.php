@@ -119,6 +119,28 @@ foreach ($list_files as $file) {
             }
         } else {
             $gazettes[$agenda['gazette_id']] = $gazette;
+
+            $detail_page_file = __DIR__ . '/gazette/gazette-detail-html/' . $gazette_id . '.html';
+            $detail_page_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%03d/%02d/%02d/details", $agenda['comYear'], $agenda['comVolume'], $agenda['comBookId']);
+            if (!file_exists($detail_page_file)) {
+                error_log($detail_page_url);
+                $detail_page_content = Importer::getURL($detail_page_url);
+                file_put_contents($detail_page_file, $detail_page_content);
+            }
+            $doc = new DOMDocument;
+            @$doc->loadHTMLFile($detail_page_file);
+            foreach ($doc->getElementsByTagName('h6') as $h6_dom) {
+                if (preg_match('#出版日期\s+(\d{3})年(\d{1,2})月(\d{1,2})日#', $h6_dom->textContent, $matches)) {
+                    $gazette['published_at'] = sprintf("%04d-%02d-%02d", 1911 + $matches[1], $matches[2], $matches[3]);
+                    break;
+                }
+            }
+            if (!$gazette['published_at']) {
+                echo json_encode($gazette, JSON_UNESCAPED_UNICODE) . "\n";
+                error_log('no published_at: ' . $detail_page_url);
+                //readline('continue?');
+                //throw new Exception('no published_at: ' . $detail_page_url);
+            }
             Elastic::dbBulkInsert('gazette', $agenda['gazette_id'], $gazette);
         }
     }
