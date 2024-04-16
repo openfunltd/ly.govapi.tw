@@ -1244,7 +1244,7 @@ class Dispatcher
             'sort' => [
                 'term' => 'desc',
                 'sessionPeriod' => 'desc',
-                'sessionTimes' => 'desc',
+                'meet_data.date' => 'desc',
             ],
             'size' => 100,
         ];
