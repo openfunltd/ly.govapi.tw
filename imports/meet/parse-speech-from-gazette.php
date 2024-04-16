@@ -48,7 +48,10 @@ for ($y = $start; $y >= 2012; $y --) {
                 continue;
             }
             if (!$speech->content) {
-                print_r($speech);
+                if (!$speech->meet_name) {
+                    continue;
+                }
+                var_dump($speech);
                 throw new Exception("{$speech->meet_name} {$speech->speakers} {$speech->content}");
             }
             if (!$meet_obj) {
@@ -56,6 +59,7 @@ for ($y = $start; $y >= 2012; $y --) {
                 continue;
                 throw new Exception("找不到 {$speech->meet_name}");
             }
+            unset($speech->line);
             $speech->speakers = GazetteParser::parsePeople($speech->speakers, $meet_obj->term);
             $speech->meet_id = $meet_obj->id;
             $speech->gazette_id = basename($txtfile, '.txt');
@@ -83,6 +87,25 @@ for ($y = $start; $y >= 2012; $y --) {
             throw new Exception("找不到發言紀錄索引 $txtfile");
         }
     }
+    $ret = Elastic::dbQuery('/{prefix}gazette_agenda/_search', 'GET', json_encode([
+        'query' => ['term' => ['comYear' => $y - 1911]],
+        'size' => 10000,
+    ]));
+    $agendas = [];
+    foreach ($ret->hits->hits as $hit) {
+        $source = $hit->_source;
+        $agenda_lcidc_ids = [];
+        foreach ($source->docUrls as $docUrl) {
+            if (!preg_match('#LCIDC01_(\d+_\d+)\.doc#', $docUrl, $matches)) {
+                print_r($source);
+                throw new Exception("{$source->gazette_id} 檔名不對");
+            }
+            $agenda_lcidc_ids[] = $matches[1];
+        }
+        $source->agenda_lcidc_ids = $agenda_lcidc_ids;
+        $agendas["{$source->gazette_id}_{$source->pageStart}_{$source->pageEnd}"] = $source;
+    }
+
     $ret = Elastic::dbQuery('/{prefix}meet/_search', 'GET', json_encode([
         'query' => ['terms' => ['_id' => array_keys($meets)]],
         'size' => 1000,
@@ -107,6 +130,15 @@ for ($y = $start; $y >= 2012; $y --) {
         }
         $meet->sessionPeriod = $meet_obj->sessionPeriod;
         $meet->sessionTimes = $meet_obj->sessionTimes;
+        foreach ($info as &$page) {
+            $agenda_id = "{$page->gazette_id}_{$page->page_start}_{$page->page_end}";
+            if (isset($agendas[$agenda_id])) {
+                $page->agenda_id = $agendas[$agenda_id]->agenda_id;
+                $page->agenda_lcidc_ids = $agendas[$agenda_id]->agenda_lcidc_ids;
+            } else {
+                continue;
+            }
+        }
 
         $meet->{'公報發言紀錄'} = $info;
 
