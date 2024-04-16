@@ -410,6 +410,16 @@ class Dispatcher
             ];
         }
 
+        if (self::hasParam('gazette_id')) {
+            $gazette_id = self::getParam('gazette_id', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    '_id' => $gazette_id,
+                ],
+            ];
+            $records->gazette_id = $gazette_id;
+        }
+
         $obj = Elastic::dbQuery("/{prefix}gazette/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
         $records->total_page = ceil($records->total->value / $records->limit);
@@ -1497,6 +1507,9 @@ class Dispatcher
                         'field' => $field,
                     ],
                 ];
+                if (array_key_exists('agg_size', $all_fields[$agg])) {
+                    $cmd['aggs'][$agg]['terms']['size'] = $all_fields[$agg]['agg_size'];
+                }
             }
         }
 
