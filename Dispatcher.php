@@ -1476,6 +1476,29 @@ class Dispatcher
                 ],
             ];
         }
+        $all_fields = [
+            'meet_id' => ['aggs' => true, 'field' => 'meet.id.keyword'],
+            'legislator' => ['aggs' => true, 'field' => '委員名稱.keyword'],
+        ];
+
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                if (!array_key_exists($agg, $all_fields)) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                if (!array_key_exists('aggs', $all_fields[$agg])) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                $field = $all_fields[$agg]['field'] ?? $agg;
+                $cmd['aggs'][$agg] = [
+                    'terms' => [
+                        'field' => $field,
+                    ],
+                ];
+            }
+        }
 
         $obj = Elastic::dbQuery("/{prefix}ivod/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
@@ -1484,6 +1507,17 @@ class Dispatcher
         foreach ($obj->hits->hits as $hit) {
             $hit->_source->id = $hit->_id;
             $records->ivods[] = ($hit->_source);
+        }
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                $records->aggs[$agg] = [];
+                foreach ($obj->aggregations->$agg->buckets as $bucket) {
+                    $records->aggs[$agg][] = [
+                        'value' => $bucket->key,
+                        'count' => $bucket->doc_count,
+                    ];
+                }
+            }
         }
         self::json_output($records);
     }
@@ -1977,6 +2011,7 @@ class Dispatcher
         } else {
             echo json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
+        exit;
     }
 
     public static function hasParam($key)
