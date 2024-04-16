@@ -788,10 +788,10 @@ class Dispatcher
             ];
         }
 
-        if (array_key_exists('meet_id', $_GET)) {
-            $records->meet_id = $_GET['meet_id'];
+        if (self::hasParam('meet_id')) {
+            $records->meet_id = self::getParam('meet_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     'meet_id.keyword' => $records->meet_id,
                 ],
             ];
@@ -1428,10 +1428,10 @@ class Dispatcher
                 ],
             ];
         }
-        if (array_key_exists('meet_id', $_GET)) {
-            $records->meet_id = $_GET['meet_id'];
+        if (self::hasParam('meet_id')) {
+            $records->meet_id = self::getParam('meet_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'meet.id.keyword' => $records->meet_id,
                 ],
             ];
@@ -1629,10 +1629,10 @@ class Dispatcher
             ];
         }
 
-        if (array_key_exists('meet_id', $_GET)) {
-            $records->meet_id = $_GET['meet_id'];
+        if (self::hasParam('meet_id')) {
+            $records->meet_id = self::getParam('meet_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'meet_id.keyword' => $records->meet_id,
                 ],
             ];
