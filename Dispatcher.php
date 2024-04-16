@@ -1477,8 +1477,8 @@ class Dispatcher
             ];
         }
         $all_fields = [
-            'meet_id' => ['aggs' => true, 'field' => 'meet.id.keyword'],
-            'legislator' => ['aggs' => true, 'field' => '委員名稱.keyword'],
+            'meet_id' => ['aggs' => true, 'field' => 'meet.id.keyword', 'agg_size' => 100],
+            'legislator' => ['aggs' => true, 'field' => '委員名稱.keyword', 'agg_size' => 100],
         ];
 
         if (self::hasParam('aggs')) {
