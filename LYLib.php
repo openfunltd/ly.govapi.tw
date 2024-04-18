@@ -299,12 +299,15 @@ class LYLib
     {
         $source->dates = [];
         if ($source->{'議事錄'} ?? false) {
-            $source->name = $source->{'議事錄'}->title;
+            $source->name = str_replace('議事錄', '', $source->{'議事錄'}->title);
+            $source->name = str_replace('立法院', '' , $source->name);
         } elseif (is_array($source->meet_data) and count($source->meet_data)) {
             $source->name = $source->meet_data[0]->meetingName;
         } elseif (is_array($source->{'發言紀錄'}) and count($source->{'發言紀錄'})) {
             $source->name = $source->{'發言紀錄'}[0]->meetingName;
         }
+        $source->name = str_replace('立法院', '' , $source->name);
+
         if (is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $meet) {
                 $source->dates[] = $meet->date;
