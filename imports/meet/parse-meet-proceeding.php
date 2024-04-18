@@ -66,6 +66,7 @@ foreach ($meets as $meet) {
 
     $meet->{'議事錄'} = $info;
 
+    $meet = LYLib::buildMeet($meet, 'db');
     Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
 }
 

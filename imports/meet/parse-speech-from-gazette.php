@@ -142,6 +142,7 @@ for ($y = $start; $y >= 2012; $y --) {
 
         $meet->{'公報發言紀錄'} = $info;
 
+        $meet = LYLib::buildMeet($meet, 'db');
         Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
     }
 }

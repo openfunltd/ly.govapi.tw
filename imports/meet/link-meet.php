@@ -36,6 +36,7 @@ foreach ($obj->hits->hits as $hit) {
     $source = $hit->_source;
     $source->meet_data = $meet_map->{$hit->_id};
     unset($meet_map->{$hit->_id});
+    $source = LYLib::buildMeet($source, 'db');
     Elastic::dbBulkInsert('meet', $hit->_id, $source);
 }
 
@@ -50,6 +51,7 @@ foreach ($meet_map as $id => $meets) {
     $meet->sessionTimes = $meet_obj->sessionTimes;
     $meet->title = $meet_obj->title;
     $meet->meet_data = $meets;
+    $meet = LYLib::buildMeet($meet, 'db');
     Elastic::dbBulkInsert('meet', $id, $meet);
 }
 

@@ -70,6 +70,7 @@ for ($y = $start; $y >= 2012; $y --) {
         //echo json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n";
         //continue;
             
+        $meet = LYLib::buildMeet($meet, 'db');
         Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
     }
 }

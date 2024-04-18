@@ -117,6 +117,7 @@ foreach ([221, 223] as $id) {
         $meet->sessionTimes = $meet_obj->sessionTimes;
 
         $meet->{'發言紀錄'} = $info;
+        $meet = LYLib::buildMeet($meet, 'db');
 
         Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
     }
