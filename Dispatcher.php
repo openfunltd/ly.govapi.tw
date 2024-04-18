@@ -1326,7 +1326,7 @@ class Dispatcher
             $records->meet_type = self::getParam('meet_type', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
                 'terms' => [
-                    'meetingType.keyword' => $records->meet_type,
+                    'meet_type.keyword' => $records->meet_type,
                 ],
             ];
         }
