@@ -1489,10 +1489,48 @@ class Dispatcher
         $all_fields = [
             'meet_id' => ['aggs' => true, 'field' => 'meet.id.keyword', 'agg_size' => 100],
             'legislator' => ['aggs' => true, 'field' => '委員名稱.keyword', 'agg_size' => 100],
+            'date' => ['aggs' => true, 'field' => 'date', 'agg_size' => 100],
         ];
 
         if (self::hasParam('aggs')) {
             foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                if (strpos($agg, ',')) {
+                    $aggs = explode(',', $agg);
+                    foreach ($aggs as $agg) {
+                        if (!array_key_exists($agg, $all_fields)) {
+                            header('HTTP/1.0 404 Not Found');
+                            self::json_output(['error' => 'not found']);
+                        }
+                        if (!array_key_exists('aggs', $all_fields[$agg])) {
+                            header('HTTP/1.0 404 Not Found');
+                            self::json_output(['error' => 'not found']);
+                        }
+                    }
+                    if (count($aggs) != 2) {
+                        header('HTTP/1.0 404 Not Found');
+                        self::json_output(['error' => 'not found']);
+                    };
+                    $cmd['aggs'][implode(',', $aggs)] = [
+                        'terms' => [
+                            'field' => $all_fields[$aggs[0]]['field'],
+                        ],
+                        'aggs' => [
+                            $aggs[1] => [
+                                'terms' => [
+                                    'field' => $all_fields[$aggs[1]]['field'],
+                                ],
+                            ],
+                        ],
+                    ];
+                    if (array_key_exists('agg_size', $all_fields[$agg])) {
+                        $cmd['aggs'][implode(',', $aggs)]['terms']['size'] = $all_fields[$agg]['agg_size'];
+                    }
+                    if (array_key_exists('agg_size', $all_fields[$aggs[1]])) {
+                        $cmd['aggs'][implode(',', $aggs)]['aggs'][$aggs[1]]['terms']['size'] = $all_fields[$aggs[1]]['agg_size'];
+                    }
+
+                    continue;
+                }
                 if (!array_key_exists($agg, $all_fields)) {
                     header('HTTP/1.0 404 Not Found');
                     self::json_output(['error' => 'not found']);
@@ -1524,11 +1562,25 @@ class Dispatcher
         if (self::hasParam('aggs')) {
             foreach (self::getParam('aggs', ['array' => true]) as $agg) {
                 $records->aggs[$agg] = [];
-                foreach ($obj->aggregations->$agg->buckets as $bucket) {
-                    $records->aggs[$agg][] = [
-                        'value' => $bucket->key,
-                        'count' => $bucket->doc_count,
-                    ];
+                if (strpos($agg, ',')) {
+                    $aggs = explode(',', $agg);
+                    $agg_id = $agg;
+                    foreach ($obj->aggregations->{$agg_id}->buckets as $bucket) {
+                        foreach ($bucket->{$aggs[1]}->buckets as $sub_bucket) {
+                            $records->aggs[$agg][] = [
+                                $aggs[0] => $bucket->key,
+                                $aggs[1] => $sub_bucket->key,
+                                'count' => $sub_bucket->doc_count,
+                            ];
+                        }
+                    }
+                } else {
+                    foreach ($obj->aggregations->$agg->buckets as $bucket) {
+                        $records->aggs[$agg][] = [
+                            'value' => $bucket->key,
+                            'count' => $bucket->doc_count,
+                        ];
+                    }
                 }
             }
         }
