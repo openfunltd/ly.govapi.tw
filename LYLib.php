@@ -298,7 +298,7 @@ class LYLib
     public static function buildMeet($source, $target = 'api')
     {
         $source->dates = [];
-        if ($source->{'議事錄'}) {
+        if ($source->{'議事錄'} ?? false) {
             $source->name = $source->{'議事錄'}->title;
         } elseif (is_array($source->meet_data) and count($source->meet_data)) {
             $source->name = $source->meet_data[0]->meetingName;
