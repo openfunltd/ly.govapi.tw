@@ -301,23 +301,24 @@ class LYLib
         if ($source->{'議事錄'} ?? false) {
             $source->name = str_replace('議事錄', '', $source->{'議事錄'}->title);
             $source->name = str_replace('立法院', '' , $source->name);
-        } elseif (is_array($source->meet_data) and count($source->meet_data)) {
+        } elseif (property_exists($source, 'meet_data') and is_array($source->meet_data) and count($source->meet_data)) {
             $source->name = $source->meet_data[0]->meetingName;
         } elseif (is_array($source->{'發言紀錄'}) and count($source->{'發言紀錄'})) {
             $source->name = $source->{'發言紀錄'}[0]->meetingName;
         }
         $source->name = str_replace('立法院', '' , $source->name);
 
-        if (is_array($source->meet_data) and count($source->meet_data)) {
+
+        if (property_exists($source, 'meet_data') and is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $meet) {
                 $source->dates[] = $meet->date;
             }
-            $source->dates = array_unique($source->dates);
+            $source->dates = array_values(array_unique($source->dates));
         } elseif (is_array($source->{'發言紀錄'}) and count($source->{'發言紀錄'})) {
             foreach ($source->{'發言紀錄'} as $agenda) {
                 $source->dates[] = $agenda->smeetingDate;
             }
-            $source->dates = array_unique($source->dates);
+            $source->dates = array_values(array_unique($source->dates));
         }
         if ($target == 'api' and is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $idx => $meet_data) {
