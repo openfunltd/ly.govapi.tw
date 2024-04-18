@@ -1277,13 +1277,13 @@ class Dispatcher
                 }
                 return;
             } else if ($params[1] == 'ivod') {
-                $_GET['meet_id'] = $meet_id;
+                self::setParam('meet_id', $meet_id);
                 return self::ivod([]);
             } else if ($params[1] == 'bill') {
-                $_GET['meet_id'] = $meet_id;
+                self::setParam('meet_id', $meet_id);
                 return self::bill([]);
             } else if ($params[1] == 'interpellation') {
-                $_GET['meet_id'] = $meet_id;
+                self::setParam('meet_id', $meet_id);
                 return self::interpellation([]);
             }
         }
@@ -2084,16 +2084,27 @@ class Dispatcher
         return array_key_exists($key, $_GET) && $_GET[$key];
     }
 
+    protected static $_params = [];
+    public static function setParam($key, $value)
+    {
+        self::$_params[$key] = $value;
+        $_GET[$key] = $value;
+    }
+
     public static function getParam($key, $opt = null)
     {
-        $uri = explode('?', $_SERVER['REQUEST_URI'])[1];
-        $matches = [];
-        foreach (explode('&', $uri) as $term) {
-            list($k, $v) = explode('=', $term);
-            $k = urldecode($k);
-            $v = urldecode($v);
-            if ($k == $key) {
-                $matches[] = $v;
+        if (array_key_exists($key, self::$_params)) {
+            $matches = [self::$_params[$key]];
+        } else {
+            $uri = explode('?', $_SERVER['REQUEST_URI'])[1];
+            $matches = [];
+            foreach (explode('&', $uri) as $term) {
+                list($k, $v) = explode('=', $term);
+                $k = urldecode($k);
+                $v = urldecode($v);
+                if ($k == $key) {
+                    $matches[] = $v;
+                }
             }
         }
         if (is_array($opt) and array_key_exists('array', $opt) and $opt['array']) {
