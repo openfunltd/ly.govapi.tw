@@ -101,21 +101,21 @@ class Dispatcher
     {
         if (count($params) > 2) {
             if ($params[2] == 'propose_bill') {
-                $_GET['proposer'] = $params[1];
+                self::setParam('proposer', $params[1]);
 
                 return self::bill([$params[0]]);
             } elseif ($params[2] == 'cosign_bill') {
-                $_GET['cosignatory'] = $params[1];
+                self::setParam('cosignatory', $params[1]);
 
                 return self::bill([$params[0]]);
             } elseif ($params[2] == 'meet') {
-                $_GET['legislator'] = $params[1];
-                $_GET['term'] = $params[0];
+                self::setParam('legislator', $params[1]);
+                self::setParam('term', $params[0]);
 
                 return self::meet([$params[0]]);
             } elseif ($params[2] == 'interpellation') {
-                $_GET['legislator'] = $params[1];
-                $_GET['term'] = $params[0];
+                self::setParam('legislator', $params[1]);
+                self::setParam('term', $params[0]);
 
                 return self::interpellation([$params[0]]);
             }
@@ -277,13 +277,13 @@ class Dispatcher
         }
 
         if (count($params) > 1 and $params[1] == 'meet') {
-            $_GET['committee_id'] = $params[0];
+            self::setParam('committee_id', $params[0]);
 
             if (count($params) > 2) {
-                $_GET['term'] = $params[2];
+                self::setParam('term', $params[2]);
             }
             if (count($params) > 3) {
-                $_GET['sessionPeriod'] = $params[3];
+                self::setParam('sessionPeriod', $params[3]);
             }
 
             return self::meet([]);
@@ -543,10 +543,10 @@ class Dispatcher
                 ];
             }
         }
-        if (array_key_exists('date', $_GET)) {
+        if (self::hasParam('date')) {
             $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'meetingDate' => $_GET['date'],
+                'terms' => [
+                    'meetingDate' => self::getParam('date', ['array' => true]),
                 ],
             ];
         }
@@ -761,29 +761,29 @@ class Dispatcher
             }
         }
 
-        if (array_key_exists('proposer', $_GET)) {
+        if (self::hasParam('proposer')) {
             array_push($displayFields, '提案人');
-            $records->proposer = $_GET['proposer'];
+            $records->proposer = self::getParam('proposer', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     '提案人.keyword' => $records->proposer,
                 ],
             ];
         }
-        if (array_key_exists('law', $_GET)) {
+        if (self::hasParam('law')) {
             array_push($displayFields, 'laws');
-            $records->law = $_GET['law'];
+            $records->law = self::getParam('law', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     'laws.keyword' => $records->law,
                 ],
             ];
         }
-        if (array_key_exists('cosignatory', $_GET)) {
+        if (self::hasParam('cosignatory')) {
             array_push($displayFields, '連署人');
-            $records->cosignatory = $_GET['cosignatory'];
+            $records->cosignatory = self::getParam('cosignatory', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     '連署人.keyword' => $records->cosignatory,
                 ],
             ];
@@ -816,37 +816,37 @@ class Dispatcher
             ];
         }
 
-        if (array_key_exists('proposal_type', $_GET)) {
-            $records->proposal_type = $_GET['proposal_type'];
+        if (self::hasParam('proposal_type')) {
+            $records->proposal_type = self::getParam('proposal_type', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'match' => [
+                'terms' => [
                     '提案來源.keyword' => $records->proposal_type,
                 ],
             ];
         }
 
-        if (array_key_exists('term', $_GET)) {
-            $records->term = $_GET['term'];
+        if (self::hasParam('term')) {
+            $records->term = self::getParam('term', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     '屆期' => $records->term,
                 ],
             ];
         }
 
-        if (array_key_exists('sessionPeriod', $_GET)) {
-            $records->sessionPeriod = $_GET['sessionPeriod'];
+        if (self::hasParam('sessionPeriod')) {
+            $records->sessionPeriod = self::getParam('sessionPeriod', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     '會期' => $records->sessionPeriod,
                 ],
             ];
         }
 
-        if (array_key_exists('billWord', $_GET)) {
-            $records->billWord = $_GET['billWord'];
+        if (self::hasParam('billWord')) {
+            $records->billWord = self::getParam('billWord', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     '提案編號.keyword' => $records->billWord,
                 ],
             ];
@@ -1306,52 +1306,51 @@ class Dispatcher
             ];
         }
 
-        if (array_key_exists('term', $_GET)) {
-            $records->term = $_GET['term'];
+        if (self::hasParam('term')) {
+            $records->term = self::getParam('term', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'term' => $records->term,
                 ],
             ];
         }
-        if (array_key_exists('sessionPeriod', $_GET)) {
-            $records->sessionPeriod = $_GET['sessionPeriod'];
+        if (self::hasParam('sessionPeriod')) {
+            $records->sessionPeriod = self::getParam('sessionPeriod', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'sessionPeriod' => $records->sessionPeriod,
                 ],
             ];
         }
-        if (array_key_exists('meet_type', $_GET)) {
-            $records->meet_type = $_GET['meet_type'];
+        if (self::hasParam('meet_type')) {
+            $records->meet_type = self::getParam('meet_type', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'meet_type.keyword' => $records->meet_type,
+                'terms' => [
+                    'meetingType.keyword' => $records->meet_type,
                 ],
             ];
         }
-        if (array_key_exists('legislator', $_GET)) {
-            $records->legislator = $_GET['legislator'];
+        if (self::hasParam('legislator')) {
+            $records->legislator = self::getParam('legislator', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'attendLegislator.keyword' => $records->legislator,
                 ],
             ];
         }
-
-        if (array_key_exists('date', $_GET)) {
-            $records->date = $_GET['date'];
+        if (self::hasParam('date')) {
+            $records->date = self::getParam('date', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'startTime' => $records->date,
+                'terms' => [
+                    'dates' => $records->date,
                 ],
             ];
         }
 
-        if (array_key_exists('committee_id', $_GET)) {
-            $records->committee_id = intval($_GET['committee_id']);
+        if (self::hasParam('committee_id')) {
+            $records->committee_id = self::getParam('committee_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'committees' => $records->committee_id,
                 ],
             ];
@@ -1422,18 +1421,18 @@ class Dispatcher
         $cmd['size'] = $records->limit;
         $cmd['from'] = ($records->page - 1) * $records->limit;
 
-        if (array_key_exists('term', $_GET)) {
-            $records->term = $_GET['term'];
+        if (self::hasParam('term')) {
+            $records->term = self::getParam('term', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'meet.term' => $records->term,
                 ],
             ];
         }
-        if (array_key_exists('sessionPeriod', $_GET)) {
-            $records->sessionPeriod = $_GET['sessionPeriod'];
+        if (self::hasParam('sessionPeriod')) {
+            $records->sessionPeriod = self::getParam('sessionPeriod', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'meet.sessionPeriod' => $records->sessionPeriod,
                 ],
             ];
@@ -1446,19 +1445,18 @@ class Dispatcher
                 ],
             ];
         }
-        if (array_key_exists('legislator', $_GET)) {
-            $records->legislator = $_GET['legislator'];
+        if (self::hasParam('legislator')) {
+            $records->legislator = self::getParam('legislator', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     '委員名稱.keyword' => $records->legislator,
                 ],
             ];
         }
-
-        if (array_key_exists('committee_id', $_GET)) {
-            $records->committee_id = intval($_GET['committee_id']);
+        if (self::hasParam('committee_id')) {
+            $records->committee_id = self::getParam('committee_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'meet.committees' => $records->committee_id,
                 ],
             ];
@@ -1719,15 +1717,14 @@ class Dispatcher
             return;
         }
 
-        if (array_key_exists('term', $_GET)) {
-            $records->term = $_GET['term'];
+        if (self::hasParam('term')) {
+            $records->term = self::getParam('term', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'term' => $records->term,
                 ],
             ];
         }
-
         if (self::hasParam('meet_id')) {
             $records->meet_id = self::getParam('meet_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
@@ -1736,20 +1733,19 @@ class Dispatcher
                 ],
             ];
         }
-
-        if (array_key_exists('sessionPeriod', $_GET)) {
-            $records->sessionPeriod = $_GET['sessionPeriod'];
+        if (self::hasParam('sessionPeriod')) {
+            $records->sessionPeriod = self::getParam('sessionPeriod', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'sessionPeriod' => $records->sessionPeriod,
                 ],
             ];
         }
 
-        if (array_key_exists('legislator', $_GET)) {
-            $records->legislator = $_GET['legislator'];
+        if (self::hasParam('legislator')) {
+            $records->legislator = self::getParam('legislator', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'legislators.keyword' => $records->legislator,
                 ],
             ];
@@ -1833,23 +1829,23 @@ class Dispatcher
             return;
         }
         if (count($params) == 2 and $params[1] == 'bill') {
-            $_GET['law'] = $params[0];
+            self::setParam('law', $params[0]);
             return self::bill([]);
         }
 
-        if (array_key_exists('type', $_GET)) {
-            $records->type = $_GET['type'];
+        if (self::hasParam('type')) {
+            $records->type = self::getParam('type', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'type.keyword' => $records->type,
                 ],
             ];
         }
 
-        if (array_key_exists('parent', $_GET)) {
-            $records->parent = $_GET['parent'];
+        if (self::hasParam('parent')) {
+            $records->parent = self::getParam('parent', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
-                'term' => [
+                'terms' => [
                     'parent.keyword' => $records->parent,
                 ],
             ];
