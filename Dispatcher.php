@@ -1761,6 +1761,35 @@ class Dispatcher
             ];
         }
 
+        $all_fields = [
+            'meet_id' => ['aggs' => true, 'field' => 'meet_id.keyword', 'agg_size' => 100],
+            'legislator' => ['aggs' => true, 'field' => 'legislators.keyword', 'agg_size' => 100],
+            'date' => ['aggs' => true, 'field' => 'date', 'agg_size' => 100],
+        ];
+
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                if (!array_key_exists($agg, $all_fields)) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                if (!array_key_exists('aggs', $all_fields[$agg])) {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                $field = $all_fields[$agg]['field'] ?? $agg;
+                $cmd['aggs'][$agg] = [
+                    'terms' => [
+                        'field' => $field,
+                    ],
+                ];
+                if (array_key_exists('agg_size', $all_fields[$agg])) {
+                    $cmd['aggs'][$agg]['terms']['size'] = $all_fields[$agg]['agg_size'];
+                }
+            }
+        }
+
+
         $obj = Elastic::dbQuery("/{prefix}interpellation/_search", 'GET', json_encode($cmd));
         $records->total = $obj->hits->total;
         $records->total_page = ceil($records->total->value / $records->limit);
@@ -1768,6 +1797,17 @@ class Dispatcher
         foreach ($obj->hits->hits as $hit) {
             $hit->_source->id = $hit->_id;
             $records->interpellations[] = LYLib::buildInterpellation($hit->_source);
+        }
+        if (self::hasParam('aggs')) {
+            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
+                $records->aggs[$agg] = [];
+                foreach ($obj->aggregations->$agg->buckets as $bucket) {
+                    $records->aggs[$agg][] = [
+                        'value' => $bucket->key,
+                        'count' => $bucket->doc_count,
+                    ];
+                }
+            }
         }
         self::json_output($records);
     }
