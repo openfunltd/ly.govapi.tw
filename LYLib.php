@@ -295,7 +295,7 @@ class LYLib
         return $source;
     }
 
-    public static function buildMeet($source)
+    public static function buildMeet($source, $target = 'api')
     {
         $source->dates = [];
         if ($source->{'議事錄'}) {
@@ -316,7 +316,7 @@ class LYLib
             }
             $source->dates = array_unique($source->dates);
         }
-        if (is_array($source->meet_data) and count($source->meet_data)) {
+        if ($target == 'api' and is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $idx => $meet_data) {
                 if (strlen($meet_data->meetingNo) < 15) {
                     $meet_data->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%02d/%02d",
@@ -332,13 +332,13 @@ class LYLib
                 $source->meet_data[$idx] = $meet_data;
             }
         }
-        if ($source->{'議事錄'} ?? false) {
+        if ($target == 'api' and $source->{'議事錄'} ?? false) {
             $source->{'議事錄'}->doc_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-doc/%s.doc", urlencode($source->meet_id));
             $source->{'議事錄'}->txt_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-txt/%s.txt", urlencode($source->meet_id));
             $source->{'議事錄'}->html_file = sprintf("https://lydata.ronny-s3.click/meet-proceeding-html/%s.html", urlencode($source->meet_id));
         }
 
-        if ($source->{'公報發言紀錄'} ?? false) {
+        if ($target == 'api' and $source->{'公報發言紀錄'} ?? false) {
             foreach ($source->{'公報發言紀錄'} as &$agenda) {
                 $agenda->html_files = [];
                 $agenda->txt_files = [];
