@@ -346,6 +346,15 @@ class LYLib
                     $agenda->html_files[] = sprintf("https://%s/gazette_agenda/%s/html", $_SERVER['HTTP_HOST'], urlencode($id));
                     $agenda->txt_files[] = sprintf("https://lydata.ronny-s3.click/agenda-txt/LCIDC01_%s.doc", urlencode($id));
                 }
+                // https://ppg.ly.gov.tw/ppg/publications/official-gazettes/106/15/01/details
+                $comYear = substr($agenda->gazette_id, 0, 3);
+                $comVolume = substr($agenda->gazette_id, 3, strlen($agenda->gazette_id) - 5);
+                $comBookId = substr($agenda->gazette_id, -2);
+                $agenda->ppg_gazette_url = sprintf("https://ppg.ly.gov.tw/ppg/publications/official-gazettes/%d/%02d/%02d/details",
+                    $comYear,
+                    $comVolume,
+                    $comBookId
+                );
             }
         }
 
