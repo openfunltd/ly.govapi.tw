@@ -42,6 +42,7 @@ for (; $v > 0; $v --) {
         $ivod->{$key} = trim($value);
     }
     $ivod->{'會議時間'} = date('c', strtotime($ivod->{'會議時間'}));
+    $ivod->date = date('Y-m-d', strtotime($ivod->{'會議時間'}));
 
     if (!preg_match('#^[^「（]*#u', $ivod->{'會議名稱'}, $matches)) {
         error_log("會議名稱 not found: " . $ivod->{'會議名稱'});
