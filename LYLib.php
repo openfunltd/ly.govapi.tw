@@ -89,6 +89,36 @@ class LYLib
         return $meet;
     }
 
+    /**
+     * consultToId 處理把黨團協商轉換成 id
+     */
+    public static function consultToId($from, $data)
+    {
+        $ret = new StdClass;
+        $ret->tmpMeeting = null;
+        $ret->committees = [];
+        $ret->type = '黨團協商';
+        $ret->title = '立法院朝野黨團協商';
+
+        if ($from == 'meet_data') { // 處理來自 open data
+            $ret->id = '黨團協商-' . $data->meetingNo;
+            $ret->term = intval(substr($data->selectTerm, 0, 2));
+            $ret->sessionPeriod = intval(substr($data->selectTerm, 2, 2));
+            if ($data->meetingUnit == '朝野黨團協商') {
+            } elseif (preg_match('#^朝野黨團協商\(.*黨團\)$#', $data->meetingUnit)) {
+            } elseif (preg_match('#^朝野黨團協商\((.*委員會)\)$#', $data->meetingUnit, $matches)) {
+                $committee_id = self::getCommitteeId($matches[1]);
+                $ret->committees[] = $committee_id;
+            } else {
+                print_r($data);
+                print_r($ret);
+                throw new Exception("{$data->meetingUnit} 有問題");
+            }
+            return $ret;
+        }
+        return null;
+    }
+
     public static function meetNameToId($oname)
     {
         $ret = new StdClass;

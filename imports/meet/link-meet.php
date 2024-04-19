@@ -8,13 +8,17 @@ $ids = [];
 while ($line = fgets($fp)) {
     $meet = json_decode($line);
     $meet = LYLib::filterMeetData($meet);
-    try {
-        $meet_obj = LYLib::meetNameToId($meet->meetingName);
-        if (!$meet_obj) {
-            continue;;
+    if (strpos($meet->meetingName, '黨團協商')) {
+        $meet_obj = LYLib::consultToId('meet_data', $meet);
+    } else {
+        try {
+            $meet_obj = LYLib::meetNameToId($meet->meetingName);
+        } catch (Exception $e) {
+            continue;
         }
-    } catch (Exception $e) {
-        continue;
+    }
+    if (!$meet_obj) {
+        continue;;
     }
     if (!property_exists($meet_map, $meet_obj->id)) {
         $meet_map->{$meet_obj->id} = [];
@@ -35,6 +39,9 @@ $obj = Elastic::dbQuery("/{prefix}meet/_search", 'GET', json_encode($cmd));
 foreach ($obj->hits->hits as $hit) {
     $source = $hit->_source;
     $source->meet_data = $meet_map->{$hit->_id};
+    if (is_null($source->meet_type)) {
+        $source->meet_type = $ids[$hit->_id]->type;
+    }
     unset($meet_map->{$hit->_id});
     $source = LYLib::buildMeet($source, 'db');
     Elastic::dbBulkInsert('meet', $hit->_id, $source);
@@ -45,7 +52,7 @@ foreach ($meet_map as $id => $meets) {
     $meet = new StdClass;
     $meet->meet_id = $id;
     $meet->term = $meet_obj->term;
-    $meet->meet_type = $meet_obj->meet_type;
+    $meet->meet_type = $meet_obj->type;
     $meet->committees = $meet_obj->committees;
     $meet->sessionPeriod = $meet_obj->sessionPeriod;
     $meet->sessionTimes = $meet_obj->sessionTimes;
