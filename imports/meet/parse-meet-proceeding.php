@@ -20,10 +20,10 @@ while ($line = fgets($fp)) {
     } catch (Exception $e) {
         continue;
     }
-    if ($meet_obj->term != 10) {
+    if (getenv('term') and $meet_obj->term != getenv('term')) {
         continue;
     }
-    if ($meet_obj->type == '院會') {
+    if ($meet_obj->type == '院會') { // 因為院會是 PDF ，這邊無法處理
         continue;
     }
     $txt_target = __DIR__ . "/meet-proceeding-txt/{$meet_obj->id}.txt";

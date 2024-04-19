@@ -3,7 +3,9 @@
 include(__DIR__ . '/../../init.inc.php');
 
 // 因為公報裡面不會有最後一次會議的議事錄，改從議事錄抓取
-throw new Exception("已停用，改用 parse-meet-proceeding.php");
+//throw new Exception("已停用，改用 parse-meet-proceeding.php");
+// TODO: 因為院會的議事錄還是只有這邊才能處理， parse-meet-proceeding.php 只能處理委員會
+// 因此這邊先恢復運作
 
 $start = date('Y');
 for ($y = $start; $y >= 2012; $y --) {

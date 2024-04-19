@@ -71,7 +71,14 @@ for ($y = $start; $y >= 2012; $y --) {
                 $speech->page_end = $transnumber($matches[2]);
             } else {
                 print_r($speech);
-                throw new Exception("找不到頁次 {$speech->content}");
+                try {
+                    throw new Exception("找不到頁次 {$speech->content}");
+                } catch (Exception $e) {
+                    if ($y < 2016) {
+                        error_log($e->getMessage());
+                        exit;
+                    }
+                }
             }
             $speech->content = rtrim($matches[1]);
             if (!isset($meets[$meet_obj->id])) {
