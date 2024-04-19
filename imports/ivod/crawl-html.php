@@ -1,6 +1,6 @@
 <?php
 
-$current_id = intval(file_get_contents('current-id'));
+$current_id = intval(file_get_contents(__DIR__ . '/current-id'));
 for ($v = max($current_id, 146300); ; $v ++) {
 //for ($v = 146300; ; $v --) {
     $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
@@ -19,7 +19,7 @@ for ($v = max($current_id, 146300); ; $v ++) {
         throw new Exception("readyPlayer not found {$url}");
     }
     if ($v > $current_id) {
-        file_put_contents('current-id', $v);
+        file_put_contents(__DIR__ . '/current-id', $v);
     }
     file_put_contents($html_target, $content);
 }
