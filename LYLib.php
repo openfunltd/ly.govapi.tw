@@ -89,6 +89,28 @@ class LYLib
         return $meet;
     }
 
+    public static $consult_meets = null;
+    public static function getConsultMeets()
+    {
+        if (is_null(self::$consult_meets)) {
+            $cmd = [
+                'size' => 10000,
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            ['term' => ['meet_type.keyword' => '黨團協商']],
+                        ],
+                    ],
+                ],
+            ];
+            $obj = Elastic::dbQuery("/{prefix}meet/_search", 'POST', json_encode($cmd));
+            self::$consult_meets = [];
+            foreach ($obj->hits->hits as $hit) {
+                self::$consult_meets[$hit->_id] = $hit->_source;
+            }
+        }
+        return self::$consult_meets;
+    }
     /**
      * consultToId 處理把黨團協商轉換成 id
      */
@@ -114,6 +136,36 @@ class LYLib
                 print_r($ret);
                 throw new Exception("{$data->meetingUnit} 有問題");
             }
+            return $ret;
+        } elseif ('ivod' == $from) {
+            $meets = self::getConsultMeets();
+            if (!preg_match('#立法院黨團協商（事由：(.*)）$#', $data->{'會議名稱'}, $matches)) {
+                throw new Exception("{$data->{'會議名稱'}} 有問題");
+            }
+            $title = $matches[1];
+            $match_meets = [];
+            foreach ($meets as $meet) {
+                foreach ($meet->meet_data as $meet_data) {
+                    if ($meet_data->date != $data->date) {
+                        continue;
+                    }
+                    if ($meet_data->meetingContent != $title) {
+                        continue;
+                    }
+                    $match_meets[] = $meet;
+                    break;
+                }
+            }
+            if (count($match_meets) != 1) {
+                print_r($match_meets);
+                print_R($data);
+                throw new Exception("對應到的黨團協商不是一個");
+            }
+            $meet = $match_meets[0];
+            $ret->id = $meet->meet_id;
+            $ret->committees = $meet->committees;
+            $ret->term = $meet->term;
+            $ret->sessionPeriod = $meet->sessionPeriod;
             return $ret;
         }
         return null;

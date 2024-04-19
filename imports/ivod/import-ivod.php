@@ -3,7 +3,7 @@
 include(__DIR__ . '/../../init.inc.php');
 $crawled = 0;
 
-$v = max(intval(file_get_contents('current-id')), 146312);
+$v = max(intval(file_get_contents(__DIR__ . '/current-id')), 146312);
 $error_name = [];
 for (; $v > 0; $v --) {
     //error_log($v);
@@ -55,15 +55,23 @@ for (; $v > 0; $v --) {
     } elseif ($name == '立法院第10屆第7會期外交及國防委員會第14全體委員會議') {
         $name = '立法院第10屆第7會期外交及國防委員會第14次全體委員會議';
     }
-    try {
-        //print_r($ivod);
-        $meet_obj = LYLib::meetNameToId($name);
+    if (strpos($name, '黨團協商')) {
+        $meet_obj = LYLib::consultToId('ivod', $ivod);
         $ivod->meet = $meet_obj;
-        //print_r($meet_obj);
-    } catch (Exception $e) {
-        error_log($name);
-        error_log($e->getMessage());
-        $error_name[$name] ++;
+    } elseif (strpos($ivod->{'會議名稱'}, '公聽會')) {
+        // TODO: 處理公聽會
+        continue;
+    } else {
+        try {
+            //print_r($ivod);
+            $meet_obj = LYLib::meetNameToId($name);
+            $ivod->meet = $meet_obj;
+            //print_r($meet_obj);
+        } catch (Exception $e) {
+            error_log(json_encode($ivod, JSON_UNESCAPED_UNICODE));
+            error_log($e->getMessage());
+            $error_name[$name] ++;
+        }
     }
     Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
 }
