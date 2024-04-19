@@ -406,6 +406,13 @@ class LYLib
             $source->comVolume,
             $source->comBookId
         );
+        $source->htmlUrls = [];
+        foreach ($source->docUrls as $doc_url) {
+            if (!preg_match('#LCIDC01_([0-9_]+)#', $doc_url, $matches)) {
+                continue;
+            }
+            $source->htmlUrls[] = sprintf("https://%s/gazette_agenda/%s/html", $_SERVER['HTTP_HOST'], urlencode($matches[1]));
+        }
         return $source;
     }
 
