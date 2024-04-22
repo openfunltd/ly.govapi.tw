@@ -1044,8 +1044,8 @@ class Dispatcher
                             ],
                             [
                                 'range' => [
-                                    'last_time' => [
-                                        'gte' => date('Y-m-d', strtotime($source->last_time . ' -2 month')),
+                                    'first_time' => [
+                                        'gte' => date('Y-m-d', strtotime($source->first_time. ' -2 month')),
                                     ],
                                 ],
                             ],
