@@ -1105,7 +1105,7 @@ class Dispatcher
             foreach ($pools as $billNo => $bill) {
                 if ($bill === true) {
                     $fetching_bills[] = $billNo;
-                    $pools[$billNo] = false;
+                    $pools[$billNo] = $bill;
                 }
             }
             if (!count($fetching_bills)) {
