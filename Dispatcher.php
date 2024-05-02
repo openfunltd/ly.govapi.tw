@@ -592,7 +592,11 @@ class Dispatcher
     {
         // agenda_id: LCIDC01_1077502_00003 
         $agenda_id = 'LCIDC01_' . $params[0] . '.doc.html';
-        $url = 'https://lydata.ronny-s3.click/agenda-html/' . urlencode($agenda_id);
+        if ($_GET['tika'] ?? false) {
+            $url = 'https://lydata.ronny-s3.click/agenda-tikahtml/' . urlencode($agenda_id);
+        } else {
+            $url = 'https://lydata.ronny-s3.click/agenda-html/' . urlencode($agenda_id);
+        }
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -604,6 +608,7 @@ class Dispatcher
             return;
         }
 
+        if (!($_GET['tika'] ?? false)) {
         $content = preg_replace_callback('#<img ([^>]*)src="([^"]*)"#', function($matches) use ($agenda_id) {
             $attr = $matches[1];
             $src = $matches[2];
@@ -613,6 +618,7 @@ class Dispatcher
             $src = sprintf("https://lydata.ronny-s3.click/agenda-pic/%s.%s", $matches[1], $matches[2]);
             return "<img $attr src=\"$src\"";
         }, $content);
+        }
 
         header('Content-Type: text/html; charset=utf-8');
         echo $content;
