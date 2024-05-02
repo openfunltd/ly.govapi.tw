@@ -1897,6 +1897,15 @@ class Dispatcher
             ];
         }
 
+        if (self::hasParam('id')) {
+            $records->id = self::getParam('id', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    'id.keyword' => $records->id,
+                ],
+            ];
+        }
+
         if (array_key_exists('q', $_GET)) {
             $records->q = '"' . $_GET['q'] . '"';
             $cmd['query']['bool']['must'][] = [
