@@ -1040,6 +1040,7 @@ class Dispatcher
                 ]);
             }
             $ret = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode([
+                'size' => 50,
                 'query' => [
                     'bool' => [
                         'must' => [
