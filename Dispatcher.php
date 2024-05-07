@@ -1039,6 +1039,7 @@ class Dispatcher
                     'message' => '找不到法律代碼，無法查詢',
                 ]);
             }
+            $term_date_range = LYLib::getTermDateRange($source->屆期);
             $ret = Elastic::dbQuery("/{prefix}bill/_search", 'GET', json_encode([
                 'size' => 50,
                 'query' => [
@@ -1052,7 +1053,8 @@ class Dispatcher
                             [
                                 'range' => [
                                     'first_time' => [
-                                        'gte' => date('Y-m-d', strtotime($source->first_time. ' -2 month')),
+                                        'gte' => $term_date_range[0],
+                                        'lte' => $term_date_range[1],
                                     ],
                                 ],
                             ],

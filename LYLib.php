@@ -627,4 +627,20 @@ class LYLib
         }
         return $agenda_htmlfile;
     }
+
+    public static function getTermDateRange($term) {
+        //第五、六屆任期為三年
+        if ($term == 5) {
+            $term_date_range = ['2002', '2005'];
+        } else if ($term == 6) {
+            $term_date_range = ['2005', '2008'];
+        } else {
+            //之後的會期任期為四年
+            $term_diff = $term - 7;
+            $term_date_range = [strval(2008 + 4 * $term_diff), strval(2012 + 4 * $term_diff)];
+        }
+        $term_date_range[0] = $term_date_range[0] . '-02-01';
+        $term_date_range[1] = $term_date_range[1] . '-01-31';
+        return $term_date_range;
+    }
 }
