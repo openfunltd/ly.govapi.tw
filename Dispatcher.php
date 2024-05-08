@@ -1158,6 +1158,47 @@ class Dispatcher
         }
     }
 
+    public static function meet_transcript()
+    {
+        $meet_id = self::getParam('meet_id');
+        $agenda_id = self::getParam('agenda_id');
+        $data = Elastic::dbQuery("/{prefix}meet/_doc/" . urlencode($meet_id));
+        if (!$data->found) {
+            header('HTTP/1.0 404 Not Found');
+            self::json_output(['error' => 'not found']);
+        }
+
+        $hit_agenda = null;
+        foreach ($data->_source->{'公報發言紀錄'} ?? [] as $record) {
+            if ($record->agenda_id == $agenda_id) {
+                $hit_agenda = $record;
+                break;
+            }
+        }
+        if (is_null($hit_agenda)) {
+            header('HTTP/1.0 404 Not Found');
+            self::json_output(['error' => 'not found']);
+        }
+
+        $content = '';
+        foreach ($hit_agenda->agenda_lcidc_ids as $lcidc_id) {
+            $content .= file_get_contents(sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", $lcidc_id));
+        }
+
+        $ret = new StdClass;
+        $ret->agenda = $hit_agenda;
+        $blocks = GazetteTranscriptParser::parse($content);
+        //$blocks = GazetteTranscriptParser::filterBlockByTitle($blocks, $record->content);
+        $ret->blocks = $blocks;
+        echo json_encode($ret);
+        exit;
+
+        print_r($data);
+        print_r($meet_id);
+        print_r($agenda_id);
+        exit;
+    }
+
     /**
      * @OA\Get(
      *   path="/meet/", summary="從舊到新列出會議", tags={"meet"},
@@ -1291,6 +1332,10 @@ class Dispatcher
             } else if ($params[1] == 'interpellation') {
                 self::setParam('meet_id', $meet_id);
                 return self::interpellation([]);
+            } else if ($params[1] == 'transcript') {
+                self::setParam('meet_id', $meet_id);
+                self::setParam('agenda_id', $params[2]);
+                return self::meet_transcript([]);
             }
         }
         if (count($params) > 0) {
