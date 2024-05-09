@@ -1162,22 +1162,39 @@ class Dispatcher
     {
         $meet_id = self::getParam('meet_id');
         $agenda_id = self::getParam('agenda_id');
-        $data = Elastic::dbQuery("/{prefix}meet/_doc/" . urlencode($meet_id));
-        if (!$data->found) {
+        $meet_query = Elastic::dbQuery("/{prefix}meet/_doc/" . urlencode($meet_id));
+        if (!$meet_query->found) {
             header('HTTP/1.0 404 Not Found');
             self::json_output(['error' => 'not found']);
         }
 
         $hit_agenda = null;
-        foreach ($data->_source->{'公報發言紀錄'} ?? [] as $record) {
+        foreach ($meet_query->_source->{'公報發言紀錄'} ?? [] as $record) {
             if ($record->agenda_id == $agenda_id) {
                 $hit_agenda = $record;
                 break;
             }
         }
+
         if (is_null($hit_agenda)) {
             header('HTTP/1.0 404 Not Found');
             self::json_output(['error' => 'not found']);
+        }
+
+        $agenda_query = Elastic::dbQuery("/{prefix}gazette_agenda/_search", "POST", json_encode([
+            'query' => [
+                'term' => [
+                    'gazette_id' => explode('_', $agenda_id)[0],
+                ],
+            ],
+            'size' => 100,
+            'sort' => [
+                'agendaNo' => 'asc',
+            ],
+        ]));
+        $agendas = [];
+        foreach ($agenda_query->hits->hits as $hit) {
+            $agendas[] = $hit->_source;
         }
 
         $content = '';
@@ -1187,13 +1204,13 @@ class Dispatcher
 
         $ret = new StdClass;
         $ret->agenda = $hit_agenda;
-        $blocks = GazetteTranscriptParser::parse($content);
+        $blocks = GazetteTranscriptParser::parse($content, $agendas);
         //$blocks = GazetteTranscriptParser::filterBlockByTitle($blocks, $record->content);
         $ret->blocks = $blocks;
         echo json_encode($ret);
         exit;
 
-        print_r($data);
+        print_r($meet_query);
         print_r($meet_id);
         print_r($agenda_id);
         exit;

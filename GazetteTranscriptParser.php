@@ -127,7 +127,20 @@ class GazetteTranscriptParser
         return $ret;
     }
 
-    public static function parse($content)
+    public static function matchSectionTitle($p_dom, $agendas)
+    {
+        if ($p_dom->getElementsByTagName('b')->length > 0) {
+            return false;
+        }
+        $title = trim(str_replace('。', '', $p_dom->textContent));
+        foreach ($agendas as $agenda) {
+            if (strpos($agenda->subject, $title) === 0) {
+                return $title;
+            }
+        }
+        return false;
+    }
+    public static function parse($content, $agendas)
     {
         $doc = new DOMDocument;
         // UTF-8
@@ -156,11 +169,34 @@ class GazetteTranscriptParser
                 }
             }
         }
+        $section = null;
         foreach ($p_doms as $p_dom) {
             $idx ++;
 
             $line = trim($p_dom->textContent);
             if (trim($line) == '') {
+                continue;
+            }
+
+            if (strpos($p_dom->getAttribute('class'), '(標題)')) {
+                $blocks[] = $current_block;
+                $line = str_replace(' ', '', $line);
+                $line = str_replace('　', '', $line);
+                $blocks[] = ['段落：' . $line];
+                $section = $line;
+                $current_block = [];
+                $block_lines[] = $current_line;
+                $current_line = $idx;
+                continue;
+            }
+
+            if ($title = self::matchSectionTitle($p_dom, $agendas)) {
+                $blocks[] = $current_block;
+                $blocks[] = ['段落：' . $title];
+                $section = $line;
+                $current_block = [];
+                $block_lines[] = $current_line;
+                $current_line = $idx;
                 continue;
             }
 
@@ -181,6 +217,25 @@ class GazetteTranscriptParser
             if (strpos($line, '|') === 0) {
                 $current_block[] = $line;
                 continue;
+            }
+
+            if (in_array($section, ['報告事項', '質詢事項'])) {
+                if (preg_match('#([一二三四五六七八九十○]+)、#u', $line, $matches)) {
+                    if ($current_block) {
+                        $blocks[] = $current_block;
+                        $current_block = [];
+                    }
+                    $current_block[] = '項目：' . $line;
+                    continue;
+                } else {
+                    if (strpos($line, '（以上質詢事項') === 0) {
+                        $blocks[] = $current_block;
+                        $current_block = [];
+                        $section = null;
+                    }
+                    $current_block[] = $line;
+                    continue;
+                }
             }
 
             if (preg_match('#^立法院.*議事錄$#', $line)) {
@@ -218,6 +273,7 @@ class GazetteTranscriptParser
         }
         $blocks[] = $current_block;
         $block_lines[] = $current_line;
+
         $ret = new StdClass;
         $ret->blocks = $blocks;
         $ret->block_lines = $block_lines;
