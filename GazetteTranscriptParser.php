@@ -127,6 +127,10 @@ class GazetteTranscriptParser
         return $ret;
     }
 
+    /**
+     * matchSectionTitle 檢查這一行是否有符合某一個議程的標題
+     * 
+     */
     public static function matchSectionTitle($p_dom, $agendas)
     {
         if ($p_dom->getElementsByTagName('b')->length > 0) {
@@ -140,7 +144,42 @@ class GazetteTranscriptParser
         }
         return false;
     }
-    public static function parse($content, $agendas)
+
+    /**
+     * filterAgendaBlock 篩選只有這一章節的內容
+     * 
+     */
+    public static function filterAgendaBlock($blocks, $block_lines, $agendas, $hit_agenda)
+    {
+        $start_idx = $end_idx = null;
+
+        foreach ($blocks as $idx => $block) {
+            $content = $hit_agenda->content;
+            if (strpos($block[0], '段落：') !== 0) {
+                continue;
+            }
+            $title = explode('：', $block[0], 2)[1];
+            if (strpos($content, $title) === false) {
+                continue;
+            }
+            $start_idx = $idx;
+            break;
+        }
+        if (is_null($start_idx)) {
+            return [$blocks, $block_lines];
+        }
+        for ($i = $start_idx + 1; $i < count($blocks); $i ++) {
+            if (strpos($blocks[$i][0], '段落：') === 0) {
+                $end_idx = $i;
+                break;
+            }
+        }
+        $blocks = array_slice($blocks, $start_idx, $end_idx - $start_idx);
+        $block_lines = array_slice($block_lines, $start_idx, $end_idx - $start_idx);
+        return [$blocks, $block_lines];
+    }
+
+    public static function parse($content, $agendas, $hit_agenda)
     {
         $doc = new DOMDocument;
         // UTF-8
@@ -274,6 +313,8 @@ class GazetteTranscriptParser
         $blocks[] = $current_block;
         $block_lines[] = $current_line;
 
+        list($blocks, $block_lines) = self::filterAgendaBlock($blocks, $block_lines, $agendas, $hit_agenda);
+
         $ret = new StdClass;
         $ret->blocks = $blocks;
         $ret->block_lines = $block_lines;
@@ -334,8 +375,6 @@ class GazetteTranscriptParser
                 }
             }
         }
-        array_shift($ret->blocks);
-        array_shift($ret->block_lines);
         return self::parseVote($ret);
     }
 
