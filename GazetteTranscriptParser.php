@@ -174,6 +174,9 @@ class GazetteTranscriptParser
                 break;
             }
         }
+        if (is_null($end_idx)) {
+            $end_idx = count($blocks);
+        }
         $blocks = array_slice($blocks, $start_idx, $end_idx - $start_idx);
         $block_lines = array_slice($block_lines, $start_idx, $end_idx - $start_idx);
         return [$blocks, $block_lines];
