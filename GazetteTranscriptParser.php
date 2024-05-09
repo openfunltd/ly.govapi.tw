@@ -196,9 +196,6 @@ class GazetteTranscriptParser
         $current_block = [];
         $current_line = 1;
         $persons = [];
-        $skip = [
-            "出席委員", "列席委員", "專門委員", "主任秘書", "決議", "決定", "請假委員", "說明", "列席官員", "註", "※註", "機關﹙單位﹚名稱", "單位", "在場人員", "歲出協商結論", "案由", "備註", "受文者", "發文日期", "發文字號", "速別", "附件", "主旨", "正本", "副本", "列席人員",
-        ];
         $idx = 0;
         $p_doms = [];
         foreach ($doc->getElementsByTagName('body') as $body_dom) {
@@ -297,10 +294,6 @@ class GazetteTranscriptParser
                 continue;
             }
             $person = str_replace('：', '', $b_dom->textContent);
-            if (in_array($person, $skip) or strpos($person, '、')) {
-                $current_block[] = $line;
-                continue;
-            }
             if (!array_key_Exists($person, $persons)) {
                 $persons[$person] = 0;
             }
