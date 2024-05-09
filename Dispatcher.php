@@ -1204,16 +1204,9 @@ class Dispatcher
 
         $ret = new StdClass;
         $ret->agenda = $hit_agenda;
-        $blocks = GazetteTranscriptParser::parse($content, $agendas);
-        //$blocks = GazetteTranscriptParser::filterBlockByTitle($blocks, $record->content);
+        $blocks = GazetteTranscriptParser::parse($content, $agendas, $hit_agenda);
         $ret->blocks = $blocks;
-        echo json_encode($ret);
-        exit;
-
-        print_r($meet_query);
-        print_r($meet_id);
-        print_r($agenda_id);
-        exit;
+        return self::json_output($ret);
     }
 
     /**
