@@ -2,82 +2,7 @@
 
 class GazetteTranscriptParser
 {
-    public static $_name_list = null;
-
-    public static function getNameList()
-    {
-        if (!is_null(self::$_name_list)) {
-            return self::$_name_list;
-        }
-        $fp = fopen('php://temp', 'rw');
-        fputs($fp, LYLib::getPersonList());
-        fseek($fp, 0, SEEK_SET);
-        $columns = fgetcsv($fp);
-        $columns[0] = 'term';
-
-        $name_list = [];
-        while ($rows = fgetcsv($fp)) {
-            $values = array_combine($columns, $rows);
-            if (!array_key_exists($values['name'], $name_list)) {
-                $name_list[$values['name']] = [
-                    'terms' => [],
-                    'name' => $values['name'],
-                ];
-            }
-            $name_list[$values['name']]['terms'][] = $values['term'];
-        }
-        return self::$_name_list = $name_list;
-    }
-
-    public static function parsePeople($str)
-    {
-        $str = str_replace('　', '', $str);
-        $str = str_replace("\r", '', $str);
-        $str = str_replace("\n", '', $str);
-        $str = str_replace(' ', '', $str);
-        $str = str_replace('‧', '', $str);
-        $str = str_replace('．', '', $str);
-        $str = str_replace('&nbsp;', '', $str);
-        $hit = [];
-        $names = self::getNameList();
-
-        while (strlen($str)) {
-            foreach ($names as $n => $nn) {
-                if (strpos($n, '.') !== false) {
-                    if (preg_match("#^{$n}(.*)$#u", $str, $matches)) {
-                        $str = $matches[1];
-                        $hit[] = $nn['name'];
-                        continue 2;
-                    }
-                } else {
-                    if (strpos($str, $n) === 0) {
-                        $str = substr($str, strlen($n));
-                        $hit[] = $nn['name'];
-                        continue 2;
-                    }
-                }
-            }
-            $str = mb_substr($str, 1, 0, 'UTF-8');
-        }
-        return $hit;
-    }
-
-    public static function matchFirstLine($line)
-    {
-        if (in_array(str_replace('　', '', trim($line)), array('報告事項', '討論事項'))) {
-            return ['category', str_replace('　', '', trim($line))];
-        }
-
-        if (preg_match('#^([一二三四五六七八九])、#u', trim($line), $matches)) {
-            return ['一', $matches[1]];
-        }
-        if (preg_match('#^(\([一二三四五六七八九十]+\))#u', trim($line), $matches)) {
-            return ['(一)', $matches[1]];
-        }
-        return false;
-    }
-
-    public static function parseVote($ret)
+    public static function parseVote($ret, $hit_agenda)
     {
         $ret->votes = [];
         foreach ($ret->blocks as $idx => $block) {
@@ -109,7 +34,8 @@ class GazetteTranscriptParser
                             while (count($block) and (strpos($block[0], '：') === false)) {
                                 $content .= str_replace(' ', '', array_shift($block));
                             }
-                            $vote->{$matches[1]} = self::parsePeople($content);
+                            $term = explode('-', $hit_agenda->meet_id)[1];
+                            $vote->{$matches[1]} = GazetteParser::parsePeople($content, $term);
                             if ($matches[1] == '棄權') {
                                 break;
                             }
@@ -410,7 +336,7 @@ class GazetteTranscriptParser
                 }
             }
         }
-        return self::parseVote($ret);
+        return self::parseVote($ret, $hit_agenda);
     }
 
     public static function trimString($str)
