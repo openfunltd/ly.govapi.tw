@@ -137,7 +137,12 @@ class GazetteTranscriptParser
             return false;
         }
         $title = trim(str_replace('。', '', $p_dom->textContent));
+        $title = str_replace('立法院', '', $title);
+        $title = str_replace('案由：', '', $title);
         foreach ($agendas as $agenda) {
+            $agenda->subject = str_replace('。', '', $agenda->subject);
+            $agenda->subject = str_replace("\n", "", $agenda->subject);
+            $agenda->subject = str_replace('立法院', '', $agenda->subject);
             if (strpos($agenda->subject, $title) === 0) {
                 return $title;
             }
@@ -153,8 +158,14 @@ class GazetteTranscriptParser
     {
         $start_idx = $end_idx = null;
 
+        $content = $hit_agenda->content;
+        $content = str_replace('　', '', $content);
+        $content = str_replace(' ', '', $content);
+        $content = str_replace('。', '', $content);
+        $content = str_replace("\n", '', $content);
+        $content = str_replace('立法院', '', $content);
+
         foreach ($blocks as $idx => $block) {
-            $content = $hit_agenda->content;
             if (strpos($block[0], '段落：') !== 0) {
                 continue;
             }
@@ -209,7 +220,8 @@ class GazetteTranscriptParser
             }
         }
         $section = null;
-        foreach ($p_doms as $p_dom) {
+        while (count($p_doms)) {
+            $p_dom = array_shift($p_doms);
             $idx ++;
 
             $line = trim($p_dom->textContent);
@@ -239,16 +251,43 @@ class GazetteTranscriptParser
                 continue;
             }
 
+            // 如果是「第x案：」開頭，並且接下來五行內有「案由：xxx」，用案由去檢查
+            if (preg_match('#^第.*案：#u', $line)) {
+                for ($i = 0; $i < 5; $i ++) {
+                    if (!preg_match('#^案由：#u', trim($p_doms[$i]->textContent))) {
+                        continue;
+                    }
+                    $title = explode('：', $p_doms[$i]->textContent, 2)[1];
+                    if ($title = self::matchSectionTitle($p_doms[$i], $agendas)) {
+                        $blocks[] = $current_block;
+                        $blocks[] = ['段落：' . $title];
+                        $section = $title;
+                        $current_block = [$line];
+                        for ($j = 0; $j <= $i; $j ++) {
+                            $idx ++;
+                            $p_dom = array_shift($p_doms);
+                            $line = trim($p_dom->textContent);
+                            $current_block[] = $line;
+                            $block_lines[] = $current_line;
+                            $current_line = $idx;
+                        }
+                        continue 2;
+                    }
+                }
+
+            }
+
             // 處理開頭是「國是論壇」
             if (!count($blocks) and $line == '國是論壇') {
                 $current_block[] = $line;
-                while (count($lines)) {
-                    if (strpos($lines[0], '：')) {
+                while (count($p_doms)) {
+                    $idx ++;
+                    $p_dom = array_shift($p_doms);
+                    $line = trim($p_dom->textContent);
+                    $current_block[] = $line;
+                    if (strpos($line, '：') !== false) {
                         break;
                     }
-                    $idx ++;
-                    $line = array_shift($lines);
-                    $current_block[] = $line;
                 }
                 continue;
             }
