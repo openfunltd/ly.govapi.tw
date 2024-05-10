@@ -569,8 +569,17 @@ class LYLib
                 $type = 'jpg';
             } elseif (preg_match('#^;base64,(.*)$#', $data_uri, $matches)) {
                 $type = '';
+            } elseif (preg_match('#image/([^;]*);base64,(.*)$#', $data_uri, $matches)) {
+                if ($matches[1] == 'x-emf') {
+                    $type = 'emf';
+                } else {
+                    $img = base64_decode($matches[2]);
+                    file_put_contents('tmpimg', $img);
+                    $type = $matches[1];
+                    throw new Exception("{$file} no png data image: {$type}");
+                }
             } else {
-                throw new Exception("{$file} no png data image: " . $data_uri);
+                throw new Exception("{$file} no png data image: " . substr($data_uri, 0, 100));
             }
             $img = base64_decode($matches[1]);
             $hash = md5($img);
