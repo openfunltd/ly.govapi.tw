@@ -8,8 +8,13 @@ for ($term = 8;; $term ++) {
     // https://data.ly.gov.tw/getds.action?id=41
     for ($period = 1; $period <= 8; $period ++) {
         $target = sprintf(__DIR__ . "/gazette/%02d%02d.csv", $term, $period);
+        if (file_exists($target) and getenv('term') and $term == getenv('term')) {
+            error_log("backup old term: $term");
+            rename($target, $target . '.old');
+        }
         if (!file_exists($target)) {
             $url = sprintf("https://data.ly.gov.tw/odw/usageFile.action?id=41&type=CSV&fname=41_%02d%02dCSV-1.csv", $term, $period);
+            error_log("importing $url");
             $content = Importer::getURL($url);
             if (strpos($content, '403 Forbidden') !== false or strlen($content) == 0) {
                 break 2;

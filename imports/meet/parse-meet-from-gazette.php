@@ -9,6 +9,9 @@ include(__DIR__ . '/../../init.inc.php');
 
 $start = date('Y');
 for ($y = $start; $y >= 2012; $y --) {
+    if (getenv('year') and $y < getenv('year')) {
+        continue;
+    }
     error_log($y);
    
     $meets = [];

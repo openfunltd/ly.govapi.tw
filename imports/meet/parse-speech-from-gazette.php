@@ -4,6 +4,9 @@ include(__DIR__ . '/../../init.inc.php');
 
 $start = date('Y');
 for ($y = $start; $y >= 2012; $y --) {
+    if (getenv('year') and $y < getenv('year')) {
+        break;
+    }
     error_log($y);
 
     $transnumber = function($s) {
