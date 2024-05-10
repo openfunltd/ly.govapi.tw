@@ -328,9 +328,10 @@ class GazetteTranscriptParser
 
             if (preg_match('#^立法院.*議事錄$#', $line)) {
                 $current_block[] = $line;
-                while (count($lines)) {
+                while (count($p_doms)) {
+                    $p_dom = array_shift($p_doms);
                     $idx ++;
-                    $line = array_shift($lines);
+                    $line = trim($p_dom->textContent);
                     $line = str_replace('　', '  ', $line);
                     $line = trim($line, "\n");
                     $current_block[] = $line;
@@ -385,7 +386,10 @@ class GazetteTranscriptParser
                 $block_tmp = [];
                 $origin_block = json_decode(json_encode($blocks[0]));
                 while (trim($blocks[0][0]) != '') {
-                    if (strpos(str_replace(' ', '', $blocks[0][0]), '時間') === 0) {
+                    $text = $blocks[0][0];
+                    $text = str_replace(' ', '', $text);
+                    $text = str_replace('　', '', $text);
+                    if (strpos($text, '時間') === 0) {
                         break;
                     }
                     $line = array_shift($blocks[0]);
