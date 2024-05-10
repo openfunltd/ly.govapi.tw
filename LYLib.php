@@ -184,7 +184,7 @@ class LYLib
         $name = preg_replace('#（.*）$#', '', $name);
         $name = preg_replace('#\(.*\)$#', '', $name);
         $name = preg_replace('#【.*】$#', '', $name);
-        $name = preg_replace('#「.*」#', '', $name);
+        //$name = preg_replace('#「.*」#', '', $name);
         $name = preg_replace('#議事日程$#', '', $name);
         $name = str_replace('第六次', '第6次', $name);
         $name = preg_replace('#^立法院#', '', $name);
