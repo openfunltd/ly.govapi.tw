@@ -76,6 +76,36 @@ class GazetteTranscriptParser
         return false;
     }
 
+
+    protected static $_logs = [];
+
+    public static function checkSameTitle($agenda_title, $block_title)
+    {
+        if ($agenda_title == $block_title) {
+            return true;
+        }
+
+        $agenda_title = str_replace("\n", "", $agenda_title);
+        $agenda_title = str_replace('。', '', $agenda_title);
+        $block_title = str_replace('。', '', $block_title);
+        if (preg_match('#^(施政質詢|討論事項)?\s*([^─]*)─(.*)─#u', $agenda_title, $matches)) {
+            self::$_logs[] = [$matches[1], $matches[2], $block_title];
+            if (trim($matches[2]) == $block_title) {
+                return true;
+            }
+        }
+        if (strpos($agenda_title, '敬請公決')) {
+            $agenda_title = str_replace('立法院', '', $agenda_title);
+            $agenda_title = preg_replace('#─([^─]+)─$#u', '', $agenda_title);
+            $block_title = str_replace('立法院', '', $block_title);
+
+            self::$_logs[] = ['敬請公決', $agenda_title, $block_title];
+            if ($agenda_title == $block_title) {
+                return true;
+            }
+        }
+        return false;
+    }
     /**
      * filterAgendaBlock 篩選只有這一章節的內容
      * 
@@ -85,24 +115,28 @@ class GazetteTranscriptParser
         $start_idx = $end_idx = null;
 
         $content = $hit_agenda->content;
-        $content = str_replace('　', '', $content);
-        $content = str_replace(' ', '', $content);
-        $content = str_replace('。', '', $content);
-        $content = str_replace("\n", '', $content);
-        $content = str_replace('立法院', '', $content);
 
+        $sections = [];
         foreach ($blocks as $idx => $block) {
             if (strpos($block[0], '段落：') !== 0) {
                 continue;
             }
             $title = explode('：', $block[0], 2)[1];
-            if (strpos($content, $title) === false) {
+            $sections[] = $title;
+            if (!self::checkSameTitle($content, $title)) {
                 continue;
             }
             $start_idx = $idx;
             break;
         }
         if (is_null($start_idx)) {
+            echo json_encode([
+                'finding_content' => $content,
+                'sections' => $sections,
+                'logs' => self::$_logs,
+                'hit_agenda' => $hit_agenda,
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
             return [$blocks, $block_lines];
         }
         for ($i = $start_idx + 1; $i < count($blocks); $i ++) {
@@ -117,6 +151,25 @@ class GazetteTranscriptParser
         $blocks = array_slice($blocks, $start_idx, $end_idx - $start_idx);
         $block_lines = array_slice($block_lines, $start_idx, $end_idx - $start_idx);
         return [$blocks, $block_lines];
+    }
+
+    public static function parseNumber($str)
+    {
+        if ($str == '十') {
+            return 10;
+        }
+        $str = str_replace('一', '1', $str);
+        $str = str_replace('二', '2', $str);
+        $str = str_replace('三', '3', $str);
+        $str = str_replace('四', '4', $str);
+        $str = str_replace('五', '5', $str);
+        $str = str_replace('六', '6', $str);
+        $str = str_replace('七', '7', $str);
+        $str = str_replace('八', '8', $str);
+        $str = str_replace('九', '9', $str);
+        $str = str_replace('十', '1', $str);
+        $str = str_replace('○', '0', $str);
+        return intval($str); 
     }
 
     public static function parse($content, $agendas, $hit_agenda)
@@ -146,6 +199,7 @@ class GazetteTranscriptParser
             }
         }
         $section = null;
+        $section_no = null;
         while (count($p_doms)) {
             $p_dom = array_shift($p_doms);
             $idx ++;
@@ -161,6 +215,7 @@ class GazetteTranscriptParser
                 $line = str_replace('　', '', $line);
                 $blocks[] = ['段落：' . $line];
                 $section = $line;
+                $section_no = null;
                 $current_block = [];
                 $block_lines[] = $current_line;
                 $current_line = $idx;
@@ -171,6 +226,7 @@ class GazetteTranscriptParser
                 $blocks[] = $current_block;
                 $blocks[] = ['段落：' . $title];
                 $section = $line;
+                $section_no = null;
                 $current_block = [];
                 $block_lines[] = $current_line;
                 $current_line = $idx;
@@ -205,6 +261,7 @@ class GazetteTranscriptParser
 
             // 處理開頭是「國是論壇」
             if (!count($blocks) and $line == '國是論壇') {
+                $blocks[] = ['段落：' . $line];
                 $current_block[] = $line;
                 while (count($p_doms)) {
                     $idx ++;
@@ -223,14 +280,35 @@ class GazetteTranscriptParser
                 continue;
             }
 
-            if (in_array($section, ['報告事項', '質詢事項'])) {
-                if (preg_match('#([一二三四五六七八九十○]+)、#u', $line, $matches)) {
-                    if ($current_block) {
-                        $blocks[] = $current_block;
-                        $current_block = [];
+            if (in_array($section, ['報告事項', '質詢事項', '討論事項'])) {
+                if (preg_match('#^([一二三四五六七八九十○]+)、(.*)#u', $line, $matches)) {
+                    $number = self::parseNumber($matches[1]);
+                    if (is_null($section_no)) {
+                        $section_no = $number - 1;
                     }
-                    $current_block[] = '項目：' . $line;
-                    continue;
+                    if ($number == $section_no + 1) {
+                        $section_no = $number;
+                        if ($current_block) {
+                            $blocks[] = $current_block;
+                            $block_lines[] = $current_line;
+                            $current_block = [];
+                        }
+                        if ($section == '討論事項') {
+                            $matches[2] = str_replace('（', '(', $matches[2]);
+                            $matches[2] = str_replace('）', ')', $matches[2]);
+                            $matches[2] = str_replace('［', '[', $matches[2]);
+                            $matches[2] = str_replace('］', ']', $matches[2]);
+                            $matches[2] = preg_replace('#\([^)]+\)\s*$#', '', $matches[2]);
+                            $matches[2] = preg_replace('#\[[^]]+\]\s*$#', '', $matches[2]);
+                            $current_block[] = '段落：' . $matches[2];
+                        } else {
+                            $current_block[] = '項目：' . $line;
+                        }
+                        $blocks[] = $current_block;
+                        $block_lines[] = $current_line;
+                        $current_block = [$line];
+                        continue;
+                    }
                 } else {
                     if (strpos($line, '（以上質詢事項') === 0) {
                         $blocks[] = $current_block;
