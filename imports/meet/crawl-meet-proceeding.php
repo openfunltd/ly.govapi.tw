@@ -83,13 +83,16 @@ while ($line = fgets($fp)) {
     }
 
     $txt_target = __DIR__ . "/meet-proceeding-txt/{$meet_obj->id}.txt";
-    if (!file_exists($txt_target)) {
+    if (!file_exists($txt_target) or strpos(file_get_contents($txt_target), '503 Service') !== false) {
         $cmd = sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s", escapeshellarg($doc_target), escapeshellarg(__DIR__ . '/tmp.txt'));
         system($cmd, $ret);
         if ($ret) {
             throw new Exception("轉檔失敗: " . $doc_file);
         }
         copy(__DIR__ . '/tmp.txt', $txt_target);
+        if (strpos(file_get_contents($txt_target), '503 Service') !== false) {
+            throw new Exception("轉檔失敗: " . $doc_file);
+        }
         unlink(__DIR__ . '/tmp.txt');
     }
 
