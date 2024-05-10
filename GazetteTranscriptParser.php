@@ -59,6 +59,9 @@ class GazetteTranscriptParser
      */
     public static function matchSectionTitle($p_dom, $agendas)
     {
+        if (is_null($agendas)) {
+            return false;
+        }
         if ($p_dom->getElementsByTagName('b')->length > 0) {
             return false;
         }
@@ -112,6 +115,9 @@ class GazetteTranscriptParser
      */
     public static function filterAgendaBlock($blocks, $block_lines, $agendas, $hit_agenda)
     {
+        if (is_null($agendas)) {
+            return [$blocks, $block_lines];
+        }
         $start_idx = $end_idx = null;
 
         $content = $hit_agenda->content;
@@ -172,7 +178,7 @@ class GazetteTranscriptParser
         return intval($str); 
     }
 
-    public static function parse($content, $agendas, $hit_agenda)
+    public static function parse($content, $agendas = null, $hit_agenda = null)
     {
         $doc = new DOMDocument;
         // UTF-8

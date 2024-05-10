@@ -592,6 +592,9 @@ class Dispatcher
     {
         // agenda_id: LCIDC01_1077502_00003 
         $agenda_id = 'LCIDC01_' . $params[0] . '.doc.html';
+        if ($_GET['parse'] ?? false) {
+            $_GET['tika'] = true;
+        }
         if ($_GET['tika'] ?? false) {
             $url = 'https://lydata.ronny-s3.click/agenda-tikahtml/' . urlencode($agenda_id);
         } else {
@@ -606,6 +609,11 @@ class Dispatcher
             header('HTTP/1.1 404 Not Found');
             echo '404 not found';
             return;
+        }
+
+        if ($_GET['parse'] ?? false) {
+            $content = GazetteTranscriptParser::parse($content);
+            return self::json_output($content);
         }
 
         if (!($_GET['tika'] ?? false)) {
