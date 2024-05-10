@@ -6,6 +6,10 @@ include(__DIR__ . '/GazetteParser.php');
 include(__DIR__ . '/GazetteTranscriptParser.php');
 include(__DIR__ . '/LYLib.php');
 
+if (!($_SERVER['HTTP_HOST'] ?? false)) {
+    $_SERVER['HTTP_HOST'] = 'ly.govapi.tw';
+}
+
 if (file_exists(__DIR__ . '/config.php')) {
     include(__DIR__ . '/config.php');
 }
