@@ -388,6 +388,19 @@ class GazetteTranscriptParser
             $persons[$person] ++;
             $blocks[] = $current_block;
             $block_lines[] = $current_line;
+
+            // 如果上一行有「上台報告」或是「上台質詢」，加入段落
+            $prev_line = $current_block[count($current_block) - 1];
+            $prev_line = str_replace('臺', '台', $prev_line);
+            if (preg_match('#(上台報告|請(.*)報告，報告時間)#u', $prev_line, $matches)) {
+                $blocks[] = ['段落：報告：' . $person];
+                $block_lines[] = $current_line;
+            } 
+
+            if (preg_match('#（(\d+)時(\d+)分）#', $line, $matches)) {
+                $blocks[] = ['段落：質詢：' . $person . '：' . $matches[1] . ':' . $matches[2]];
+                $block_lines[] = $current_line;
+            }
             $current_line = $idx;
             $current_block = [$line];
         }
