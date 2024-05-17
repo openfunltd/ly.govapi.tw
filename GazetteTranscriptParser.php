@@ -495,6 +495,9 @@ class GazetteTranscriptParser
                     continue 2;
                 }
             }
+            if (preg_match('#中華民國(\d+)年(\d+)月(\d+)日#', $ret->{'時間'}, $matches)) {
+                $ret->date = sprintf('%d-%02d-%02d', $matches[1] + 1911, $matches[2], $matches[3]);
+            }
         }
         if (preg_match('#第(\d+)屆#', $ret->title, $matches)) {
             $term = intval($matches[1]);
