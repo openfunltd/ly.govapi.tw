@@ -43,6 +43,11 @@ for (; $v > 0; $v --) {
     }
     $ivod->{'會議時間'} = date('c', strtotime($ivod->{'會議時間'}));
     $ivod->date = date('Y-m-d', strtotime($ivod->{'會議時間'}));
+    if (preg_match('#(\d+):(\d+):(\d+)#', $ivod->{'影片長度'}, $matches)) {
+        $ivod->duration = $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+    } else {
+        throw new Exception("影片長度 not found: $url");
+    }
 
     if (!preg_match('#^[^「（]*#u', $ivod->{'會議名稱'}, $matches)) {
         error_log("會議名稱 not found: " . $ivod->{'會議名稱'});
