@@ -81,7 +81,10 @@ while ($rows = fgetcsv($fp)) {
     $values['bioId'] = $bioId;
     $values['committee'] = explode(';', trim($values['committee'], ';'));
     $values['degree'] = explode(';', trim($values['degree'], ';'));
-    $values['experience'] = explode(';', trim($values['experience'], ';'));
+    $values['experience'] = explode(';', trim(trim($values['experience']), ';'));
+    $values['experience'] = array_values(array_filter($values['experience'], function($v) {
+        return trim($v) !== '';
+    }));
     $values['term'] = intval($values['term']);
     Elastic::dbBulkInsert('legislator', intval($values['term']) . '-' . $values['name'], $values);
 }
