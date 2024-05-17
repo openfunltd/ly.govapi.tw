@@ -211,6 +211,7 @@ class GazetteTranscriptParser
         }
 
         @$doc->loadHTML($content);
+        $has_b_doms = $doc->getElementsByTagName('b')->length > 10;
 
         $blocks = [];
         $block_lines = [];
@@ -376,12 +377,31 @@ class GazetteTranscriptParser
                 }
                 continue;
             }
-            $b_dom = $p_dom->getElementsByTagName('b')->item(0);
-            if (!$b_dom or strpos($p_dom->textContent, '：') === false) {
+            if ($has_b_doms) {
+                $b_dom = $p_dom->getElementsByTagName('b')->item(0);
+                if (!$b_dom or strpos($p_dom->textContent, '：') === false) {
+                    $current_block[] = $line;
+                    continue;
+                }
+                $text = $b_dom->textContent;
+            } elseif (!preg_match('#^(.*)：(.*)$#u', $line, $matches)) {
                 $current_block[] = $line;
                 continue;
+            } else {
+                if (strpos($line, '，')) {
+                    $current_block[] = $line;
+                    continue;
+                }
+                $text = explode('：', $line)[0];
+                if (in_array($text, [
+                    '程序委員會意見', '表決結果名單', '會議名稱', '表決時間', '表決議題',
+                    '表決結果', '贊成', '反對', '棄權', '說明',
+                ])) {
+                    $current_block[] = $line;
+                    continue;
+                }
             }
-            $person = str_replace('：', '', $b_dom->textContent);
+            $person = str_replace('：', '', $text);
             if (!array_key_Exists($person, $persons)) {
                 $persons[$person] = 0;
             }
@@ -427,6 +447,9 @@ class GazetteTranscriptParser
                 continue;
             } else if (trim($line) == '國是論壇') {
                 $ret->type = $ret->title = trim($line);
+                continue;
+            } elseif (trim($line) == '院會紀錄') {
+                $ret->type = trim($line);
                 continue;
             }
             if (strpos($line, '立法院第') === 0) {
