@@ -171,7 +171,7 @@ class Dispatcher
         if (count($params) > 1) {
             $obj = Elastic::dbQuery("/{prefix}legislator/_doc/" . intval($records->term) . '-' . urlencode($params[1]));
             if (isset($obj->found) && $obj->found) {
-                self::json_output($obj->_source);
+                self::json_output(LYLib::buildLegislator($obj->_source));
             } else {
                 header('HTTP/1.0 404 Not Found');
                 self::json_output(['error' => 'not found']);
@@ -184,7 +184,7 @@ class Dispatcher
         $records->total_page = ceil($records->total->value / $records->limit);
         $records->legislators = [];
         foreach ($obj->hits->hits as $hit) {
-            $records->legislators[] = $hit->_source;
+            $records->legislators[] = LYLib::buildLegislator($hit->_source);
         }
         if (property_exists($records, 'bioId')) {
             unset($records->total);

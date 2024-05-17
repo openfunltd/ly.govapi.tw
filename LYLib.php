@@ -355,6 +355,12 @@ class LYLib
         throw new Exception("{$oname} 有問題");
     }
 
+    public static function buildLegislator($source)
+    {
+        $source->picUrl = str_replace('http://', 'https://', $source->picUrl);
+        return $source;
+    }
+
     public static function buildBill($source)
     {
         $source->ppg_url = sprintf("https://ppg.ly.gov.tw/ppg/bills/%s/details", $source->billNo);
