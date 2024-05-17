@@ -599,7 +599,8 @@ class GazetteParser
         $ret->interpellations = [];
         $interpellation = null;
         // 第一行會是 立法院第 8 屆第 1 會期第 1 次會議議案關係文書
-        if (!preg_match('#立法院第 ([0-9]+) 屆第 ([0-9]+) 會期第 ([0-9]+) 次會議議案關係文書#u', $ret->doc_title, $matches)) {
+        // 立法院第 11 屆第 1 會期第 10 次會議議事日程
+        if (!preg_match('#立法院第 ([0-9]+) 屆第 ([0-9]+) 會期第 ([0-9]+) 次(會議議案關係文書|會議議事日程)#u', $ret->doc_title, $matches)) {
             throw new Exception("找不到屆期次: " . $ret->doc_title);
         }
         $ret->term = intval($matches[1]);
@@ -1158,6 +1159,9 @@ class GazetteParser
             foreach (self::parseSectionWithDate($doms, $current_date) as $section) {
                 $section->text = preg_replace('#【\d+份】#u', '', $section->text);
                 if (preg_match('#委員([^；，。]*)等\d+人(提出)?質詢#u', $section->text, $matches)) {
+                    if (strpos($matches[1], '會議詢問')) {
+                        $matches[1] = preg_replace('#^.*等\d*人會議詢問、#', '', $matches[1]);
+                    }
                     $ret->{'質詢'}[] = [
                         '種類' => '口頭質詢',
                         '日期' => date('Y-m-d', $section->date),
