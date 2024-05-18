@@ -775,6 +775,15 @@ class Dispatcher
             }
         }
 
+        if (self::hasParam('議案流程.狀態')) {
+            array_push($displayFields, '議案流程');
+            $records->{'議案流程.狀態'} = self::getParam('議案流程.狀態', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    '議案流程.狀態.keyword' => $records->{'議案流程.狀態'},
+                ],
+            ];
+        }
         if (self::hasParam('proposer')) {
             array_push($displayFields, '提案人');
             $records->proposer = self::getParam('proposer', ['array' => true]);
@@ -2195,6 +2204,7 @@ class Dispatcher
 
     public static function hasParam($key)
     {
+        $key = str_replace('.', '_', $key);
         return array_key_exists($key, $_GET) && $_GET[$key];
     }
 
