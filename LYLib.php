@@ -139,17 +139,25 @@ class LYLib
             return $ret;
         } elseif ('ivod' == $from) {
             $meets = self::getConsultMeets();
-            if (!preg_match('#立法院黨團協商（事由：(.*)）$#', $data->{'會議名稱'}, $matches)) {
+            $data->{'會議名稱'} = str_replace("\n", '', $data->{'會議名稱'});
+            $data->{'會議名稱'} = str_replace("\r", '', $data->{'會議名稱'});
+            $data->{'會議名稱'} = str_replace(' ', '', $data->{'會議名稱'});
+            if (!preg_match('#立法院(朝野)?黨團協商（事由：(.*)）$#um', $data->{'會議名稱'}, $matches)) {
                 throw new Exception("{$data->{'會議名稱'}} 有問題");
             }
-            $title = $matches[1];
+            $title = $matches[2];
             $match_meets = [];
+            $mismatch_meets = [];
             foreach ($meets as $meet) {
                 foreach ($meet->meet_data as $meet_data) {
                     if ($meet_data->date != $data->date) {
                         continue;
                     }
+                    $meet_data->meetingContent = str_replace("\n", '', $meet_data->meetingContent);
+                    $meet_data->meetingContent = str_replace("\r", '', $meet_data->meetingContent);
+                    $meet_data->meetingContent = str_replace(' ', '', $meet_data->meetingContent);  
                     if ($meet_data->meetingContent != $title) {
+                        $mismatch_meets[] = $meet_data->meetingContent;
                         continue;
                     }
                     $match_meets[] = $meet;
@@ -157,8 +165,10 @@ class LYLib
                 }
             }
             if (count($match_meets) != 1) {
-                print_r($match_meets);
-                print_R($data);
+                echo "match_meets=" . json_encode($match_meets, JSON_UNESCAPED_UNICODE) . "\n";
+                echo "mismatch_meets=" . json_encode($mismatch_meets, JSON_UNESCAPED_UNICODE) . "\n";
+                echo "data=" . json_encode($data, JSON_UNESCAPED_UNICODE) . "\n";
+                echo "title={$title}\n";
                 throw new Exception("對應到的黨團協商不是一個");
             }
             $meet = $match_meets[0];
