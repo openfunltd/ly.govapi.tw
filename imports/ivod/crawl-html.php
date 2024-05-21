@@ -16,7 +16,8 @@ for ($v = max($current_id, 146300); ; $v ++) {
     curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     $content = curl_exec($curl);
     if (!preg_match('#readyPlayer\("([^"]*)"#', $content, $matches)) {
-        throw new Exception("readyPlayer not found {$url}");
+        error_log("readyPlayer not found {$url}");
+        break;
     }
     if ($v > $current_id) {
         file_put_contents(__DIR__ . '/current-id', $v);
