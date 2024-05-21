@@ -6,7 +6,12 @@ $func_move_bill = function(){
     }
 };
 
+putenv('year=' . date('Y') - 1);
+putenv('term=' . (floor((date('Y') - 2024) / 4) + 11));
+
 $cmds = [
+    /*
+     */
     // 委員相關
     ['php committee.php', '委員會資料'],
     ['php legislator/legislators.php', '立委資料'],
@@ -29,11 +34,11 @@ $cmds = [
     ['php meet/crawl-meet-speechlist.php', '從opendata抓取發言紀錄'],
     ['php meet/parse-speech-from-gazette.php', '從公報抓取發言紀錄'],
     ['php meet/link-meet.php', '更新會議資料'],
-    // 質詢相關
-    ['php interpellation/crawl-interpellation.php', '抓取匯入質詢資料'],
     // ivod 相關
     ['php ivod/crawl-html.php', '抓取 ivod HTML'],
     ['php ivod/import-ivod.php', '匯入 ivod'],
+    // 質詢相關
+    ['php interpellation/crawl-interpellation.php', '抓取匯入質詢資料'],
 ];
 
 $total = count($cmds);

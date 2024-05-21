@@ -2,10 +2,16 @@
 
 include(__DIR__ . '/../../BillParser.php');
 
+$term = getenv('term');
+
 foreach (BillParser::getBillTypes() as $billType => $bill_type) {
     foreach ([1,2,3,4] as $proposalType) {
         for ($p = 1; ; $p ++) {
-            $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=1000&page=%d&sortCode=11&billType=%d&proposalType=%d", $p, $billType, $proposalType);
+            if ($term) {
+                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=1000&term=%d&page=%d&sortCode=11&billType=%d&proposalType=%d", $term, $p, $billType, $proposalType);
+            } else {
+                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=1000&page=%d&sortCode=11&billType=%d&proposalType=%d", $p, $billType, $proposalType);
+            }
             error_log($url);
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
