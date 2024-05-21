@@ -1261,7 +1261,6 @@ class GazetteParser
                 if (filesize(__DIR__ . '/tmp.txt') < 10) {
                     unlink($doc_file);
                     if ($retry > 3) {
-                        readline('轉檔失敗: '  . $doc_file);
                         throw new Exception("轉檔失敗: " . $doc_file);
                     }
                     return self::getAgendaDocHTMLs($agenda, $retry + 1);
