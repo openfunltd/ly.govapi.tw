@@ -46,6 +46,9 @@ class Elastic
         }
         $prefix = getenv('ELASTIC_PREFIX');
         foreach ($mappings as $mapping) {
+            if (strlen(self::$_db_bulk_pool[$mapping] ?? '') == 0) {
+                continue;
+            }
             $ret = self::dbQuery("/{$prefix}{$mapping}/_bulk", 'PUT', self::$_db_bulk_pool[$mapping]);
             $ids = [];
             foreach ($ret->items as $command) {
