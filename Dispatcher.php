@@ -1151,7 +1151,16 @@ class Dispatcher
                 }
                 unset($pools[$hit->_id]->{'關連議案'});
             }
+            foreach ($fetching_bills as $billNo) {
+                if ($pools[$billNo] === true) {
+                    $pools[$billNo] = false;
+                }
+            }
         }
+
+        $pools = array_filter($pools, function($bill) {
+            return $bill !== false;
+        });
 
         return self::json_output([
             'error' => false,
@@ -1917,6 +1926,8 @@ class Dispatcher
      */
     public static function law($params)
     {
+        $start = microtime(true);
+
         // sample: {"id":"01014","type":"母法","parent":"","name":"國防部組織法","name_other":[]}
         $cmd = [
             'query' => [
