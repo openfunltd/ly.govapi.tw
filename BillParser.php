@@ -840,6 +840,7 @@ class BillParser
             return null;
             throw new Exception("{$s} 有多個可能的法律名稱: " . implode(',', $ids));
         }
+        file_put_contents(__DIR__ . '/imports/bill/missing_law.txt', $s . "\n", FILE_APPEND);
         return null;
     }
 

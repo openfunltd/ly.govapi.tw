@@ -12,6 +12,7 @@ $list = BillParser::getListFromFileAndDir($_SERVER['argv'][1], __DIR__ . "/bill-
 $max_value = 0;
 //$max_value = json_decode($ret)->aggregations->max_mtime->value;
 
+file_put_contents(__DIR__ . '/missing_law.txt', '');
 $types = BillParser::getBillTypes();
 $sources = BillParser::getBillSources();
 $skip = $_SERVER['argv'][2];
