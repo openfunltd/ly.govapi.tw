@@ -92,6 +92,7 @@ foreach ($obj->hits->hits as $hit) {
             '2016121401-1.pdf', // https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/2016121401/details?meetingDate=105/12/16
             '2019120401-1.pdf', // https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/2019120401/details?meetingDate=108/12/06
             '2023052495-0.pdf', // https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/2023052495/details?meetingDate=112/05/26
+            '2024041742-0.pdf', // https://ppg.ly.gov.tw/ppg/sittings/2024041742/details?meetingDate=113/04/23
 
             // 直接把公報丟過來了，沒有編號
             '2017030201-0.pdf', // https://ppg.ly.gov.tw/ppg/sittings/yuan-sittings/2017030201/details?meetingDate=106/03/03
