@@ -824,7 +824,11 @@ class BillParser
             }
         }
         for ($i = 0; $i < mb_strlen($s); $i ++) {
-            $cs = mb_substr($s, 0, -1 * $i);
+            if ($i == 0) {
+                $cs = $s;
+            } else {
+                $cs = mb_substr($s, 0, -1 * $i);
+            }
             if (!array_key_exists($cs, self::$_law_names)) {
                 continue;
             }
