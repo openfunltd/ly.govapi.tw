@@ -474,7 +474,10 @@ class BillParser
             case '修正前言,現行前言,說明':
             case '修正條文,現行公布條文,說明':
             case '修正草案,現行條文,說明':
-                if (is_null($diff)) {
+                if ($billNo == '1050225070201400') {
+                    $diff = new StdClass;
+                    $diff->title = '立法院職權行使法部分條文修正草案對照表';
+                } else if (is_null($diff)) {
                     throw new Exception("{$billNo} 沒有標題");
                 }
                 if (!is_null($diff->{'立法種類'})) {
@@ -488,7 +491,10 @@ class BillParser
                 continue 2;
             case '增訂條文,說明':
             case '條文,說明':
-                if (is_null($diff)) {
+                if ($billNo == '1010307070200700') {
+                    $diff = new StdClass;
+                    $diff->title = '立法院職權行使法增訂第八條之一及第八條之二條文草案';
+                } else if (is_null($diff)) {
                     throw new Exception("{$billNo} 沒有標題");
                 }
                 if (!is_null($diff->{'立法種類'})) {
