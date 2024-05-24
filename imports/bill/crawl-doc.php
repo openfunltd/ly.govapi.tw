@@ -34,6 +34,7 @@ while ($obj = json_decode(fgets($fp))) {
             error_log("$billNo no 名稱: " . json_encode($record, JSON_UNESCAPED_UNICODE));
             continue;
         }
+        $record->{'名稱'} = str_replace('(更正版)', '', $record->{'名稱'});
 		if ($record->{'名稱'} == '關係文書(PDF)下載') {
 			$pdfUrl = $record->{'網址'};
 		} else if ($record->{'名稱'} == '關係文書(DOC)下載') {
