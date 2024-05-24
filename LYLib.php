@@ -583,6 +583,8 @@ class LYLib
                 $type = 'png';
             } elseif (preg_match('#^image/jpeg;base64,(.*)$#', $data_uri, $matches)) {
                 $type = 'jpg';
+            } elseif (preg_match('#^image/gif;base64,(.*)$#', $data_uri, $matches)) {
+                $type = 'gif';
             } elseif (preg_match('#^;base64,(.*)$#', $data_uri, $matches)) {
                 $type = '';
             } elseif (preg_match('#image/([^;]*);base64,(.*)$#', $data_uri, $matches)) {
