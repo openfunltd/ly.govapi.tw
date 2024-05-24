@@ -26,6 +26,7 @@ $cmds = [
     // 公報相關
     ['php gazette.php', '抓取公報目錄'],
     ['php gazette/crawl.php', '抓取公報內容並轉換成 txt/HTML'],
+    ['php gazette/crawl-doc.php', '抓取各章節 doc 並轉成 txt/HTML'],
     // 會議相關
     ['php meet/crawl-meet.php', '抓取會議資料'],
     ['php meet/parse-meet-from-gazette.php', '從公報抓取院會議事錄'],
