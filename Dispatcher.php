@@ -1489,6 +1489,20 @@ class Dispatcher
      */
     public static function ivod($params)
     {
+        if (count($params) > 0) {
+            $ivod_id = $params[0];
+            if (count($params) == 1) {
+                $obj = Elastic::dbQuery("/{prefix}ivod/_doc/" . urlencode($ivod_id));
+                if (isset($obj->found) && $obj->found) {
+                    self::json_output($obj->_source);
+                } else {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                return;
+            }
+        }
+
         $cmd = [
             'query' => [
                 'bool' => [
