@@ -665,6 +665,22 @@ class LYLib
     {
         $url = sprintf("https://lydata.ronny-s3.click/ivod-transcript/%d.json", $ivod_id);
         $obj = json_decode(file_get_contents($url));
+        if (is_null($obj)) {
+            return null;
+        }
+
+        // split transcript
+        $whisperx = json_decode($obj->whisperx->result->json);
+        $segments = [];
+        foreach ($whisperx->segments as $segment) {
+            $segments[] = [
+                'start' => $segment->start,
+                'end' => $segment->end,
+                'text' => $segment->text,
+            ];
+        }
+        $obj->whisperx->result->segments = $segments;
+        
         return $obj;
     }
 }
