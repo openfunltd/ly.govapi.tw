@@ -34,6 +34,11 @@ class IVodParser
         }
         $ivod->{'會議時間'} = date('c', strtotime($ivod->{'會議時間'}));
         $ivod->date = date('Y-m-d', strtotime($ivod->{'會議時間'}));
+        if (!preg_match('#(\d+:\d+:\d+) - (\d+:\d+:\d+)#', $ivod->委員發言時間, $matches)) {
+            throw new Exception("委員發言時間 not found: {$ivod->{'委員發言時間'}}");
+        }
+        $ivod->start_time = date('c', strtotime($ivod->date . ' ' . $matches[1]));
+        $ivod->end_time = date('c', strtotime($ivod->date . ' ' . $matches[2]));
         if (preg_match('#(\d+):(\d+):(\d+)#', $ivod->{'影片長度'}, $matches)) {
             $ivod->duration = $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
         } else {
