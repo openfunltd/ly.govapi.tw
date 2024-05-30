@@ -1566,6 +1566,15 @@ class Dispatcher
             ];
         }
 
+        if (self::hasParam('date')) {
+            $records->date = self::getParam('date', ['array' => true]);
+            $cmd['query']['bool']['must'][] = [
+                'terms' => [
+                    'date' => $records->date,
+                ],
+            ];
+        }
+
         if (array_key_exists('date_start', $_GET) and array_key_exists('date_end', $_GET)) {
             $records->date_start = $_GET['date_start'];
             $records->date_end = $_GET['date_end'];
