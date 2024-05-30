@@ -46,6 +46,10 @@ for (; $v > 0; $v --) {
             $error_name[$name] ++;
         }
     }
+    $ivod->features = [];
+    if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json")) {
+        $ivod->features[] = 'ai-transcript';
+    }
     Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
 }
 Elastic::dbBulkCommit();
