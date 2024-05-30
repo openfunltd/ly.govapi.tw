@@ -1494,6 +1494,9 @@ class Dispatcher
             if (count($params) == 1) {
                 $obj = Elastic::dbQuery("/{prefix}ivod/_doc/" . urlencode($ivod_id));
                 if (isset($obj->found) && $obj->found) {
+                    if (self::hasParam('with_transcript')) {
+                        $obj->_source->transcript = LYLib::getIVODTranscript($ivod_id);
+                    }
                     self::json_output($obj->_source);
                 } else {
                     header('HTTP/1.0 404 Not Found');

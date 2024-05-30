@@ -660,4 +660,11 @@ class LYLib
         }
         return $agenda_htmlfile;
     }
+
+    public static function getIVODTranscript($ivod_id)
+    {
+        $url = sprintf("https://lydata.ronny-s3.click/ivod-transcript/%d.json", $ivod_id);
+        $obj = json_decode(file_get_contents($url));
+        return $obj;
+    }
 }
