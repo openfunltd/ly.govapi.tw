@@ -27,7 +27,7 @@ for ($v = max(4609, $current_id); ; $v ++) {
     }
     if (!$hit) {
         $miss ++;
-        if ($miss > 5) {
+        if ($miss > 2) {
             break;
         } else {
             continue;
