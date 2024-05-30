@@ -142,6 +142,7 @@ class LYLib
             $data->{'會議名稱'} = str_replace("\n", '', $data->{'會議名稱'});
             $data->{'會議名稱'} = str_replace("\r", '', $data->{'會議名稱'});
             $data->{'會議名稱'} = str_replace(' ', '', $data->{'會議名稱'});
+            $data->{'會議名稱'} = str_replace('(變更議程)', '', $data->{'會議名稱'});
             if (!preg_match('#立法院(朝野)?黨團協商（事由：(.*)）$#um', $data->{'會議名稱'}, $matches)) {
                 throw new Exception("{$data->{'會議名稱'}} 有問題");
             }

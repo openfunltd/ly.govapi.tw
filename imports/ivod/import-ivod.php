@@ -69,6 +69,7 @@ for (; $v > 0; $v --) {
     } else {
         try {
             //print_r($ivod);
+            $name = str_replace('(變更議程)', '', $name);
             $meet_obj = LYLib::meetNameToId($name);
             $ivod->meet = $meet_obj;
             //print_r($meet_obj);
