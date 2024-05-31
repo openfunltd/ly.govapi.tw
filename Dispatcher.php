@@ -2282,6 +2282,7 @@ class Dispatcher
                 ];
             }
         }
+        $records->ivod->terms = array_values($records->ivod->terms);
 
         return self::json_output($records);
 
