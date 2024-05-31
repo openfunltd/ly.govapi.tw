@@ -6,6 +6,8 @@ include(__DIR__ . '/GazetteParser.php');
 include(__DIR__ . '/GazetteTranscriptParser.php');
 include(__DIR__ . '/LYLib.php');
 
+// timezone Asia/Taipei
+date_default_timezone_set('Asia/Taipei');
 if (!($_SERVER['HTTP_HOST'] ?? false)) {
     $_SERVER['HTTP_HOST'] = 'ly.govapi.tw';
 }
