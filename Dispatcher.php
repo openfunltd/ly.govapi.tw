@@ -2227,6 +2227,12 @@ class Dispatcher
         $ret = Elastic::dbQuery("/{prefix}ivod/_search", 'GET', json_encode([
             'size' => 0,
             'aggs' => [
+                'max_meeting_date' => [
+                    'max' => [ 'field' => '會議時間' ],
+                ],
+                'min_meeting_date' => [
+                    'min' => [ 'field' => '會議時間' ],
+                ],
                 'term_count' => [
                     'terms' => [
                         'field' => 'meet.term',
@@ -2259,6 +2265,10 @@ class Dispatcher
         ]));
         $records->ivod = new StdClass;
         $records->ivod->total = 0;
+        $records->ivod->max_meeting_date = $ret->aggregations->max_meeting_date->value;
+        $records->ivod->max_meeting_date_human = date('Y-m-d H:i:s', $records->ivod->max_meeting_date / 1000);
+        $records->ivod->min_meeting_date = $ret->aggregations->min_meeting_date->value;
+        $records->ivod->min_meeting_date_human = date('Y-m-d H:i:s', $records->ivod->min_meeting_date / 1000);
         $records->ivod->terms = [];
         foreach ($ret->aggregations->term_count->buckets as $bucket) {
             $records->ivod->total += $bucket->doc_count;
