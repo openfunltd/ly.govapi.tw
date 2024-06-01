@@ -547,12 +547,20 @@ class Dispatcher
                 ];
             }
         }
-        if (self::hasParam('date')) {
-            $cmd['query']['bool']['must'][] = [
-                'terms' => [
-                    'meetingDate' => self::getParam('date', ['array' => true]),
-                ],
-            ];
+
+        foreach ([
+            'date' => 'meetingDate',
+            'comYear' => 'comYear',
+            'term' => 'term',
+        ] as $k => $v) {
+            if (self::hasParam($k)) {
+                $records->{$k} = self::getParam($k, ['array' => true]);
+                $cmd['query']['bool']['must'][] = [
+                    'terms' => [
+                        $v => $records->{$k},
+                    ],
+                ];
+            }
         }
         if (array_key_exists('date_start', $_GET) and array_key_exists('date_end', $_GET)) {
             $cmd['query']['bool']['must'][] = [
