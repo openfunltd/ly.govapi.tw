@@ -330,21 +330,6 @@ class Dispatcher
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
      *   )
      *   @OA\Get(
-     *   path="/gazette/{comYear}", summary="取得特定年度的公報", tags={"gazette"},
-     *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
-     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
-     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
-     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
-     *   )
-     *   @OA\Get(
-     *   path="/gazette/{comYear}/{comVolume}", summary="取得特定年度卷號的公報", tags={"gazette"},
-     *   @OA\Parameter(name="comYear", in="path", description="年度", required=true, @OA\Schema(type="integer"), example=109),
-     *   @OA\Parameter(name="comVolume", in="path", description="卷號", required=true, @OA\Schema(type="integer"), example=1),
-     *   @OA\Parameter(name="page", in="query", description="頁數", required=false, @OA\Schema(type="integer"), example=1),
-     *   @OA\Parameter(name="limit", in="query", description="每頁筆數", required=false, @OA\Schema(type="integer"), example=100),
-     *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
-     *   )
-     *   @OA\Get(
      *   path="/gazette/{gazette_id}", summary="取得特定公報資料", tags={"gazette"},
      *   @OA\Parameter(name="gazette_id", in="path", description="公報 ID", required=true, @OA\Schema(type="string"), example="1126203"),
      *   @OA\Response(response="200", description="公報資料", @OA\JsonContent(ref="#/components/schemas/Gazette")),
@@ -393,21 +378,16 @@ class Dispatcher
                     self::json_output(['error' => 'not found']);
                 }
                 return;
+            } elseif (preg_match('#^\d+$#', $params[0])) {
+                $obj = Elastic::dbQuery("/{prefix}gazette/_doc/" . $params[0]);
+                if (isset($obj->found) && $obj->found) {
+                    self::json_output(LYLib::buildGazette($obj->_source));
+                } else {
+                    header('HTTP/1.0 404 Not Found');
+                    self::json_output(['error' => 'not found']);
+                }
+                return;
             }
-            $records->comYear = intval($params[0]);
-            $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'comYear' => $records->comYear,
-                ],
-            ];
-        }
-        if (count($params) > 1) {
-            $records->comVolume = intval($params[1]);
-            $cmd['query']['bool']['must'][] = [
-                'term' => [
-                    'comVolume' => $records->comVolume,
-                ],
-            ];
         }
 
         foreach ([
