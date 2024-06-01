@@ -532,6 +532,7 @@ class Dispatcher
             'date' => 'meetingDate',
             'comYear' => 'comYear',
             'term' => 'term',
+            'gazette_id' => 'gazette_id',
         ] as $k => $v) {
             if (self::hasParam($k)) {
                 $records->{$k} = self::getParam($k, ['array' => true]);
