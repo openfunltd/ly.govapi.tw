@@ -945,6 +945,7 @@ class Dispatcher
                 }
             }
         }
+        $records->supported_fields = array_keys($displayFields);
         self::json_output($records);
     }
 
