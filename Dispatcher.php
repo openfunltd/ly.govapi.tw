@@ -410,14 +410,18 @@ class Dispatcher
             ];
         }
 
-        if (self::hasParam('gazette_id')) {
-            $gazette_id = self::getParam('gazette_id', ['array' => true]);
-            $cmd['query']['bool']['must'][] = [
-                'terms' => [
-                    '_id' => $gazette_id,
-                ],
-            ];
-            $records->gazette_id = $gazette_id;
+        foreach ([
+            'gazette_id' => '_id',
+            'comYear' => 'comYear',
+        ] as $k => $v) {
+            if (self::hasParam($k)) {
+                $records->{$k} = self::getParam($k, ['array' => true]);
+                $cmd['query']['bool']['must'][] = [
+                    'terms' => [
+                        $v => $records->{$k},
+                    ],
+                ];
+            }
         }
 
         $obj = Elastic::dbQuery("/{prefix}gazette/_search", 'GET', json_encode($cmd));
