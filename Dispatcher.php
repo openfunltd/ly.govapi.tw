@@ -1330,6 +1330,7 @@ class Dispatcher
             'legislator' => 'attendLegislator.keyword',
             'date' => 'dates',
             'committee_id' => 'committees',
+            'meetingNo' => 'meet_data.meetingNo.keyword',
         ];
 
         foreach ($filter_fields as $param => $field) {
