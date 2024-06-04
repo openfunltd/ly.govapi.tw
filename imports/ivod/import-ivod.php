@@ -11,7 +11,8 @@ for (; $v > 0; $v --) {
     $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
     $html_target = __DIR__ . "/html/{$v}.html";
     if (!file_exists($html_target)) {
-        break;
+        continue;
+        //break;
     }
     $content = file_get_contents($html_target);
     $ivod = IVodParser::parseHTML($v, $content);
@@ -47,7 +48,7 @@ for (; $v > 0; $v --) {
         }
     }
     $ivod->features = [];
-    if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json")) {
+    if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json") and strpos(file_get_contents(__DIR__ . "/ivod-transcript/{$v}.json"), 'status: error') === false) {
         $ivod->features[] = 'ai-transcript';
     }
     Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
