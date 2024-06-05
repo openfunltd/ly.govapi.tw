@@ -5,10 +5,14 @@ $miss = 0;
 for ($v = max(4609, $current_id); ; $v ++) {
     $html_target = __DIR__ . "/html/{$v}.html";
     if (file_exists($html_target)) {
+        if ($v > $current_id) {
+            $current_id = $v;
+            file_put_contents(__DIR__ . '/current-full-id', $v);
+        }
         continue;
     }
     $hit = false;
-    foreach (['1M', '300K'] as $q) {
+    foreach (['1M'] as $q) {
         $url = sprintf("https://ivod.ly.gov.tw/Play/Full/{$q}/%d", $v);
         error_log($url);
         $curl = curl_init($url);
@@ -17,6 +21,10 @@ for ($v = max(4609, $current_id); ; $v ++) {
         // ipv4 only
         curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         $content = curl_exec($curl);
+        if (strpos($content, '"rettim":null') !== false) {
+            error_log("rettim not found {$url}");
+            continue;
+        }
         if (!preg_match('#readyPlayer\("([^"]*)"#', $content, $matches)) {
             error_log("readyPlayer not found {$url}");
             continue;
