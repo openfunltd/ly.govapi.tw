@@ -1,8 +1,10 @@
 <?php
 
 $current_id = intval(file_get_contents(__DIR__ . '/current-full-id'));
-$miss = 0;
-for ($v = max(4609, $current_id); ; $v ++) {
+for ($v = max(4609, $current_id) - 10; ; $v ++) {
+    if ($v > $current_id + 10) {
+        break;
+    }
     $html_target = __DIR__ . "/html/{$v}.html";
     if (file_exists($html_target)) {
         if ($v > $current_id) {
@@ -23,22 +25,11 @@ for ($v = max(4609, $current_id); ; $v ++) {
         $content = curl_exec($curl);
         if (strpos($content, '"rettim":null') !== false) {
             error_log("rettim not found {$url}");
-            continue;
+            //continue 2;
         }
         if (!preg_match('#readyPlayer\("([^"]*)"#', $content, $matches)) {
             error_log("readyPlayer not found {$url}");
-            continue;
-        }
-        $hit = true;
-        $miss = 0;
-        break;
-    }
-    if (!$hit) {
-        $miss ++;
-        if ($miss > 2) {
-            break;
-        } else {
-            continue;
+            break 2;
         }
     }
     if ($v > $current_id) {

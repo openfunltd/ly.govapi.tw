@@ -21,7 +21,7 @@ foreach ([
         $content = file_get_contents($html_target);
         $ivod = IVodParser::parseHTML($v, $content, $type);
         if (getenv('year')) {
-            if (strtotime($ivod->end_time) < mktime(0, 0, 0, 1, 1, getenv('year'))) {
+            if (strtotime($ivod->start_time) < mktime(0, 0, 0, 1, 1, getenv('year'))) {
                 break;
             }
         }
@@ -45,7 +45,7 @@ foreach ([
             }
         } elseif (strpos($ivod->{'會議名稱'}, '公聽會')) {
             // TODO: 處理公聽會
-            continue;
+            //continue;
         } else {
             try {
                 //print_r($ivod);

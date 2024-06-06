@@ -57,7 +57,7 @@ class IVodParser
                 }
             }
             $start_time = strtotime($json->rsttim);
-            $end_time = strtotime($json->rettim);
+            $end_time = strtotime($json->rettim ?? $json->rsttim);
             $ivod->start_time = date('c', $start_time);
             $ivod->end_time = date('c', $end_time);
             $ivod->duration = $end_time - $start_time;
