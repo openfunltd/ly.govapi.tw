@@ -69,7 +69,10 @@ foreach ($obj->hits->hits as $hit) {
             if (strpos($div_dom->nodeValue, '關係文書') === false) {
                 continue;
             }
-            $a_dom = $div_dom->getElementsByTagName('a')->item(0);
+            if (! $a_dom = $div_dom->getElementsByTagName('a')->item(0)) {
+                continue;
+                throw new Exception("找不到 a tag: " . $meet_data->ppg_url);
+            }
             $files[] = $a_dom->getAttribute('href');
         }
 
