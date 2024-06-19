@@ -1399,6 +1399,9 @@ class Dispatcher
                     if (self::hasParam('with_transcript')) {
                         $obj->_source->transcript = LYLib::getIVODTranscript($ivod_id);
                     }
+                    if (self::hasParam('with_gazette')) {
+                        $obj->_source->gazette = LYLib::getIVODGazette($obj->_source);
+                    }
                     self::json_output($obj->_source);
                 } else {
                     header('HTTP/1.0 404 Not Found');

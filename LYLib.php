@@ -683,4 +683,66 @@ class LYLib
         
         return $obj;
     }
+
+    public static function getIVODGazette($ivod)
+    {
+        $meet_id = $ivod->meet->id;
+        $obj = Elastic::dbQuery("/{prefix}meet/_doc/{$meet_id}");
+        $date = $ivod->date;
+        $agendas= $obj->_source->{'公報發言紀錄'} ?? [];
+        if (!is_array($agendas)) {
+            return [];
+        }
+        $speaker = $ivod->{'委員名稱'};
+        $agendas = array_filter($agendas, function($record) use ($date, $speaker) {
+            if (!in_array($date, $record->meetingDate)) {
+                return false;
+            }
+            if (!in_array($speaker, $record->speakers)) {
+                //return false;
+            }
+            return true;
+        });
+        $agendas = array_values($agendas);
+        $contents = [];
+        foreach ($agendas as $agenda) {
+            foreach ($agenda->agenda_lcidc_ids as $lcidc_id) {
+                $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_URL, $url);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                $content = curl_exec($curl);
+                $info = curl_getinfo($curl);
+                if ($info['http_code'] != 200) {
+                    continue;
+                }
+                $content = GazetteTranscriptParser::parse($content);
+                while (count($content->blocks)) {
+                    $block = array_shift($content->blocks);
+                    $lineno = array_shift($content->block_lines);
+                    $block[0] = str_replace('委員', '', $block[0]);
+                    if (strpos($block[0], "段落：質詢：{$speaker}") === false) {
+                        continue;
+                    }
+                    $time = explode('：', $block[0])[3];
+                    if ($time != date('G:i', strtotime($ivod->start_time))) {
+                        continue;
+                    }
+                    $ret = new StdClass;
+                    $ret->lineno = $lineno;
+                    $ret->blocks = [];
+                    $ret->agenda = $agenda;
+                    while (count($content->blocks)) {
+                        $block = array_shift($content->blocks);
+                        if (strpos($block[0], "段落：質詢：") !== false) {
+                            return $ret;
+                        }
+                        $ret->blocks[] = $block;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
 }
