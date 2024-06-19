@@ -1,17 +1,20 @@
 <?php
 
 $current_id = intval(file_get_contents(__DIR__ . '/current-full-id'));
-for ($v = max(4609, $current_id) - 10; ; $v ++) {
-    if ($v > $current_id + 10) {
+for ($v = max(4609, $current_id) - 5; ; $v ++) {
+    if ($v > $current_id + 5) {
         break;
     }
     $html_target = __DIR__ . "/html/{$v}.html";
     if (file_exists($html_target)) {
-        if ($v > $current_id) {
-            $current_id = $v;
-            file_put_contents(__DIR__ . '/current-full-id', $v);
+        $content = file_get_contents($html_target);
+        if (strpos($content, '"rettim":null') === false) {
+            if ($v > $current_id) {
+                $current_id = $v;
+                file_put_contents(__DIR__ . '/current-full-id', $v);
+            }
+            continue;
         }
-        continue;
     }
     $hit = false;
     foreach (['1M'] as $q) {
@@ -29,7 +32,7 @@ for ($v = max(4609, $current_id) - 10; ; $v ++) {
         }
         if (!preg_match('#readyPlayer\("([^"]*)"#', $content, $matches)) {
             error_log("readyPlayer not found {$url}");
-            break 2;
+            continue 2;
         }
     }
     if ($v > $current_id) {
