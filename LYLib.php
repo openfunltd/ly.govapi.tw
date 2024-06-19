@@ -271,7 +271,9 @@ class LYLib
             $ret->title = $matches[0];
             $ret->committees[] = $committee_id;
             $ret->type = '委員會';
-            if ($matches[1] >= 125) {
+            if ($matches[1] >= 129) {
+                $ret->term = 11;
+            } elseif ($matches[1] >= 125) {
                 $ret->term = 10;
             } elseif ($matches[1] >= 121) {
                 $ret->term = 9;
