@@ -145,6 +145,7 @@ for ($y = $start; $y >= 2012; $y --) {
             if (isset($agendas[$agenda_id])) {
                 $page->agenda_id = $agendas[$agenda_id]->agenda_id;
                 $page->agenda_lcidc_ids = $agendas[$agenda_id]->agenda_lcidc_ids;
+                $page->meetingDate = $agendas[$agenda_id]->meetingDate;
             } else {
                 continue;
             }
