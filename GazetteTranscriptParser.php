@@ -63,7 +63,7 @@ class GazetteTranscriptParser
             return $title;
         }
 
-        if (is_array($blocks) and strpos($blocks[0][0], '會議紀錄') !== false) {
+        if (is_array($blocks) and count($blocks) and is_array($blocks[0]) and count($blocks[0])  and strpos($blocks[0][0], '會議紀錄') !== false) {
             $titles = [];
             foreach ($blocks[0] as $line) {
                 if (preg_match('#^[一二三四五六七八九十]+、(.*)#u', $line, $matches)) {
@@ -409,16 +409,11 @@ class GazetteTranscriptParser
             $blocks[] = $current_block;
             $block_lines[] = $current_line;
 
-            // 如果上一行有「上台報告」或是「上台質詢」，加入段落
-            $prev_line = $current_block[count($current_block) - 1];
-            $prev_line = str_replace('臺', '台', $prev_line);
-            if (preg_match('#(上台報告|請(.*)報告，報告時間)#u', $prev_line, $matches)) {
-                $blocks[] = ['段落：報告：' . $person];
-                $block_lines[] = $current_line;
-            } 
-
             if (preg_match('#（(\d+)時(\d+)分）#', $line, $matches)) {
                 $blocks[] = ['段落：質詢：' . $person . '：' . $matches[1] . ':' . $matches[2]];
+                $block_lines[] = $current_line;
+            } else if (preg_match('#（(\d+)時）#', $line, $matches)) {
+                $blocks[] = ['段落：質詢：' . $person . '：' . $matches[1] . ':00'];
                 $block_lines[] = $current_line;
             }
             $current_line = $idx;
@@ -495,11 +490,11 @@ class GazetteTranscriptParser
                     continue 2;
                 }
             }
-            if (preg_match('#中華民國(\d+)年(\d+)月(\d+)日#', $ret->{'時間'}, $matches)) {
+            if (property_exists($ret, '時間') and preg_match('#中華民國(\d+)年(\d+)月(\d+)日#', $ret->{'時間'}, $matches)) {
                 $ret->date = sprintf('%d-%02d-%02d', $matches[1] + 1911, $matches[2], $matches[3]);
             }
         }
-        if (preg_match('#第(\d+)屆#', $ret->title, $matches)) {
+        if (property_exists($ret, 'title') and preg_match('#第(\d+)屆#', $ret->title, $matches)) {
             $term = intval($matches[1]);
             return self::parseVote($ret, $term);
         }

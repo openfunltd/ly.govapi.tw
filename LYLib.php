@@ -691,9 +691,12 @@ class LYLib
         $meet_id = $ivod->meet->id;
         $obj = Elastic::dbQuery("/{prefix}meet/_doc/{$meet_id}");
         $date = $ivod->date;
+        $ret = new StdClass;
         $agendas= $obj->_source->{'公報發言紀錄'} ?? [];
-        if (!is_array($agendas)) {
-            return [];
+        if (!is_array($agendas) or !count($agendas)) {
+            $ret->error = true;
+            $ret->message = '無公報發言紀錄';
+            return $ret;
         }
         $speaker = $ivod->{'委員名稱'};
         $agendas = array_filter($agendas, function($record) use ($date, $speaker) {
