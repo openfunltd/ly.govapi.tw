@@ -374,6 +374,9 @@ class GazetteTranscriptParser
                     if (strpos($line, '散會') === 0) {
                         break;
                     }
+                    if (strpos($line, '議事錄確定') !== false) {
+                        break;
+                    }
                 }
                 continue;
             }
