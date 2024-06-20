@@ -116,6 +116,8 @@ foreach ($list_files as $file) {
         // fix data
         if ($agenda['agenda_id'] == '1134703_00002') {
             $agenda['meetingDate'] = ['2024-05-24'];
+        } elseif ($agenda['agenda_id'] == '1135102_00004') {
+            $agenda['meetingDate'] = ['2024-05-31'];
         }
         Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], array_merge($agenda, [
             'docUrls' => $agendas_doc[$agenda['agenda_id']],
