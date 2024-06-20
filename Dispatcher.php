@@ -1400,7 +1400,7 @@ class Dispatcher
                         $obj->_source->transcript = LYLib::getIVODTranscript($ivod_id);
                     }
                     if (self::hasParam('with_gazette')) {
-                        $obj->_source->gazette = LYLib::getIVODGazette($obj->_source);
+                        $obj->_source->gazette = LYLib::getIVODGazette($obj->_source, true);
                     }
                     self::json_output($obj->_source);
                 } else {

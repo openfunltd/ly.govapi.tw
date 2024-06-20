@@ -686,8 +686,18 @@ class LYLib
         return $obj;
     }
 
-    public static function getIVODGazette($ivod)
+    public static function getIVODGazette($ivod, $from_cache = false)
     {
+        if ($from_cache) {
+            $ivod_id = $ivod->id;
+            $url = sprintf("https://lydata.ronny-s3.click/ivod-gazette/%d.json", $ivod_id);
+            $obj = json_decode(file_get_contents($url));
+            if (is_null($obj)) {
+                return null;
+            }
+            return $obj;
+        }
+
         $meet_id = $ivod->meet->id;
         $obj = Elastic::dbQuery("/{prefix}meet/_doc/{$meet_id}");
         $date = $ivod->date;
