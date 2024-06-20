@@ -418,6 +418,10 @@ class GazetteTranscriptParser
             } else if (preg_match('#（(\d+)時）#', $line, $matches)) {
                 $blocks[] = ['段落：質詢：' . $person . '：' . $matches[1] . ':00'];
                 $block_lines[] = $current_line;
+            } elseif (strpos($line, '（發言結束）') !== false) {
+                $line = str_replace('（發言結束）', '', $line);
+                $blocks[] = ['段落：質詢結束'];
+                $block_lines[] = $current_line;
             }
             $current_line = $idx;
             $current_block = [$line];
