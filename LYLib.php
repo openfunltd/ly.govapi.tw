@@ -698,10 +698,15 @@ class LYLib
             return $obj;
         }
 
-        $meet_id = $ivod->meet->id;
+        $meet_id = $ivod->meet->id ?? false;
+        if (!$meet_id) {
+            $ret->error = true;
+            $ret->message = '無公報發言紀錄';
+            error_log(json_encode($ivod->meet, JSON_UNESCAPED_UNICODE));
+            return $ret;
+        }
         $obj = Elastic::dbQuery("/{prefix}meet/_doc/{$meet_id}");
         $date = $ivod->date;
-        $ret = new StdClass;
         $agendas= $obj->_source->{'公報發言紀錄'} ?? [];
         if (!is_array($agendas) or !count($agendas)) {
             $ret->error = true;
@@ -729,10 +734,10 @@ class LYLib
         foreach ($agendas as $agenda) {
             foreach ($agenda->agenda_lcidc_ids as $lcidc_id) {
                 $target = __DIR__ . sprintf('/imports/gazette/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id);
+                $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
                 if (file_exists($target)) {
                     $content = file_get_contents($target);
                 } else {
-                    $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
                     error_log($url);
                     $urls[] = $url;
                     $curl = curl_init();
@@ -764,7 +769,8 @@ class LYLib
                         'ivod_start_time' => $ivod->start_time,
                         'block' => $block[0],
                         'speaker_time' => date('c', $time),
-                    ], JSON_UNESCAPED_UNICODE));
+                        'url' => $url,
+                    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                     $ret->lineno = $lineno;
                     $ret->blocks = [];
                     $ret->agenda = $agenda;
@@ -775,12 +781,22 @@ class LYLib
                         }
                         $ret->blocks[] = $block;
                         foreach ($block as $line) {
-                            if (strpos($block[0], '主席') === 0 and strpos($line, '報告院會') === 0) {
+                            if (strpos($block[0], '主席') === 0 and strpos($line, '報告院會') !== false) {
+                                return $ret;
+                            }
+                            if (strpos($block[0], '主席') === 0 and strpos($line, '發言完畢，') !== false) {
                                 return $ret;
                             }
                         }
                     }
                 }
+            }
+        }
+        if (property_exists($ret, 'blocks')) {
+            echo json_encode($ret->blocks, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $input = readline('press yes for save');
+            if ($input == 'yes') {
+                return $ret;
             }
         }
         $ret->error = true;
