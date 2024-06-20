@@ -709,45 +709,73 @@ class LYLib
             return true;
         });
         $agendas = array_values($agendas);
+        if (!is_array($agendas) or !count($agendas)) {
+            $ret->error = true;
+            $ret->message = '篩選後找不到對應的公報';
+            return $ret;
+        }
         $contents = [];
+        $urls = [];
         foreach ($agendas as $agenda) {
             foreach ($agenda->agenda_lcidc_ids as $lcidc_id) {
-                $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
-                $curl = curl_init();
-                curl_setopt($curl, CURLOPT_URL, $url);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                $content = curl_exec($curl);
-                $info = curl_getinfo($curl);
-                if ($info['http_code'] != 200) {
-                    continue;
+                $target = __DIR__ . sprintf('/imports/gazette/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id);
+                if (file_exists($target)) {
+                    $content = file_get_contents($target);
+                } else {
+                    $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
+                    error_log($url);
+                    $urls[] = $url;
+                    $curl = curl_init();
+                    curl_setopt($curl, CURLOPT_URL, $url);
+                    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                    $content = curl_exec($curl);
+                    $info = curl_getinfo($curl);
+                    if ($info['http_code'] != 200) {
+                        continue;
+                    }
                 }
                 $content = GazetteTranscriptParser::parse($content);
                 while (count($content->blocks)) {
                     $block = array_shift($content->blocks);
                     $lineno = array_shift($content->block_lines);
+                    if (!$block) {
+                        continue;
+                    }
                     $block[0] = str_replace('委員', '', $block[0]);
                     if (strpos($block[0], "段落：質詢：{$speaker}") === false) {
                         continue;
                     }
                     $time = explode('：', $block[0])[3];
-                    if ($time != date('G:i', strtotime($ivod->start_time))) {
+                    $time = strtotime($time, strtotime($ivod->start_time));
+                    if (abs($time - strtotime($ivod->start_time)) > 180) {
                         continue;
                     }
-                    $ret = new StdClass;
+                    error_log("checking: " . json_encode([
+                        'ivod_start_time' => $ivod->start_time,
+                        'block' => $block[0],
+                        'speaker_time' => date('c', $time),
+                    ], JSON_UNESCAPED_UNICODE));
                     $ret->lineno = $lineno;
                     $ret->blocks = [];
                     $ret->agenda = $agenda;
                     while (count($content->blocks)) {
                         $block = array_shift($content->blocks);
-                        if (strpos($block[0], "段落：質詢：") !== false) {
+                        if (strpos($block[0], "段落：") !== false) {
                             return $ret;
                         }
                         $ret->blocks[] = $block;
+                        foreach ($block as $line) {
+                            if (strpos($block[0], '主席') === 0 and strpos($line, '報告院會') === 0) {
+                                return $ret;
+                            }
+                        }
                     }
                 }
             }
         }
+        $ret->error = true;
+        $ret->message = '找不到對應的段落: ' . implode("\n", $urls);
 
-        return null;
+        return $ret;
     }
 }
