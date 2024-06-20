@@ -33,6 +33,9 @@ foreach ([
         if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json") and strpos(file_get_contents(__DIR__ . "/ivod-transcript/{$v}.json"), 'status: error') === false) {
             $ivod->features[] = 'ai-transcript';
         }
+        if (file_exists(__DIR__ . "/ivod-gazette/{$v}.json")) {
+            $ivod->features[] = 'gazette';
+        }
         Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
     }
 }
