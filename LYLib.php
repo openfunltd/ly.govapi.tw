@@ -698,6 +698,7 @@ class LYLib
             return $obj;
         }
 
+        $ret = new StdClass;
         $meet_id = $ivod->meet->id ?? false;
         if (!$meet_id) {
             $ret->error = true;
@@ -728,6 +729,10 @@ class LYLib
             $ret->error = true;
             $ret->message = '篩選後找不到對應的公報';
             return $ret;
+        }
+        if ($ivod->id == 153018) {
+            // https://ivod.ly.gov.tw/Play/Clip/1M/153018 # 前面先講了一堆話才開始質詢
+            $ivod->start_time = '2024-05-27 11:02:00';
         }
         $contents = [];
         $urls = [];
@@ -762,15 +767,15 @@ class LYLib
                     }
                     $time = explode('：', $block[0])[3];
                     $time = strtotime($time, strtotime($ivod->start_time));
-                    if (abs($time - strtotime($ivod->start_time)) > 180) {
-                        continue;
-                    }
                     error_log("checking: " . json_encode([
                         'ivod_start_time' => $ivod->start_time,
                         'block' => $block[0],
                         'speaker_time' => date('c', $time),
                         'url' => $url,
                     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                    if (abs($time - strtotime($ivod->start_time)) > 180) {
+                        continue;
+                    }
                     $ret->lineno = $lineno;
                     $ret->blocks = [];
                     $ret->agenda = $agenda;
