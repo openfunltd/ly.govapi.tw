@@ -1474,7 +1474,8 @@ class Dispatcher
         $all_fields = [
             'meet_id' => ['aggs' => true, 'field' => 'meet.id.keyword', 'agg_size' => 100],
             'legislator' => ['aggs' => true, 'field' => '委員名稱.keyword', 'agg_size' => 100],
-            'date' => ['aggs' => true, 'field' => 'date', 'agg_size' => 100],
+            'date' => ['aggs' => true, 'field' => 'date', 'agg_size' => 300],
+            'date:features' => ['aggs' => true, 'field' => 'features', 'agg_size' => 100],
         ];
 
         if (self::hasParam('aggs')) {
@@ -1525,13 +1526,23 @@ class Dispatcher
                     self::json_output(['error' => 'not found']);
                 }
                 $field = $all_fields[$agg]['field'] ?? $agg;
-                $cmd['aggs'][$agg] = [
-                    'terms' => [
-                        'field' => $field,
-                    ],
-                ];
-                if (array_key_exists('agg_size', $all_fields[$agg])) {
-                    $cmd['aggs'][$agg]['terms']['size'] = $all_fields[$agg]['agg_size'];
+                if ($agg == 'date:features') { 
+                    $cmd['aggs']['date']['aggs'] = [
+                        'features' => [
+                            'terms' => [
+                                'field' => 'features.keyword',
+                            ],
+                        ],
+                    ];
+                } else {
+                    $cmd['aggs'][$agg] = [
+                        'terms' => [
+                            'field' => $field,
+                        ],
+                    ];
+                    if (array_key_exists('agg_size', $all_fields[$agg])) {
+                        $cmd['aggs'][$agg]['terms']['size'] = $all_fields[$agg]['agg_size'];
+                    }
                 }
             }
         }
@@ -1545,8 +1556,11 @@ class Dispatcher
             $records->ivods[] = ($hit->_source);
         }
         if (self::hasParam('aggs')) {
-            foreach (self::getParam('aggs', ['array' => true]) as $agg) {
-                $records->aggs[$agg] = [];
+            $aggs = self::getParam('aggs', ['array' => true]);
+            foreach ($aggs as $agg) {
+                if ($agg != 'date:features') {
+                    $records->aggs[$agg] = [];
+                }
                 if (strpos($agg, ',')) {
                     $aggs = explode(',', $agg);
                     $agg_id = $agg;
@@ -1561,10 +1575,20 @@ class Dispatcher
                     }
                 } else {
                     foreach ($obj->aggregations->$agg->buckets as $bucket) {
-                        $records->aggs[$agg][] = [
+                        $data = [
                             'value' => $bucket->key,
                             'count' => $bucket->doc_count,
                         ];
+                        if ($agg == 'date' and in_array('date:features', $aggs)) {
+                            $data['features'] = [];
+                            foreach ($bucket->features->buckets as $feature_bucket) {
+                                $data['features'][] = [
+                                    'value' => $feature_bucket->key,
+                                    'count' => $feature_bucket->doc_count,
+                                ];
+                            }
+                        }
+                        $records->aggs[$agg][] = $data;
                     }
                 }
             }
