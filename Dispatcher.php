@@ -1863,31 +1863,20 @@ class Dispatcher
             return self::bill([]);
         }
 
-        if (self::hasParam('type')) {
-            $records->type = self::getParam('type', ['array' => true]);
-            $cmd['query']['bool']['must'][] = [
-                'terms' => [
-                    'type.keyword' => $records->type,
-                ],
-            ];
-        }
+        foreach ([
+            'type' => 'type.keyword',
+            'parent' => 'parent.keyword',
+            'id' => 'id.keyword',
+            ] as $param => $field) {
 
-        if (self::hasParam('parent')) {
-            $records->parent = self::getParam('parent', ['array' => true]);
-            $cmd['query']['bool']['must'][] = [
-                'terms' => [
-                    'parent.keyword' => $records->parent,
-                ],
-            ];
-        }
-
-        if (self::hasParam('id')) {
-            $records->id = self::getParam('id', ['array' => true]);
-            $cmd['query']['bool']['must'][] = [
-                'terms' => [
-                    'id.keyword' => $records->id,
-                ],
-            ];
+            if (self::hasParam($param)) {
+                $records->{$param} = self::getParam($param, ['array' => true]);
+                $cmd['query']['bool']['must'][] = [
+                    'terms' => [
+                        $field => $records->{$param},
+                    ],
+                ];
+            }
         }
 
         if (array_key_exists('q', $_GET)) {
