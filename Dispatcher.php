@@ -1867,6 +1867,7 @@ class Dispatcher
             'type' => 'type.keyword',
             'parent' => 'parent.keyword',
             'id' => 'id.keyword',
+            'name' => 'name.keyword',
             ] as $param => $field) {
 
             if (self::hasParam($param)) {
