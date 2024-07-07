@@ -83,13 +83,16 @@ class IVodParser
         }
         if (strpos($name, '黨團協商')) {
             try {
-                $meet_obj = LYLib::consultToId('ivod', $ivod);
+                $meet_obj = LYLib::consultToId('ivod', $ivod, '黨團協商');
                 $ivod->meet = $meet_obj;
             } catch (Exception $e) {
             }
         } elseif (strpos($ivod->{'會議名稱'}, '公聽會')) {
-            // TODO: 處理公聽會
-            //continue;
+            try {
+                $meet_obj = LYLib::consultToId('ivod', $ivod, '公聽會');
+                $ivod->meet = $meet_obj;
+            } catch (Exception $e) {
+            }
         } else {
             try {
                 //print_r($ivod);

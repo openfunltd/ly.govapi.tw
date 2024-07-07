@@ -51,11 +51,12 @@ for (; $v > 0; $v --) {
         if ($gazette->message == '無公報發言紀錄') {
             continue;
         }
-        if (strtotime($ivod->end_time) - strtotime($ivod->start_time) < 10) {
+        if (strtotime($ivod->end_time) - strtotime($ivod->start_time) < 40) {
             // Ex: https://ivod.ly.gov.tw/Play/Clip/1M/153252
             continue;
         }
         error_log(json_encode($ivod, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        continue;
         exit;
     }
     file_put_contents($gazette_target, json_encode($gazette, JSON_UNESCAPED_UNICODE));

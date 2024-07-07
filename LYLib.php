@@ -98,7 +98,9 @@ class LYLib
                 'query' => [
                     'bool' => [
                         'must' => [
-                            ['term' => ['meet_type.keyword' => '黨團協商']],
+                            ['terms' => ['meet_type.keyword' => [
+                                '黨團協商', '公聽會'
+                            ]]],
                         ],
                     ],
                 ],
@@ -114,27 +116,49 @@ class LYLib
     /**
      * consultToId 處理把黨團協商轉換成 id
      */
-    public static function consultToId($from, $data)
+    public static function consultToId($from, $data, $type = '黨團協商')
     {
         $ret = new StdClass;
         $ret->tmpMeeting = null;
         $ret->committees = [];
-        $ret->type = '黨團協商';
-        $ret->title = '立法院朝野黨團協商';
+        if ($type == '黨團協商') {
+            $ret->type = $type;
+            $ret->title = '立法院朝野黨團協商';
+        } elseif ($type == '公聽會') {
+            $ret->type = '公聽會';
+            // title 只能從 meet_data 抓
+        } else {
+            print_r($data);
+            exit;
+        }
 
         if ($from == 'meet_data') { // 處理來自 open data
-            $ret->id = '黨團協商-' . $data->meetingNo;
+            $ret->id = "{$ret->type}-{$data->meetingNo}";
             $ret->term = intval(substr($data->selectTerm, 0, 2));
             $ret->sessionPeriod = intval(substr($data->selectTerm, 2, 2));
-            if ($data->meetingUnit == '朝野黨團協商') {
-            } elseif (preg_match('#^朝野黨團協商\(.*黨團\)$#', $data->meetingUnit)) {
-            } elseif (preg_match('#^朝野黨團協商\((.*委員會)\)$#', $data->meetingUnit, $matches)) {
-                $committee_id = self::getCommitteeId($matches[1]);
-                $ret->committees[] = $committee_id;
+            if ($ret->type == '黨團協商') {
+                if ($data->meetingUnit == '朝野黨團協商') {
+                } elseif (preg_match('#^朝野黨團協商\(.*黨團\)$#', $data->meetingUnit)) {
+                } elseif (preg_match('#^朝野黨團協商\((.*委員會)\)$#', $data->meetingUnit, $matches)) {
+                    $committee_id = self::getCommitteeId($matches[1]);
+                    $ret->committees[] = $committee_id;
+                } else {
+                    print_r($data);
+                    print_r($ret);
+                    throw new Exception("{$data->meetingUnit} 有問題");
+                }
+            } elseif ('公聽會' == $ret->type) {
+                if (strpos($data->meetingUnit, '委員會') and $data->meetingUnit != '全院委員會') {
+                    try {
+                        $ret->committees[] = self::getCommitteeId($data->meetingUnit);
+                    } catch (Exception $e) {
+                    }
+                }
+                $ret->title = $data->meetingContent;
+                // TODO: 處理會議相關法律
             } else {
                 print_r($data);
-                print_r($ret);
-                throw new Exception("{$data->meetingUnit} 有問題");
+                exit;
             }
             return $ret;
         } elseif ('ivod' == $from) {
@@ -142,11 +166,19 @@ class LYLib
             $data->{'會議名稱'} = str_replace("\n", '', $data->{'會議名稱'});
             $data->{'會議名稱'} = str_replace("\r", '', $data->{'會議名稱'});
             $data->{'會議名稱'} = str_replace(' ', '', $data->{'會議名稱'});
+            $data->{'會議名稱'} = str_replace('　', '', $data->{'會議名稱'});
             $data->{'會議名稱'} = str_replace('(變更議程)', '', $data->{'會議名稱'});
-            if (!preg_match('#立法院(朝野)?黨團協商（事由：(.*)）$#um', $data->{'會議名稱'}, $matches)) {
+            if (preg_match('#立法院(朝野)?黨團協商（事由：(.*)）$#um', $data->{'會議名稱'}, $matches)) {
+                $title = $matches[2];
+            } elseif (preg_match('#立法院第\d+屆第\d+會期.*委員會公聽會（事由：(.*)）#um', $data->{'會議名稱'}, $matches)) {
+                $title = $matches[1];
+            } else {
                 throw new Exception("{$data->{'會議名稱'}} 有問題");
             }
-            $title = $matches[2];
+
+            $title = preg_replace('#\([^(]*提議\)$#', '', $title);
+            $title = preg_replace('#。$#u', '', $title);
+
             $match_meets = [];
             $mismatch_meets = [];
             foreach ($meets as $meet) {
@@ -157,6 +189,11 @@ class LYLib
                     $meet_data->meetingContent = str_replace("\n", '', $meet_data->meetingContent);
                     $meet_data->meetingContent = str_replace("\r", '', $meet_data->meetingContent);
                     $meet_data->meetingContent = str_replace(' ', '', $meet_data->meetingContent);  
+                    $meet_data->meetingContent = str_replace('　', '', $meet_data->meetingContent);
+                    // 繼續研商「農業部組織法草案」等>案(如附表)(民進黨黨團提議) => 
+                    //   繼續研商「農業部組織法草案」等>案(如附表)
+                    $meet_data->meetingContent = preg_replace('#\([^(]*提議\)$#', '', $meet_data->meetingContent);
+                    $meet_data->meetingContent = preg_replace('#。$#u', '', $meet_data->meetingContent);
                     if ($meet_data->meetingContent != $title) {
                         $mismatch_meets[] = $meet_data->meetingContent;
                         continue;
@@ -170,6 +207,7 @@ class LYLib
                 echo "mismatch_meets=" . json_encode($mismatch_meets, JSON_UNESCAPED_UNICODE) . "\n";
                 echo "data=" . json_encode($data, JSON_UNESCAPED_UNICODE) . "\n";
                 echo "title={$title}\n";
+                //exit;
                 throw new Exception("對應到的黨團協商不是一個");
             }
             $meet = $match_meets[0];
@@ -180,6 +218,26 @@ class LYLib
             return $ret;
         }
         return null;
+    }
+
+    public static function meetToId($type, $meet)
+    {
+        if (strpos($meet->meetingName , '黨團協商')) {
+            return LYLib::consultToId($type, $meet, '黨團協商');
+        } elseif (strpos($meet->meetingContent, '公聽會')) {
+            return LYLib::consultToId($type, $meet, '公聽會');
+        }
+
+        $meet_obj = null;
+        if ($type == 'meet_data') {
+            try {
+                $meet_obj = LYLib::meetNameToId($meet->meetingName);
+            } catch (Exception $e) {
+                error_log("{$meet->meetingName} 有問題");
+                return null;
+            }
+        }
+        return $meet_obj;
     }
 
     public static function meetNameToId($oname)
@@ -716,6 +774,11 @@ class LYLib
         }
         $speaker = $ivod->{'委員名稱'};
         $agendas = array_filter($agendas, function($record) use ($date, $speaker) {
+            if (!property_exists($record, 'meetingDate')) {
+                return false;
+                echo json_encode($record, JSON_UNESCAPED_UNICODE) . "\n";
+                throw new Exception('no meetingDate');
+            }
             if (!in_array($date, $record->meetingDate)) {
                 return false;
             }
@@ -740,11 +803,12 @@ class LYLib
             foreach ($agenda->agenda_lcidc_ids as $lcidc_id) {
                 $target = __DIR__ . sprintf('/imports/gazette/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id);
                 $url = sprintf("https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html", urlencode($lcidc_id));
+                $urls[] = $url;
+
                 if (file_exists($target)) {
                     $content = file_get_contents($target);
                 } else {
                     error_log($url);
-                    $urls[] = $url;
                     $curl = curl_init();
                     curl_setopt($curl, CURLOPT_URL, $url);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -789,7 +853,7 @@ class LYLib
                             if (strpos($block[0], '主席') === 0 and strpos($line, '報告院會') !== false) {
                                 return $ret;
                             }
-                            if (strpos($block[0], '主席') === 0 and strpos($line, '發言完畢，') !== false) {
+                            if (strpos($block[0], '主席') === 0 and preg_match('#(發言|詢答)完畢[，。]#u', $line)) {
                                 return $ret;
                             }
                         }
@@ -798,6 +862,9 @@ class LYLib
             }
         }
         if (property_exists($ret, 'blocks')) {
+            $ret->error = true;
+            $ret->message = '不確定有沒有抓到正確的結束點';
+            return $ret;
             echo json_encode($ret->blocks, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $input = readline('press yes for save');
             if ($input == 'yes') {

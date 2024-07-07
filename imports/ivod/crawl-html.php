@@ -1,7 +1,7 @@
 <?php
 
 $current_id = intval(file_get_contents(__DIR__ . '/current-full-id'));
-for ($v = max(4609, $current_id) - 5; ; $v ++) {
+for ($v = max(4609, $current_id) - 20; ; $v ++) {
     if ($v > $current_id + 5) {
         break;
     }

@@ -8,15 +8,7 @@ $ids = [];
 while ($line = fgets($fp)) {
     $meet = json_decode($line);
     $meet = LYLib::filterMeetData($meet);
-    if (strpos($meet->meetingName, '黨團協商')) {
-        $meet_obj = LYLib::consultToId('meet_data', $meet);
-    } else {
-        try {
-            $meet_obj = LYLib::meetNameToId($meet->meetingName);
-        } catch (Exception $e) {
-            continue;
-        }
-    }
+    $meet_obj = LYLib::meetToId('meet_data', $meet);
     if (!$meet_obj) {
         continue;;
     }
