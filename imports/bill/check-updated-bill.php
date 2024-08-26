@@ -38,7 +38,7 @@ while ($obj = json_decode(fgets($fp))) {
         error_log("{$values->billNo} html={$values->{'議案狀態'}} list={$obj->content5}");
         rename(__DIR__ . "/bill-html/{$billNo}.gz", __DIR__ . "/bill-html/old/{$billNo}.gz");
     }
-    if ($obj->billType == 20 and !count($values->{'相關附件'})) {
+    if ($obj->billType == 20 and !strpos(json_encode($values->{'相關附件'}, JSON_UNESCAPED_UNICODE), '關係文書DOC')) {
         error_log("{$billNo} 無相關附件");
         rename(__DIR__ . "/bill-html/{$billNo}.gz", __DIR__ . "/bill-html/old/{$billNo}.gz");
     }
