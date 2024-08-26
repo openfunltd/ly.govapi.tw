@@ -58,6 +58,9 @@ class BillParser
             if (in_array($key, array('審查委員會', '議案名稱', '提案單位/提案委員', '議案狀態', '交付協商'))) {
                 $td_dom = $tr_dom->getElementsByTagName('td')->item(0);
                 $value = trim($td_dom->nodeValue);
+                if ($key == '議案狀態' and preg_match('#三讀 (\d+/\d+/\d+通過) #', $value, $matches)) {
+                    $value = '三讀';
+                }
                 $obj->{$key} = $value;
             } else if ($key == '相關附件') {
                 $obj->{'相關附件'} = array();
@@ -181,6 +184,9 @@ class BillParser
                     break;
                 }
             }
+        }
+        if (preg_match('#三讀 \(\d+/\d+/\d+通過\)#', $obj->{'議案狀態'}, $matches)) {
+            $obj->{'議案狀態'} = '三讀';
         }
         if (!$dom) {
             throw new Exception("unknown {$billno}: no 議案狀態");
@@ -540,6 +546,7 @@ class BillParser
 
 
             if ($td_doms->length != count($cols)) {
+                continue;
                 echo implode(',', $cols) . "\n";
                 echo $doc->saveHTML($tr_dom);
                 throw new Exception("{$billNo} unknown td length");
