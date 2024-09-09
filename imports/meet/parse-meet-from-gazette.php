@@ -43,10 +43,11 @@ for ($y = $start; $y >= 2012; $y --) {
 
     foreach ($meets as $meet) {
         list($meet_id, $txtfile, $meet_obj, $subject, $meet_data) = $meet;
-        preg_match('#LCIDC01_([0-9]+)#', $txtfile, $matches);
+        preg_match('#LCIDC01_([0-9]+)_(\d+)#', $txtfile, $matches);
         $comYear = intval(substr($matches[1], 0, 3));
         $comVolume = intval(substr($matches[1], 3, -2));
         $comBookId = intval(substr($matches[1], -2));
+        $agenda_lcidc_id = "{$matches[1]}_{$matches[2]}";
 
 
         error_log("parsing $txtfile");
@@ -58,6 +59,10 @@ for ($y = $start; $y >= 2012; $y --) {
         try {
             $info = GazetteParser::parseAgendaWholeMeetingNote($txtfile, $meet_obj->id);
         } catch (Exception $e) {
+            if (strpos($e->getMessage(), '找不到議事錄標題') !== false) {
+                error_log($e->getMessage());
+                continue;
+            }
             throw $e;
         }
         $meet->meet_id = $meet_obj->id;
@@ -70,6 +75,7 @@ for ($y = $start; $y >= 2012; $y --) {
         $info->comYear = $comYear;
         $info->comVolume = $comVolume;
         $info->comBookId = $comBookId;
+        $info->agenda_lcidc_id = $agenda_lcidc_id;
         $meet->{'議事錄'} = $info;
         unset($info->meet_id);
         //echo json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n";
