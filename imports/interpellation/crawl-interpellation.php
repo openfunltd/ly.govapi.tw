@@ -34,6 +34,7 @@ foreach ($obj->hits->hits as $hit) {
         } else {
             if ($meetingNo !== $meet_data->meetingNo) {
                 echo $meet_data->ppg_url . "\n";
+                continue;
                 throw new Exception("{$hit->_id} has different meetingNo: {$meetingNo} vs {$meet_data->meetingNo}");
             }
         }
