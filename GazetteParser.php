@@ -74,6 +74,7 @@ class GazetteParser
             self::$_name_list->{$term}['周陳秀'] = '周陳秀霞';
             self::$_name_list->{$term}['林麗嬋'] = '林麗蟬';
             self::$_name_list->{$term}['王惠'] = '王惠美';  
+            self::$_name_list->{$term}['李秀彥'] = '李彥秀';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['Kolasotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
