@@ -78,14 +78,14 @@ class Elastic
         $encdata = json_encode([
             'doc' => $data,
             'doc_as_upsert' => true,
-        ]);
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (!$encdata) {
             return;
         }
         self::$_db_bulk_pool[$mapping] .=
             json_encode(array(
                 'update' => array('_id' => $id),
-            )) . "\n"
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
             . $encdata . "\n";
         if (strlen(self::$_db_bulk_pool[$mapping]) > 1000000) {
             self::dbBulkCommit($mapping);
