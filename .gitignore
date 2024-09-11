@@ -11,6 +11,7 @@ imports/bill/output.jsonl
 imports/bill/output.jsonl.*
 imports/interpellation/files
 imports/ivod/current-id
+imports/ivod/current-full-id
 imports/ivod/html
 imports/ivod/ivod-gazette
 imports/ivod/ivod-transcript
