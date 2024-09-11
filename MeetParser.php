@@ -201,13 +201,13 @@ class MeetParser
                     $record = [
                         'title' => $text,
                     ];
-                    if (!$a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
-                        throw new Exception('a not found: ' . $text);
+
+                    if ($a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
+                    } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
+                    } else {
+                        $record['billNo'] = $matches[1];
                     }
-                    if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
-                        throw new Exception('href not match: ' . $a_dom->getAttribute('href'));
-                    }
-                    $record['billNo'] = $matches[1];
+
                     foreach ($span_dom->parentNode->parentNode->parentNode->getElementsByTagName('span') as $comment_dom) {
                         if (false === strpos($comment_dom->getAttribute('class'), 'text-grey')) {
                             continue;
@@ -241,12 +241,11 @@ class MeetParser
                         'title' => $text,
                     ];
                     if (!$a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
-                        throw new Exception('a not found: ' . $text);
+                    } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
+                    } else {
+                        $record['billNo'] = $matches[1];
                     }
-                    if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
-                        throw new Exception('href not match: ' . $a_dom->getAttribute('href'));
-                    }
-                    $record['billNo'] = $matches[1];
+
                     foreach ($span_dom->parentNode->parentNode->parentNode->getElementsByTagName('span') as $comment_dom) {
                         if (false === strpos($comment_dom->getAttribute('class'), 'text-grey')) {
                             continue;
