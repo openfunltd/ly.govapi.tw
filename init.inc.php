@@ -2,6 +2,7 @@
 
 include(__DIR__ . '/Elastic.php');
 include(__DIR__ . '/BillParser.php');
+include(__DIR__ . '/MeetParser.php');
 include(__DIR__ . '/GazetteParser.php');
 include(__DIR__ . '/GazetteTranscriptParser.php');
 include(__DIR__ . '/LYLib.php');
