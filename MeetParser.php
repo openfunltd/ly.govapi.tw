@@ -313,4 +313,23 @@ class MeetParser
             readline('continue?');
         }
     }
+
+    public static function addPageData($meet_data, $dir)
+    {
+        $meetingNos = [];
+        foreach ($meet_data->meet_data as $meet) {
+            $meetingNos[$meet->meetingNo] = $meet;;
+        }
+        foreach ($meetingNos as $meetingNo => $meet) {
+            $date = $meet->date;
+            $target = $dir . "/ppg_meet_page_json/{$meetingNo}-{$meet->date}.json";
+            if (!file_exists($target)) {
+                continue;
+            }
+            $ppg_data = json_decode(file_get_contents($target));
+            $meet_data->ppg_data = $meet_data->ppg_data ?? [];
+            $meet_data->ppg_data[] = $ppg_data;
+        }
+        return $meet_data;
+    }
 }
