@@ -2,6 +2,8 @@
 config.php
 imports/gazette
 imports/meet/meet.jsonl
+imports/meet/ppg_meet_page
+imports/meet/ppg_meet_page_json
 imports/bill/bill-doc-parsed
 imports/bill/bill-docgz
 imports/bill/bill-html
