@@ -239,6 +239,7 @@ class MeetParser
                     }
                     $record = [
                         'title' => $text,
+                        'type' => $type,
                     ];
                     if (!$a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
                     } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
