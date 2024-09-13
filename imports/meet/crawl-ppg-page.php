@@ -24,6 +24,7 @@ foreach ($meets as $meet) {
 }
 foreach ($meet_group as $meetingNo => $meets) {
     $names = [];
+    $infos = [];
     foreach ($meets as $meet) {
         $meet = LYLib::filterMeetData($meet);
         try {
@@ -64,7 +65,7 @@ foreach ($meet_group as $meetingNo => $meets) {
         }
         error_log("{$target} {$url}");
         $json_target = __DIR__ . "/ppg_meet_page_json/{$meetingNo}-{$meet->date}.json";
-        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2024-09-10 16:46')) {
+        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2024-09-11 14:40')) {
             try {
                 $info = MeetParser::parseMeetPage(file_get_contents($target), __DIR__, $meetingNo, $url);
             } catch (Exception $e) {
@@ -75,11 +76,21 @@ foreach ($meet_group as $meetingNo => $meets) {
             file_put_contents($json_target, json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
         $info = json_decode(file_get_contents($json_target));
-        MeetParser::checkData($meet, $info);
+        //MeetParser::checkData($meet, $info);
         $names[$meet->meetingName] = true;
+        if (count($infos) and json_encode($info) != json_encode($infos[0])) {
+            $infos[] = $info;
+        }
+    }
+    if (count($infos) > 1) {
+        echo "meetingNo: {$meetingNo}\n";
+        foreach ($infos as $info) {
+            echo substr(json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 0, 300) . "\n";
+        }
+        readline('continue?');
     }
     if (count($names) > 1) {
         error_log("{$meetingNo} has different names: " . json_encode($names, JSON_UNESCAPED_UNICODE));
-        readline('conitnue');
+        //readline('conitnue');
     }
 }
