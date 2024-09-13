@@ -9,7 +9,7 @@ class IVodParser
         }
         $ivod = new StdClass;
         $ivod->id = intval($v);
-        $ivod->url = sprintf("https://ivod.ly.gov.tw/Play/%s/1M/%d", $type, $v);
+        $ivod->url = $url = sprintf("https://ivod.ly.gov.tw/Play/%s/1M/%d", $type, $v);
         $ivod->video_url = $matches[1];
         if (!preg_match('#<strong>會議時間：</strong>([0-9-: ]+)#', $content, $matches)) {
             throw new Exception("會議時間 not found: $url");
@@ -51,6 +51,7 @@ class IVodParser
 
             // [rsttim] => 2024-06-04 12:29:59
             // [rettim] => 2024-06-04 14:47:00
+            $content = str_replace('"metdec":""u', '"metdec":"u', $content);
             if (preg_match('#var _movie = JSON.parse\(\'([^\']+)\'\)#', $content, $matches)) {
                 if (!$json = json_decode($matches[1])) {
                     throw new Exception("JSON parse error: {$url}");
