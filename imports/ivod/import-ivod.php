@@ -30,10 +30,38 @@ foreach ([
             continue;
         }
         $ivod->features = [];
-        if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json") and strpos(file_get_contents(__DIR__ . "/ivod-transcript/{$v}.json"), 'status: error') === false) {
-            $ivod->features[] = 'ai-transcript';
+        $result = [];
+        if (file_exists(__DIR__ . "/ivod-transcript/{$v}.json")) {
+            $content = file_get_contents(__DIR__ . "/ivod-transcript/{$v}.json");
+            if (strpos($content, 'status: error') === false) {
+                $obj = json_decode($content);
+                if ($obj->pyannote->result ?? false) {
+                    $result['pyannote'] = [];
+                    foreach ($obj->pyannote->result->result as $r) {
+                        $result['pyannote'][] = [
+                            'start' => $r[0],
+                            'end' => $r[1],
+                            'speaker' => $r[2],
+                        ];
+                    }
+                }
+                if ($obj->whisperx->result ?? false) {
+                    $result['whisperx'] = [];
+                    foreach ((json_decode($obj->whisperx->result->json)->segments ?? []) as $r) {
+                        $result['whisperx'][] = [
+                            'start' => $r->start,
+                            'end' => $r->end,
+                            'text' => $r->text,
+                        ];
+                    }
+                }
+                $ivod->transcript = $result;
+                $ivod->features[] = 'ai-transcript';
+            }
         }
-        if (file_exists(__DIR__ . "/ivod-gazette/{$v}.json")) {
+        $gazette_file = __DIR__ . "/ivod-gazette/{$v}.json";
+        if (file_exists($gazette_file)) {
+            $ivod->gazette = json_decode(file_get_contents($gazette_file));
             $ivod->features[] = 'gazette';
         }
         Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
