@@ -321,6 +321,7 @@ class MeetParser
         foreach ($meet_data->meet_data as $meet) {
             $meetingNos[$meet->meetingNo] = $meet;;
         }
+        unset($meet_data->ppg_data);
         foreach ($meetingNos as $meetingNo => $meet) {
             $date = $meet->date;
             $target = $dir . "/ppg_meet_page_json/{$meetingNo}-{$meet->date}.json";
