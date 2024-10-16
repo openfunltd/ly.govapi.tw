@@ -12,4 +12,11 @@ class Importer
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         return curl_exec($curl);
     }
+
+    public static function addImportLog($data)
+    {
+        $data['log_at'] = date('c');
+        Elastic::dbBulkInsert('logs-import-' . date('Y'), null, $data);
+        Elastic::dbBulkCommit();
+    }
 }
