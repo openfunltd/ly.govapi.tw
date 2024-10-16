@@ -4,6 +4,9 @@ include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/IVodParser.php');
 $crawled = 0;
 
+if (!getenv('date')) {
+    putenv('date=' . (time() - 86400 * 3 * 30));
+}
 foreach ([
     'Full' => 'current-full-id',
     'Clip' => 'current-id',
@@ -20,8 +23,8 @@ foreach ([
         }
         $content = file_get_contents($html_target);
         $ivod = IVodParser::parseHTML($v, $content, $type);
-        if (getenv('year')) {
-            if (strtotime($ivod->start_time) < mktime(0, 0, 0, 1, 1, getenv('year'))) {
+        if (getenv('date')) {
+            if (strtotime($ivod->start_time) < getenv('date')) {
                 break;
             }
         }

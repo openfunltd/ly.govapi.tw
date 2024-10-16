@@ -6,6 +6,8 @@ $crawled = 0;
 $endtime = $_SERVER['argv'][1] ?? null;
 if (!is_null($endtime)) {
     $endtime = strtotime($endtime);
+} else {
+    $endtime = time() - 6 * 30 * 86400;
 }
 
 $jobs = [];
