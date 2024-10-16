@@ -82,11 +82,16 @@ class Elastic
         if (!$encdata) {
             return;
         }
-        self::$_db_bulk_pool[$mapping] .=
-            json_encode(array(
-                'update' => array('_id' => $id),
-            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
-            . $encdata . "\n";
+        if (!is_null($id)) {
+            $header = json_encode(array(
+                'index' => array('_id' => $id),
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } else {
+            $header = json_encode(array(
+                'index' => new stdClass(),
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        self::$_db_bulk_pool[$mapping] .= $header . "\n" . $encdata . "\n";
         if (strlen(self::$_db_bulk_pool[$mapping]) > 1000000) {
             self::dbBulkCommit($mapping);
         }
