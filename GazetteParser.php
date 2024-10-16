@@ -1153,6 +1153,7 @@ class GazetteParser
             }
         }
 
+        $ret->{'時間'} = trim(ltrim($ret->{'時間'}, ':'));
         if (!preg_match('#^(中華民國)?(\d+)年(\d+)月(\d+)日#u', $ret->{'時間'}, $matches)) {
             throw new Exception("時間格式不正確: {$ret->{'時間'}}");
         }
