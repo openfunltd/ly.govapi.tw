@@ -34,6 +34,7 @@ $cmds = [
     ['php meet/parse-meet-proceeding.php', '將委員會議事錄匯入資料庫'],
     ['php meet/crawl-meet-speechlist.php', '從opendata抓取發言紀錄'],
     ['php meet/parse-speech-from-gazette.php', '從公報抓取發言紀錄'],
+    ["php meet/crawl-ppg-page.php", "抓取公報網會議網頁"],
     ['php meet/link-meet.php', '更新會議資料'],
     // ivod 相關
     ['php ivod/crawl-html.php', '抓取 ivod HTML'],
