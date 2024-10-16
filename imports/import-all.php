@@ -13,7 +13,6 @@ $cmds = [
     /*
      */
     // 委員相關
-    ['php committee.php', '委員會資料'],
     ['php legislator/legislators.php', '立委資料'],
     // 議案相關
     [$func_move_bill, '搬移舊議案列表'],
