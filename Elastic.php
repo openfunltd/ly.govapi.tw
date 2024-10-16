@@ -75,21 +75,22 @@ class Elastic
         if (!array_key_exists($mapping, self::$_db_bulk_pool)) {
             self::$_db_bulk_pool[$mapping] = '';
         }
-        $encdata = json_encode([
-            'doc' => $data,
-            'doc_as_upsert' => true,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (!$encdata) {
-            return;
-        }
         if (!is_null($id)) {
             $header = json_encode(array(
                 'index' => array('_id' => $id),
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $encdata = json_encode([
+                'doc' => $data,
+                'doc_as_upsert' => true,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } else {
             $header = json_encode(array(
                 'index' => new stdClass(),
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $encdata = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        if (!$encdata) {
+            return;
         }
         self::$_db_bulk_pool[$mapping] .= $header . "\n" . $encdata . "\n";
         if (strlen(self::$_db_bulk_pool[$mapping]) > 1000000) {
