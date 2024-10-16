@@ -26,14 +26,14 @@ foreach ($list as $idx => $v) {
     $billno = explode('.', $filename)[0];
 
     if (file_exists(__DIR__ . "/bill-doc-parsed/tikahtml/{$filename}") and filesize(__DIR__ . "/bill-doc-parsed/tikahtml/{$filename}") > 100) {
-		continue;
+    } else {
+        error_log($filename);
+        $cmd = sprintf("zcat %s > %s", escapeshellarg($input_file), escapeshellarg(__DIR__ . '/tmp.doc'));
+        system($cmd);
+        system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
+        if ($ret) {
+            throw new Exception('curl failed');
+        }
+        file_put_contents(__DIR__ . "/bill-doc-parsed/tikahtml/{$filename}", gzencode(file_get_Contents(__DIR__ . '/tmp.html')));
     }
-    error_log($filename);
-    $cmd = sprintf("zcat %s > %s", escapeshellarg($input_file), escapeshellarg(__DIR__ . '/tmp.doc'));
-    system($cmd);
-    system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg(__DIR__ . '/tmp.html')), $ret);
-    if ($ret) {
-        throw new Exception('curl failed');
-    }
-    file_put_contents(__DIR__ . "/bill-doc-parsed/tikahtml/{$filename}", gzencode(file_get_Contents(__DIR__ . '/tmp.html')));
 }
