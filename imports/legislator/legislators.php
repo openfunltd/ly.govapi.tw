@@ -2,7 +2,7 @@
 
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/../Importer.php');
-$cmd = sprintf("wget -q -4 https://data.ly.gov.tw/odw/legislator.pdf -O %s", escapeshellarg(__DIR__ . '/legislator.pdf'));
+$cmd = sprintf("curl -4 -L -o %s https://data.ly.gov.tw/odw/legislator.pdf", escapeshellarg(__DIR__ . '/legislator.pdf'));
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("wget legislator.pdf failed");
