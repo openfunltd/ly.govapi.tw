@@ -6,6 +6,11 @@ include(__DIR__ . '/../init.inc.php');
 $cmd = $_SERVER['argv'][1];
 
 $start = microtime(true);
+if (!is_file($cmd)) {
+    throw new Exception("File not found: $cmd");
+}
+$cmd_id = implode('_', array_slice(explode('/', $cmd), -2));
+
 if (!is_executable($cmd)) {
     $cmd = "/usr/bin/env php $cmd";
 }
@@ -21,7 +26,6 @@ if (is_resource($proc)) {
     $ret = 1;
 }
 
-$cmd_id = implode('_', array_slice(explode('/', $cmd), -2));
 $delta = microtime(true) - $start;
 
 $data = [
