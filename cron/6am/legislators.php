@@ -1,21 +1,66 @@
 <?php
 
 include(__DIR__ . '/../../init.inc.php');
-include(__DIR__ . '/../Importer.php');
-$cmd = sprintf("curl -4 -L -o %s https://data.ly.gov.tw/odw/legislator.pdf", escapeshellarg(__DIR__ . '/legislator.pdf'));
+include(__DIR__ . '/../../imports/Importer.php');
+
+$pdf_target = __DIR__ . '/../../cache/legislator.pdf';
+$csv_target = __DIR__ . '/../../cache/16-legislator.csv';
+
+$cmd = sprintf("curl -4 -L -o %s https://data.ly.gov.tw/odw/legislator.pdf",
+    escapeshellarg('/tmp/legislator.pdf')
+);
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("wget legislator.pdf failed");
 }
 
-$cmd = sprintf("pdftotext -layout %s %s", escapeshellarg(__DIR__ . '/legislator.pdf'), escapeshellarg(__DIR__ . '/legislator.txt'));
+$content = Importer::getURL('https://data.ly.gov.tw/odw/usageFile.action?id=16&type=CSV&fname=16_CSV.csv');
+if (!file_exists($pdf_target)) {
+} elseif (!file_exists($csv_target)) {
+} elseif (md5_file($pdf_target) != md5_file('/tmp/legislator.pdf')) {
+} elseif (md5($content) != md5_file($csv_target)) {
+} else {
+    error_log("no change");
+    exit;
+}
+
+if (file_exists($pdf_target) and md5_file($pdf_target) != md5_file('/tmp/legislator.pdf')) {
+    $bak_filename = sprintf("%s.bak.%s", $pdf_target, date('YmdHi', filemtime($pdf_target)));
+    rename($pdf_target, $bak_filename);
+    Importer::addImportLog([
+        'event' => 'legislators-change',
+        'group' => 'legislator',
+        'message' => sprintf("立委終身代號更新，舊資料檔名改為 %s", basename($bak_filename)),
+    ]);
+    rename('/tmp/legislator.pdf', $pdf_target);
+} elseif (!file_exists($pdf_target)) {
+    rename('/tmp/legislator.pdf', $pdf_target);
+}
+
+if (file_exists($csv_target) and md5($content) != md5_file($csv_target)) {
+    $bak_filename = sprintf("%s.bak.%s", $csv_target, date('YmdHi', filemtime($csv_target)));
+    rename($csv_target, $bak_filename);
+    Importer::addImportLog([
+        'event' => 'legislators-change',
+        'group' => 'legislator',
+        'message' => sprintf("立委資料更新，舊資料檔名改為 %s", basename($bak_filename)),
+    ]);
+    file_put_contents($csv_target, $content);
+} elseif (!file_exists($csv_target)) {
+    file_put_contents($csv_target, $content);
+}
+
+
+$cmd = sprintf("pdftotext -layout %s %s",
+    escapeshellarg($pdf_target),
+    escapeshellarg($pdf_target . '.txt')
+);
 system($cmd, $ret);
 if ($ret) {
     throw new Exception("pdftotext legislator.pdf failed");
 }
-unlink(__DIR__ . '/legislator.pdf');
 
-$content = file_get_contents(__DIR__ . '/legislator.txt');
+$content = file_get_contents($pdf_target . '.txt');
 preg_match_all('#(\d{1,2})\s+(\d\d\d\d)\s+([^0-9 ]+)#u', $content, $matches);
 
 $matches[3] = array_map('trim', $matches[3]);
@@ -57,12 +102,9 @@ $map_id['高天來'] = '0548';
 $map_id['趙綉娃'] = '0670';
 // https://data.ly.gov.tw/getds.action?id=16
 // ID: {term}-{name}
-$content = Importer::getURL('https://data.ly.gov.tw/odw/usageFile.action?id=16&type=CSV&fname=16_CSV.csv');
-file_put_contents(__DIR__ . '/16_CSV.csv', $content);
-$fp = fopen(__DIR__ . '/16_CSV.csv', 'r');
+$fp = fopen($csv_target, 'r');
 $columns = fgetcsv($fp);
 $columns[0] = 'term';
-Elastic::$_show_log = false;
 while ($rows = fgetcsv($fp)) {
     $values = array_combine($columns, $rows);
     unset($values['']);
@@ -89,6 +131,3 @@ while ($rows = fgetcsv($fp)) {
     Elastic::dbBulkInsert('legislator', intval($values['term']) . '-' . $values['name'], $values);
 }
 Elastic::dbBulkCommit();
-
-unlink(__DIR__ . '/legislator.txt');
-unlink(__DIR__ . '/16_CSV.csv');

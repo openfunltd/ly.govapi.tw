@@ -12,8 +12,6 @@ putenv('term=' . (floor((date('Y') - 2024) / 4) + 11));
 $cmds = [
     /*
      */
-    // 委員相關
-    ['php legislator/legislators.php', '立委資料'],
     // 議案相關
     [$func_move_bill, '搬移舊議案列表'],
     ['php bill/crawl-list.php > bill/output.jsonl', '抓取議案列表'],
