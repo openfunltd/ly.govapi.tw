@@ -33,6 +33,9 @@ foreach ($meet_group as $meetingNo => $meets) {
             continue;
         }
 
+        if (getenv('year') and date('Y', $d) < getenv('year') - 1) {
+            continue;
+        }
         $d = strtotime($meet->date);
         $url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%03d/%02d/%02d",
             $meetingNo,
@@ -40,8 +43,9 @@ foreach ($meet_group as $meetingNo => $meets) {
             date('m', $d),
             date('d', $d)
         );
+        $is_in_a_month = abs(time() - $d) < 86400 * 30;
         $target = __DIR__ . "/ppg_meet_page/{$meetingNo}-{$meet->date}.html";
-        if (!file_exists($target) or filesize($target) < 300) {
+        if ($is_in_a_month or !file_exists($target) or filesize($target) < 300) {
             error_log("fetch $url");
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -53,12 +57,12 @@ foreach ($meet_group as $meetingNo => $meets) {
                 continue;
                 throw new Exception(curl_error($curl));
             }
+            file_put_contents($target, $html);
             if (filesize($target) < 300) {
                 error_log("{$url} is empty");
                 continue;
                 throw new Exception("{$url} is empty");
             }
-            file_put_contents($target, $html);
         }
         if (($_SERVER['argv'][1] ?? false) == 'onlydownload') {
             continue;
