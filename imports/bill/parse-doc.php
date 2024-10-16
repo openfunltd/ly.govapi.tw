@@ -5,6 +5,9 @@ include(__DIR__ . '/../../init.inc.php');
 if (!file_exists(__DIR__ . "/bill-doc-parsed/tikahtml")) {
 	mkdir(__DIR__ . "/bill-doc-parsed/tikahtml");
 }
+if (!file_exists(__DIR__ . "/bill-doc-parsed/html")) {
+    mkdir(__DIR__ . "/bill-doc-parsed/html");
+}
 
 $list = BillParser::getListFromFileAndDir($_SERVER['argv'][1], __DIR__ . "/bill-html");
 foreach ($list as $idx => $v) {
