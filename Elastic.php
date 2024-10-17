@@ -77,7 +77,7 @@ class Elastic
         }
         if (!is_null($id)) {
             $header = json_encode(array(
-                'index' => array('_id' => $id),
+                'update' => array('_id' => $id),
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $encdata = json_encode([
                 'doc' => $data,
