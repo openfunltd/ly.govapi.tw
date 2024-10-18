@@ -56,7 +56,7 @@ $cmd = [
         'agendaNo' => 'asc',
     ],
 ];
-file_put_contents(__DIR__  '/error.log', '');
+file_put_contents(__DIR__ . '/error.log', '');
 $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($cmd));
 foreach ($handle_gazette($obj->hits->hits) as $gazette) {
     error_log($gazette->gazette_id);
