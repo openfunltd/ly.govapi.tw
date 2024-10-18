@@ -13,10 +13,14 @@ class Importer
         return curl_exec($curl);
     }
 
-    public static function addImportLog($data)
+    public static function addImportLog($data, $commit = true)
     {
-        $data['log_at'] = date('c');
-        Elastic::dbBulkInsert('logs-import-' . date('Y'), null, $data);
-        Elastic::dbBulkCommit();
+        if (!is_null($data)) {
+            $data['log_at'] = date('c');
+            Elastic::dbBulkInsert('logs-import-' . date('Y'), null, $data);
+        }
+        if ($commit) {
+            Elastic::dbBulkCommit();
+        }
     }
 }
