@@ -7,7 +7,7 @@ for ($term = 8;; $term ++) {
     error_log($term);
     // https://data.ly.gov.tw/getds.action?id=41
     for ($period = 1; $period <= 8; $period ++) {
-        $target = sprintf(__DIR__ . "/gazette/%02d%02d.csv", $term, $period);
+        $target = sprintf(__DIR__ . "/../cache/41-gazette-%02d%02d.csv", $term, $period);
         if (file_exists($target) and getenv('term') and $term == getenv('term')) {
             error_log("backup old term: $term");
             rename($target, $target . '.old');
@@ -119,9 +119,13 @@ foreach ($list_files as $file) {
         } elseif ($agenda['agenda_id'] == '1135102_00004') {
             $agenda['meetingDate'] = ['2024-05-31'];
         }
-        Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], array_merge($agenda, [
-            'docUrls' => $agendas_doc[$agenda['agenda_id']],
-        ]));
+        $data_file = __DIR__ . "/gazette/gazette-agenda-data/{$agenda_id}.json";
+        if (!file_exists($data_file)) {
+            file_put_contents($data_file, json_encode($agenda, JSON_UNESCAPED_UNICODE));
+            Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], array_merge($agenda, [
+                'docUrls' => $agendas_doc[$agenda['agenda_id']],
+            ]));
+        }
 
         if (array_key_exists($agenda['gazette_id'], $gazettes)) {
             if ($gazettes[$agenda['gazette_id']] != $gazette) {
@@ -153,7 +157,20 @@ foreach ($list_files as $file) {
                 //readline('continue?');
                 //throw new Exception('no published_at: ' . $detail_page_url);
             }
-            Elastic::dbBulkInsert('gazette', $agenda['gazette_id'], $gazette);
+            $data_file = __DIR__ . "/gazette/gazette-data/{$gazette_id}.json";
+            if (!file_exists($data_file)) {
+                file_put_contents($data_file, json_encode($gazette, JSON_UNESCAPED_UNICODE));
+                Elastic::dbBulkInsert('gazette', $agenda['gazette_id'], $gazette);
+                Importer::addImportLog([
+                    'event' => 'gazette-new',
+                    'group' => 'gazette',
+                    'message' => sprintf("公報資料更新，公報編號 %s", $agenda['gazette_id']),
+                    'data' => json_encode([
+                        'gazette_id' => $agenda['gazette_id'],
+                        'published_at' => $gazette['published_at'],
+                    ]),
+                ]);
+            }
         }
     }
 }
