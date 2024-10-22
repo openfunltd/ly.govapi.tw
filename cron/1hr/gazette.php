@@ -6,6 +6,7 @@ include(__DIR__ . '/../../imports/Importer.php');
 $term = getenv('term');
 if (!$term) {
     $term = 11;
+    putenv('term=' . $term);
 }
 
 foreach ([
