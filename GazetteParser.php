@@ -1002,6 +1002,7 @@ class GazetteParser
             while (count($doms)) {
                 $dom = array_shift($doms);
                 $dom->cline = str_replace('[pic]', '', $dom->cline);
+                $dom->cline = preg_replace('#\[image:[^\]]+\]#', '', $dom->cline);
                 if (preg_match('#^立法院.*第\s*(\d+)\s*屆.*議事錄$#', trim($dom->cline), $matches)) {
                     $meet_type = null;
                     $current_meet_info = LYLib::meetNameToId($dom->cline);
@@ -1082,7 +1083,7 @@ class GazetteParser
                 }
 
                 if (strpos($value, '：') and in_array(explode('：', trim($value))[0], ['列席委員', '出席委員', '列席人員', '紀錄', '地點', '請假委員', '列席官員', '編審', '主席'])) {
-                    $prev_col = explode('：', $value)[0];
+                    $prev_col = trim(explode('：', $value)[0]);
                     $ret->{$prev_col} = explode('：', $value)[1];
                     continue;
                 }
@@ -1334,7 +1335,7 @@ class GazetteParser
             if (preg_match('#^立法院(.*)會議#', $line, $matches)) {
                 if ($ret->content) {
                     $ret->line = $line;
-                    yield $ret;
+                    yield clone $ret;
                 }
                 $ret->meet_name = trim($line);
                 $ret->content = '';
@@ -1343,7 +1344,7 @@ class GazetteParser
             } elseif (preg_match('#^立法院(.*)#', $line) and preg_match('#紀錄#', $lines[0])) {
                 if ($ret->content) {
                     $ret->line = $line;
-                    yield $ret;
+                    yield clone $ret;
                 }
                 $ret->meet_name = trim($line) . trim(array_shift($lines));
                 $ret->content = '';
@@ -1355,7 +1356,7 @@ class GazetteParser
             if (preg_match('#（頁次[^）]*）$#u', trim($line))) {
                 if (!is_null($ret->speakers)) {
                     $ret->line = $line;
-                    yield $ret;
+                    yield clone $ret;
                     $ret->content = '';
                     $ret->speakers = '';
                 }
@@ -1379,7 +1380,7 @@ class GazetteParser
 
             if (ltrim($line) == $line) {
                 $ret->line = $line;
-                yield $ret;
+                yield clone $ret;
                 $ret->content = $line;
                 $ret->speakers = null;
                 continue;
@@ -1389,7 +1390,7 @@ class GazetteParser
 
         if ($ret->content) {
             $ret->line = $line;
-            yield $ret;
+            yield clone $ret;
         }
     }
 }
