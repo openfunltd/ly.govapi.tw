@@ -110,20 +110,22 @@ foreach ([
         } else if (json_encode($ivod->transcript) != json_encode($old_ivod_data->transcript)) {
             $changes[] = 'transcript';
         }
-        Importer::addImportLog([
-            'event' => 'ivod-change',
-            'group' => 'ivod',
-            'message' => sprintf("變更 ivod: %s (%s)", $ivod->id, implode(',', $changes)),
-            'data' => json_encode([
-                'ivod_id' => $ivod->id,
-                '委員名稱' => $ivod->{'委員名稱'},
-                'meet_id' => $ivod->meet->id,
-                '會議名稱' => $ivod->{'會議名稱'},
-                'type' => $type,
-                'features' => $ivod->features,
-                'changes' => $changes,
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        ], $commit = false);
+        if ($ivod->duration > 0) {
+            Importer::addImportLog([
+                'event' => 'ivod-change',
+                'group' => 'ivod',
+                'message' => sprintf("變更 ivod: %s (%s)", $ivod->id, implode(',', $changes)),
+                'data' => json_encode([
+                    'ivod_id' => $ivod->id,
+                    '委員名稱' => $ivod->{'委員名稱'},
+                    'meet_id' => $ivod->meet->id,
+                    '會議名稱' => $ivod->{'會議名稱'},
+                    'type' => $type,
+                    'features' => $ivod->features,
+                    'changes' => $changes,
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ], $commit = false);
+        }
 
         file_put_contents($ivod_target_file, json_encode($ivod, JSON_UNESCAPED_UNICODE));
         Elastic::dbBulkInsert('ivod', $ivod->id, $ivod);
