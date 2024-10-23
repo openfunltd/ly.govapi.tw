@@ -202,7 +202,7 @@ class MeetParser
                         'title' => $text,
                     ];
 
-                    if ($a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
+                    if (!$a_dom = $span_dom->getElementsByTagName('a')->item(0)) {
                     } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
                     } else {
                         $record['billNo'] = $matches[1];
