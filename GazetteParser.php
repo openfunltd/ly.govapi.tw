@@ -48,6 +48,10 @@ class GazetteParser
             self::$_name_list->{$term}[$queryname] = $hit->fields->name[0];
         }
 
+        if ($term == 6) {
+            self::$_name_list->{$term}[json_decode('"\u5085\ue8e4\u8401"')] = '傅崐萁';
+        }
+
         if ($term == 7) {
             self::$_name_list->{$term}['郭添財'] = '許添財';
             self::$_name_list->{$term}['鐘紹和'] = '鍾紹和';
