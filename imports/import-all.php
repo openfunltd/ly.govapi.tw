@@ -12,15 +12,6 @@ putenv('term=' . (floor((date('Y') - 2024) / 4) + 11));
 $cmds = [
     /*
      */
-    // 會議相關
-    ['php meet/crawl-meet.php', '抓取會議資料'],
-    ['php meet/parse-meet-from-gazette.php', '從公報抓取院會議事錄'],
-    ['php meet/crawl-meet-proceeding.php', '抓取委員會議事錄並轉檔成 HTML'],
-    ['php meet/parse-meet-proceeding.php', '將委員會議事錄匯入資料庫'],
-    ['php meet/crawl-meet-speechlist.php', '從opendata抓取發言紀錄'],
-    ['php meet/parse-speech-from-gazette.php', '從公報抓取發言紀錄'],
-    ["php meet/crawl-ppg-page.php", "抓取公報網會議網頁"],
-    ['php meet/link-meet.php', '更新會議資料'],
     // ivod 相關
     ['php ivod/crawl-html.php', '抓取 ivod HTML'],
     ['php ivod/import-ivod.php', '匯入 ivod'],
