@@ -980,6 +980,9 @@ class GazetteParser
             if ('' == trim($line)) {
                 continue;
             }
+            if (preg_match('#^\s+(列席官員：.*)$#u', $line, $matches)) {
+                $line = $matches[1];
+            }
             $dom = new StdClass;
             $dom->line = self::replaceWord($line);
             $dom->cline = self::removeSpace($dom->line);
