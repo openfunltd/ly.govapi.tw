@@ -268,6 +268,7 @@ class LYLib
         // 立法院第8屆第1會期財政、經濟委員會第1次聯席會議 -> committees-8-1-19,20-1
         // 第8屆第4會期第2次全院委員會議
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次(全院委員會?)?會議$/u', $name, $matches)) {
+            $ret->title = $matches[0];
             if (count($matches) > 4 and $matches[4]) {
                 $ret->id = '全院委員會-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3];
                 $ret->type = '全院委員會';
@@ -286,6 +287,7 @@ class LYLib
         }
 
         if (preg_match('/^第(\d+)屆第(\d+)會期第(\d+)次臨時會第(\d+)次(全院委員會)?(會議)?$/', $name, $matches)) {
+            $ret->title = $matches[0];
             if ($matches[5]) {
                 $ret->id = '臨時會全院委員會-' . $matches[1] . '-' . $matches[2] . '-' . $matches[3] . '-' . $matches[4];
                 $ret->type = '全院委員會';
@@ -367,6 +369,7 @@ class LYLib
         }
         // 立法院第8屆修憲委員會第1次全體委員會議
         if (preg_match('/^第(\d+)屆([^第]*)委員會第(\d+)次全體委員會議?/u', $name, $matches)) {
+            $ret->title = $matches[0];
             $committeeIdMap = self::getCommitteeIdMap();
             $ret->type = '委員會';
             $ret->term = intval($matches[1]);
@@ -383,6 +386,7 @@ class LYLib
         // 立法院第8屆第6會期社會福利及衛生環境、司法及法制二委員會第1次聯席會議
         // 立法院第9屆第4會期社會福利及衛生環境及經濟二委員會第1次聯席會議
         if (preg_match('/^第(\d+)屆第(\d+)會期(第(\d+)次臨時會)?(.*)第(\d+)次(聯席|全體委員)會議?/u', $name, $matches)) {
+            $ret->title = $matches[0];
             $ret->type = '聯席會議';
             $ret->term = intval($matches[1]);
             $ret->sessionPeriod = intval($matches[2]);
