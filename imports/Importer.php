@@ -35,7 +35,7 @@ class Importer
     public static function addImportLog($data, $commit = true)
     {
         if (!is_null($data)) {
-            $data['log_at'] = date('c');
+            $data['log_at'] = microtime(true);
             Elastic::dbBulkInsert('logs-import-' . date('Y'), null, $data);
         }
         if ($commit) {
