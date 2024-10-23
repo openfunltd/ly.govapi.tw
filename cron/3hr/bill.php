@@ -154,7 +154,7 @@ foreach ($list as $idx => $v) {
                     'billNo' => $billNo,
                     'changes' => $changes,
                 ], JSON_UNESCAPED_UNICODE),
-            ]);
+            ], $commit = false);
         }
     } else {
         Importer::addImportLog([
@@ -164,7 +164,7 @@ foreach ($list as $idx => $v) {
             'data' => json_encode([
                 'billNo' => $billNo,
             ], JSON_UNESCAPED_UNICODE),
-        ]);
+        ], $commit = false);
     }
 
     file_put_contents($bill_data_path, gzencode(json_encode($values, JSON_UNESCAPED_UNICODE)));
