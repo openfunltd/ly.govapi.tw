@@ -1,6 +1,7 @@
 <?php
 
 include(__DIR__ . '/../../init.inc.php');
+include(__DIR__ . '/../../imports/Importer.php');
 
 $meets = [];
 $fp = fopen(__DIR__ . '/../../cache/42-meet.jsonl', 'r');
@@ -46,16 +47,11 @@ foreach ($meet_group as $meetingNo => $meets) {
         $is_in_a_month = abs(time() - $d) < 86400 * 30;
         $target = __DIR__ . "/ppg_meet_page/{$meetingNo}-{$meet->date}.html";
         if ($is_in_a_month or !file_exists($target) or filesize($target) < 300) {
-            error_log("fetch $url");
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            // ipv4
-            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-            $html = curl_exec($curl);
-            if (curl_errno($curl)) {
-                error_log(curl_error($curl));
+            try {
+                $html = Importer::getURL($url);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
                 continue;
-                throw new Exception(curl_error($curl));
             }
             file_put_contents($target, $html);
             if (filesize($target) < 300) {
