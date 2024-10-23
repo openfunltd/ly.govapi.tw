@@ -7,11 +7,18 @@ file_put_contents(__DIR__ . '/../../cache/42-meet.jsonl', '');
 for ($p = 1; ; $p ++) {
     $url = sprintf("https://data.ly.gov.tw/odw/openDatasetJson.action?id=42&selectTerm=all&page=%d", $p);
     error_log($url);
-    $content = Importer::getURL($url);
-    $json = json_decode($content);
+    for ($retry = 0; $retry < 3; $retry ++) {
+        $content = Importer::getURL($url);
+        $json = json_decode($content);
+        if (!$json) {
+            error_log("fetch $url failed, retry...");
+            continue;
+        }
+        break;
+    }
     if (!$json) {
-        echo $content;
-        throw new Exception("{$url} failed");
+        error_log("fetch $url failed");
+        break;
     }
     foreach ($json->jsonList as $meet) {
         file_put_contents(__DIR__ . '/../../cache/42-meet.jsonl', json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
