@@ -184,7 +184,7 @@ foreach ($meet_map as $meet_id => $meet_data) {
         ]);
     }
     file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE));
-    Elastic::dbBulkInsert('bill', $meet_id, $meet_data);
+    Elastic::dbBulkInsert('meet', $meet_id, $meet_data);
     /*
     $diff = $diff_function($source, $meet_data);
 
