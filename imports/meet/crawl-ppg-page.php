@@ -1,9 +1,10 @@
 <?php
 
 include(__DIR__ . '/../../init.inc.php');
+include(__DIR__ . '/../../imports/Importer.php');
 
 $meets = [];
-$fp = fopen(__DIR__ . '/meet.jsonl', 'r');
+$fp = fopen(__DIR__ . '/../../cache/42-meet.jsonl', 'r');
 $meet_map = new StdClass;
 $ids = [];
 while ($line = fgets($fp)) {
@@ -46,16 +47,11 @@ foreach ($meet_group as $meetingNo => $meets) {
         $is_in_a_month = abs(time() - $d) < 86400 * 30;
         $target = __DIR__ . "/ppg_meet_page/{$meetingNo}-{$meet->date}.html";
         if ($is_in_a_month or !file_exists($target) or filesize($target) < 300) {
-            error_log("fetch $url");
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            // ipv4
-            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-            $html = curl_exec($curl);
-            if (curl_errno($curl)) {
-                error_log(curl_error($curl));
+            try {
+                $html = Importer::getURL($url);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
                 continue;
-                throw new Exception(curl_error($curl));
             }
             file_put_contents($target, $html);
             if (filesize($target) < 300) {
@@ -69,7 +65,7 @@ foreach ($meet_group as $meetingNo => $meets) {
         }
         error_log("{$target} {$url}");
         $json_target = __DIR__ . "/ppg_meet_page_json/{$meetingNo}-{$meet->date}.json";
-        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2024-09-11 14:40')) {
+        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2024-10-21 09:40')) {
             try {
                 $info = MeetParser::parseMeetPage(file_get_contents($target), __DIR__, $meetingNo, $url);
             } catch (Exception $e) {

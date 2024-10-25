@@ -2,7 +2,7 @@
 
 include(__DIR__ . '/../../init.inc.php');
 
-$fp = fopen(__DIR__ . '/meet.jsonl', 'r');
+$fp = fopen(__DIR__ . '/../../cache/42-meet.jsonl', 'r');
 $meet_map = new StdClass;
 $ids = [];
 while ($line = fgets($fp)) {
@@ -11,6 +11,9 @@ while ($line = fgets($fp)) {
     $o = new StdClass;
     $o->meet_data = [$meet];
     $meet = LYLib::buildMeet($o)->meet_data[0];
+    if (getenv('year') and date('Y', strtotime($meet->date)) != getenv('year')) {
+        continue;
+    }
     try {
         $meet_obj = LYLib::meetNameToId($meet->meetingName);
         if (!$meet_obj) {

@@ -8,19 +8,25 @@ include(__DIR__ . '/../../init.inc.php');
 // 因此這邊先恢復運作
 
 $start = date('Y');
-for ($y = $start; $y >= 2012; $y --) {
+$end_year = 2017;  // TODO: 2016 有些資料錯誤，之後需要手動處理 ex: agenda-txt/LCIDC01_1056801_00008.doc
+for ($y = $start; $y >= $end_year; $y --) {
     if (getenv('year') and $y < getenv('year')) {
         continue;
     }
     error_log($y);
    
-    $meets = [];
     foreach (glob(__DIR__ . sprintf("/../gazette/agenda-txt/LCIDC01_%3d*", $y - 1911)) as $txtfile) {
         $cmd = sprintf("grep '會議議事錄' %s | grep 立法院", escapeshellarg($txtfile));
         $ret = trim(`$cmd`);
         if (!strlen($ret)) {
             continue;
         }
+        preg_match('#LCIDC01_([0-9]+)_(\d+)#', $txtfile, $matches);
+        $comYear = intval(substr($matches[1], 0, 3));
+        $comVolume = intval(substr($matches[1], 3, -2));
+        $comBookId = intval(substr($matches[1], -2));
+        $agenda_lcidc_id = "{$matches[1]}_{$matches[2]}";
+
         preg_match_all('#立法院.*會議議事錄#u', $ret, $matches);
         foreach ($matches[0] as $subject) {
             try {
@@ -28,61 +34,39 @@ for ($y = $start; $y >= 2012; $y --) {
             } catch (Exception $e) {
                 continue;
             }
-            
-            $meets[$meet_obj->id] = [$meet_obj->id, $txtfile, $meet_obj, $subject, null];
-        }
-    }
-    $ret = Elastic::dbQuery('/{prefix}meet/_search', 'GET', json_encode([
-        'query' => ['terms' => ['_id' => array_keys($meets)]],
-        'size' => 1000,
-    ]));
 
-    foreach ($ret->hits->hits as $hit) {
-        $meets[$hit->_id][4] = $hit->_source;
-    }
-
-    foreach ($meets as $meet) {
-        list($meet_id, $txtfile, $meet_obj, $subject, $meet_data) = $meet;
-        preg_match('#LCIDC01_([0-9]+)_(\d+)#', $txtfile, $matches);
-        $comYear = intval(substr($matches[1], 0, 3));
-        $comVolume = intval(substr($matches[1], 3, -2));
-        $comBookId = intval(substr($matches[1], -2));
-        $agenda_lcidc_id = "{$matches[1]}_{$matches[2]}";
-
-
-        error_log("parsing $txtfile");
-        if ($meet_data) {
-            $meet = $meet_data;
-        } else {
-            $meet = new StdClass;
-        }
-        try {
-            $info = GazetteParser::parseAgendaWholeMeetingNote($txtfile, $meet_obj->id);
-        } catch (Exception $e) {
-            if (strpos($e->getMessage(), '找不到議事錄標題') !== false) {
-                error_log($e->getMessage());
-                continue;
+            $meet_data_file = __DIR__ . sprintf("/../meet/meet-sub-data/%s.json", $meet_obj->id);
+            if (!file_exists($meet_data_file)) {
+                $meet_data = new StdClass;
+            } else {
+                $meet_data = json_decode(file_get_contents($meet_data_file));
             }
-            throw $e;
+
+            try {
+                $info = GazetteParser::parseAgendaWholeMeetingNote($txtfile, $meet_obj->id);
+            } catch (Exception $e) {
+                if (strpos($e->getMessage(), '找不到議事錄標題') !== false) {
+                    error_log($txtfile . ' ' . $e->getMessage());
+                    continue;
+                }
+                error_log("{$txtfile} {$meet_obj->id} {$e->getMessage()}");
+                continue;
+                throw $e;
+            }
+            $info->comYear = $comYear;
+            $info->comVolume = $comVolume;
+            $info->comBookId = $comBookId;
+            $info->agenda_lcidc_id = $agenda_lcidc_id;
+
+            if (!property_exists($meet_data, '議事錄') or json_encode($info) != json_encode($meet_data->{'議事錄'})) {
+                if (property_exists($meet_data, '議事錄') and $meet_data->{'議事錄'}->agenda_lcidc_id > $agenda_lcidc_id) {
+                    // 表示同一份議事錄有出現在兩個以上不同的地方，那以新的為主
+                    continue;
+                }
+                error_log("{$txtfile} {$meet_obj->id}");
+                $meet_data->{'議事錄'} = $info;
+                file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            }
         }
-        $meet->meet_id = $meet_obj->id;
-        $meet->term = $meet_obj->term;
-        $meet->meet_type = $meet_obj->type;
-        $meet->committees = $meet_obj->committees;
-        $meet->sessionPeriod = $meet_obj->sessionPeriod;
-        $meet->sessionTimes = $meet_obj->sessionTimes;
-        $meet->title = str_replace('議事錄', '', $info->title);
-        $info->comYear = $comYear;
-        $info->comVolume = $comVolume;
-        $info->comBookId = $comBookId;
-        $info->agenda_lcidc_id = $agenda_lcidc_id;
-        $meet->{'議事錄'} = $info;
-        unset($info->meet_id);
-        //echo json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n";
-        //continue;
-            
-        $meet = LYLib::buildMeet($meet, 'db');
-        Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
     }
 }
-Elastic::dbBulkCommit();

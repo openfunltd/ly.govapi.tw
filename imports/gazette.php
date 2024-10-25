@@ -15,8 +15,9 @@ for ($term = 8;; $term ++) {
         if (!file_exists($target)) {
             $url = sprintf("https://data.ly.gov.tw/odw/usageFile.action?id=41&type=CSV&fname=41_%02d%02dCSV-1.csv", $term, $period);
             error_log("importing $url");
-            $content = Importer::getURL($url);
-            if (strpos($content, '403 Forbidden') !== false or strlen($content) == 0) {
+            try {
+                $content = Importer::getURL($url);
+            } catch (Exception $e) {
                 break 2;
             }
             file_put_contents($target, $content);

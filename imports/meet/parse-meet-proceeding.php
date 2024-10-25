@@ -2,10 +2,9 @@
 
 include(__DIR__ . '/../../init.inc.php');
 
-$fp = fopen(__DIR__ . '/meet.jsonl', 'r');
+$fp = fopen(__DIR__ . '/../../cache/42-meet.jsonl', 'r');
 $meet_map = new StdClass;
 $meets = [];
-$next = null;
 while ($line = fgets($fp)) {
     $meet_data = json_decode($line);
     $meet_data = LYLib::filterMeetData($meet_data);
@@ -27,47 +26,28 @@ while ($line = fgets($fp)) {
         continue;
     }
     $txt_target = __DIR__ . "/meet-proceeding-txt/{$meet_obj->id}.txt";
-    if ($next and $next != $txt_target) {
-        continue;
-    }
     if (!file_exists($txt_target)) {
         continue;
     }
+
+    $meet_data_file = __DIR__ . sprintf("/../meet/meet-sub-data/%s.json", $meet_obj->id);
+    if (!file_exists($meet_data_file)) {
+        $meet_data = new StdClass;
+    } else {
+        $meet_data = json_decode(file_get_contents($meet_data_file));
+    }
+    if (property_exists($meet_data, '議事錄') and property_exists($meet_data->{'議事錄'}, 'comYear')) {
+        // 已經在 parse-meet-from-gazette.php 抓取的，以那邊優先，因為那邊才有公報位置
+        continue;
+    }
     try {
-        error_log($txt_target);
         $info = GazetteParser::parseAgendaWholeMeetingNote($txt_target, $meet_obj->id, $meet_obj);
     } catch (Exception $e) {
         throw $e;
     }
-    $meets[$meet_obj->id] = [$info, $meet_obj, false];
-}
-
-$ret = Elastic::dbQuery('/{prefix}meet/_search', 'GET', json_encode([
-    'query' => ['terms' => ['_id' => array_keys($meets)]],
-    'size' => 1000,
-]));
-foreach ($ret->hits->hits as $hit) {
-    $meets[$hit->_id][2] = $hit->_source;
-}
-
-foreach ($meets as $meet) {
-    list($info, $meet_obj, $meet_data) = $meet;
-    if ($meet_data) {
-        $meet = $meet_data;
-    } else {
-        $meet = new StdClass;
+    if (!property_exists($meet_data, '議事錄') or json_encode($info) != json_encode($meet_data->{'議事錄'})) {
+        error_log("{$txt_target} {$meet_obj->id}");
+        $meet_data->{'議事錄'} = $info;
+        file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
-    $meet->meet_id = $meet_obj->id;
-    $meet->term = $meet_obj->term;
-    $meet->meet_type = $meet_obj->type;
-    $meet->committees = $meet_obj->committees;
-    $meet->sessionPeriod = $meet_obj->sessionPeriod;
-    $meet->sessionTimes = $meet_obj->sessionTimes;
-
-    $meet->{'議事錄'} = $info;
-
-    $meet = LYLib::buildMeet($meet, 'db');
-    Elastic::dbBulkInsert('meet', $meet->meet_id, $meet);
 }
-
-Elastic::dbBulkCommit();
