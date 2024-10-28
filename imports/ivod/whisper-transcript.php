@@ -3,6 +3,7 @@
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/IVodParser.php');
 $crawled = 0;
+$overtime_limit = 5;
 $endtime = $_SERVER['argv'][1] ?? null;
 if (!is_null($endtime)) {
     $endtime = strtotime($endtime);
@@ -33,7 +34,7 @@ $handle_jobs = function() use (&$jobs) {
     $start_time = null;
     $data = null;
     if (count($jobs) == 0) {
-        error_log("no job");
+        error_log("no job, sleep 60 seconds");
         sleep(60);
     }
     while (count($jobs) > 0) {
@@ -80,10 +81,11 @@ $handle_jobs = function() use (&$jobs) {
     }
 };
 
-$v = max(intval(file_get_contents(__DIR__ . '/current-id')), 146312);
+$max_v = $v = max(intval(file_get_contents(__DIR__ . '/current-id')), 146312);
 $error_name = [];
 $c = 0;
-for (; $v > 0; $v --) {
+for ($v = 155000; $v <= $max_v; $v ++) {
+//for (; $v > 0; $v --) {
     //error_log($v);
     $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
     $html_target = __DIR__ . "/html/{$v}.html";
@@ -94,12 +96,13 @@ for (; $v > 0; $v --) {
     $error_retry = false;
     if (file_exists($transcript_target)) {
         $content = file_get_contents($transcript_target);
-        if (strpos($content, 'status: error') === false) {
+        if (strpos($content, 'status: error') === false and strpos($content, 'error: get-ly-ivod.php') === false) {
             continue;
         }
         $error_retry = true;
         // 有 error 的話要再重試
         if (time() - filemtime($transcript_target) < 5 * 60) { // 失敗的話五分鐘內不重試
+            error_log("skip retry {$v} until: " . date('Y-m-d H:i:s', filemtime($transcript_target) + 5 * 60));
             continue;
         }
     }
@@ -108,7 +111,10 @@ for (; $v > 0; $v --) {
         //continue;
     }
     if ($endtime and strtotime($ivod->start_time) < $endtime) {
-        break;
+        $overtime_limit --;
+        if ($overtime_limit <= 0) {
+            break;
+        }
     }
     $init_prompt = sprintf("會議名稱：%s\n發言委員：%s", $ivod->會議名稱, $ivod->委員名稱);
     error_log("{$v}: ({$ivod->start_time}-{$ivod->end_time}) {$ivod->會議名稱}");
