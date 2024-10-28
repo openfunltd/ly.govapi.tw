@@ -5,7 +5,7 @@ include(__DIR__ . '/IVodParser.php');
 $crawled = 0;
 
 // find latest gazette date
-$gazette_list = glob(__DIR__ . '/../gazette/????.csv');
+$gazette_list = glob(__DIR__ . '/../../cache/41-gazette-????.csv');
 rsort($gazette_list);
 $fp = fopen($gazette_list[0], 'r');
 $cols = fgetcsv($fp);
