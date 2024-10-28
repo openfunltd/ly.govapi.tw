@@ -23,6 +23,9 @@ foreach ($obj->hits->hits as $hit) {
         echo json_encode($source, JSON_UNESCAPED_UNICODE) . "\n";
         exit;
     }
+    if ($hit->_source->term < 10) {
+        break;
+    }
 
     $meetingNo = null;
     foreach ($source->meet_data as $meet_data) {
@@ -118,8 +121,29 @@ foreach ($obj->hits->hits as $hit) {
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;
+
+            $target_file = __DIR__ . "/interpellation-data/{$interpellation->id}";
+            if (!file_Exists($target_file)) {
+                Importer::addImportLog([
+                    'event' => 'interpellation-new',
+                    'group' => 'interpellation',
+                    'message' => sprintf("新增質詢(%s) %s", $interpellation->會議代碼, $interpellation->事由),
+                    'data' => json_encode([
+                        'id' => $interpellation->id,
+                        '質詢委員' => $interpellation->質詢委員,
+                        '事由' => $interpellation->事由,
+                        '會議編號' => $interpellation->會議代碼,
+                    ], JSON_UNESCAPED_UNICODE),
+                ], $commit = false);
+            } else if (file_get_contents($target_file) == json_encode($interpellation, JSON_UNESCAPED_UNICODE)) {
+                continue;
+            } else {
+                throw new Exception("書面質詢資料不該變動，警告！{$interpellation->id}");
+            }
+            file_put_contents($target_file, json_encode($interpellation, JSON_UNESCAPED_UNICODE));
             Elastic::dbBulkInsert('interpellation', $interpellation->id, $interpellation);
         }
     }
 }
 Elastic::dbBulkCommit();
+Importer::addImportLog(null, $commit = true);
