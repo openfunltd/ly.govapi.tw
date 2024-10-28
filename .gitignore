@@ -28,6 +28,7 @@ imports/bill/bill-data
 imports/bill/tmp.doc
 imports/bill/tmp.html
 imports/interpellation/files
+imports/interpellation/interpellation-data
 imports/ivod/current-id
 imports/ivod/current-full-id
 imports/ivod/html
