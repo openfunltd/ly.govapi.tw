@@ -1,6 +1,23 @@
 <?php
 
 include(__DIR__ . '/../../init.inc.php');
+include(__DIR__ . '/../../LawLib.php');
+
+$laws = [];
+$fp = fopen(__DIR__ . "/law-data/laws.csv", 'r');
+$cols = fgetcsv($fp);
+while ($rows = fgetcsv($fp)) {
+    $laws[$rows[0]] = array_combine($cols, $rows);
+    $laws[$rows[0]]['categories'] = [];
+}
+fclose($fp);
+
+$fp = fopen(__DIR__ . "/law-data/laws-category.csv", 'r');
+$cols = fgetcsv($fp);
+while ($rows = fgetcsv($fp)) {
+    $laws[$rows[3]]['categories'][] = $rows[0];
+}
+fclose($fp);
 
 $read_line = function($fp){
     $id = null;
@@ -28,6 +45,7 @@ $read_line = function($fp){
 
 $filename = __DIR__ . '/law.pdf';
 
+if (false) {
 $url = "https://data.ly.gov.tw/odw/LawNo.pdf";
 system(sprintf("wget -4 -O %s %s", escapeshellarg($filename), escapeshellarg($url)), $ret);
 if ($ret != 0) {
@@ -35,6 +53,7 @@ if ($ret != 0) {
 }
 
 system(sprintf("pdftotext -layout %s %s", escapeshellarg($filename), escapeshellarg($filename . '.txt')), $ret);
+}
 
 $fp = fopen($filename . '.txt', 'r');
 foreach ($read_line($fp) as $id => $name) {
@@ -63,6 +82,16 @@ foreach ($read_line($fp) as $id => $name) {
         $data['parent'] = sprintf("%05d", floor($id / 1000));
         $data['type'] = '子法';
     }
+    $law_data_dir = __DIR__ . "/law-data/laws/{$data['id']}";
+    if (file_exists($law_data_dir)) {
+        $data['versions'] = LawLib::getVersionsByDir($law_data_dir);
+    }
+    if (array_key_exists($data['id'], $laws)) {
+        $data['categories'] = $laws[$data['id']]['categories'];
+        $data['status'] = $laws[$data['id']]['狀態'];
+        unset($laws[$data['id']]);
+    }
     Elastic::dbBulkInsert('law', $data['id'], $data);
 }
+error_log("laws not found: " . json_encode(array_keys($laws)));
 Elastic::dbBulkCommit();
