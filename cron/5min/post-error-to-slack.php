@@ -5,7 +5,8 @@ include(__DIR__ . '/../../imports/Importer.php');
 
 $error_log_cursor_file = __DIR__ . '/../../cache/error-log-cursor';
 if (!file_exists($error_log_cursor_file)) {
-    file_put_contents($error_log_cursor_file, '0');
+    Importer::postToSlack(getenv('SLACK_CRON_ERROR_HOOK'), 'cache directory not found');
+    exit;
 }
 $error_log_cursor = floatval(file_get_contents($error_log_cursor_file));
 
