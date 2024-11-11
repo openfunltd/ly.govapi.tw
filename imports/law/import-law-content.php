@@ -375,13 +375,14 @@ class Exporter
             Elastic::dbBulkInsert('law_content', $law_content_id, $law_content_data);
 
             foreach ($obj->law_data as $idx => $law_data) {
+                $idx ++;
                 $law_content_id = "{$id}:{$version_id}:{$idx}";
 
                 $law_content_data = [
                     'law_content_id' => $law_content_id,
                     'law_id' => $id,
                     'version_id' => $version_id,
-                    'idx' => $idx + 1,
+                    'idx' => $idx,
                 ];
                 if (property_exists($law_data, 'rule_no')) {
                     $law_content_data['rule_no'] = $law_data->rule_no;
