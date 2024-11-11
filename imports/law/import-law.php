@@ -56,23 +56,26 @@ system(sprintf("pdftotext -layout %s %s", escapeshellarg($filename), escapeshell
 }
 
 $fp = fopen($filename . '.txt', 'r');
-foreach ($read_line($fp) as $id => $name) {
-    $names = preg_split('#\s+#', $name);
-    if (count($names) > 2) {
-        print_r($names);
-        exit;
+error_log("start");
+while ($line = fgets($fp)) {
+    $terms = explode("\t", $line);
+    list($id, $name, $names) = $terms;
+    if (!preg_match('#^\d\d\d\d\d\d\d\d$#', $id)) {
+        var_dump($line);
+        throw new Exception("id not found: " . $id);
     }
-    if (count($names) == 1) {
-        $names[] = [];
+    $names = trim($names);
+    if ($names == '') {
+        $names = [];
     } else {
-        $names[1] = explode(',', $names[1]);
+        $names = explode(',', $names);
     }
     $data = [
         'id' => $id,
         'type' => '',
         'parent' => '',
-        'name' => $names[0],
-        'name_other' => $names[1],
+        'name' => $name,
+        'name_other' => $names,
     ];
 
     if ($id % 1000 == 0) {
@@ -82,6 +85,7 @@ foreach ($read_line($fp) as $id => $name) {
         $data['parent'] = sprintf("%05d", floor($id / 1000));
         $data['type'] = '子法';
     }
+    error_log($data['id']);
     $law_data_dir = __DIR__ . "/law-data/laws/{$data['id']}";
     if (file_exists($law_data_dir)) {
         $data['versions'] = LawLib::getVersionsByDir($law_data_dir);
