@@ -21,7 +21,7 @@ class Exporter
         return file_get_contents($file);
     }
 
-    public function trim($str)
+    public static function trim($str)
     {
         $str = str_replace('&nbsp;', '', $str);
         return trim($str, " \t\n" . html_entity_decode('&nbsp;'));
@@ -44,8 +44,11 @@ class Exporter
         $obj->title = $title;
         $obj->versions = $versions;
         $obj->types = $types;
+        if (preg_match('#<td class="law_NA">([^<]+)#u', $content, $matches)) {
+            $obj->title = $matches[1];
+        }
         try {
-            $obj->law_data = $this->parseLawHTML($content);
+            $obj->law_data = self::parseLawHTML($content);
         } catch (CustomError $e) {
             $e->setMessage("{$title} {$id} {$versions[0]} {$e->getMessage()}");
             throw $e;
@@ -57,13 +60,13 @@ class Exporter
                     // do nothing, 因為異動條文直接 diff 就可以得到了
                 } elseif ($type == '立法歷程') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-立法歷程.html");
-                    $obj->law_history = $this->parseHistoryHTML($content);
+                    $obj->law_history = self::parseHistoryHTML($content);
                 } elseif ($type == '異動條文及理由') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-異動條文及理由.html");
-                    $obj->law_reasons = $this->parseReasonHTML($content);
+                    $obj->law_reasons = self::parseReasonHTML($content);
                 } elseif ($type == '廢止理由') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-{$type}.html");
-                    $obj->deprecated_reason = $this->parseDeprecatedHTML($content);
+                    $obj->deprecated_reason = self::parseDeprecatedHTML($content);
                 } else {
                     error_log("{$title} {$id} {$versions[0]} {$type}");
                     continue;
@@ -92,7 +95,7 @@ class Exporter
         return $obj;
     }
 
-    public function parseDeprecatedHTML($content)
+    public static function parseDeprecatedHTML($content)
     {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
@@ -159,7 +162,7 @@ class Exporter
         return array_map('array_values', $ret);
     }
 
-    public function parseLawHTML($content)
+    public static function parseLawHTML($content)
     {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
@@ -191,7 +194,7 @@ class Exporter
                 // 如果 <td> 內純文字開頭，表示進入法案內容，就可以跳出了
                 if ($pos >= $td_dom->childNodes->length or $td_dom->childNodes->item($pos)->nodeName == '#text') {
                     $line->rule_no = trim($name);
-                    $line->content = $this->trim($td_dom->nodeValue);
+                    $line->content = self::trim($td_dom->nodeValue);
                     $lines[] = $line;
                     break;
                 }
@@ -210,7 +213,7 @@ class Exporter
                     // 下一個 node 如果是純文字，就是備註，要不然就是法條內容
                     $cnode = $td_dom->childNodes->item($pos);
                     if ($cnode->nodeName == '#text') {
-                        $line->note = $this->trim($cnode->nodeValue);
+                        $line->note = self::trim($cnode->nodeValue);
                         $pos ++;
                     }
                 }
@@ -229,7 +232,7 @@ class Exporter
         return $lines;
     }
 
-    public function parseHistoryHTML($content)
+    public static function parseHistoryHTML($content)
     {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
@@ -258,7 +261,7 @@ class Exporter
                         if ($td_doms->item(2)->getElementsByTagName('a')->item(0)) {
                             $record->{'立法紀錄連結'} = $td_doms->item(2)->getElementsByTagName('a')->item(0)->getAttribute('href');
                         }
-                        if ($p = $this->trim($td_doms->item(3)->nodeValue)) {
+                        if ($p = self::trim($td_doms->item(3)->nodeValue)) {
                             $record->{'主提案'} = iconv('UTF-8', 'UTF-8//IGNORE', $p);
                         }
                         $record->{'關係文書'} = array();
@@ -300,7 +303,7 @@ class Exporter
         return $records;
     }
 
-    public function parseReasonHTML($content)
+    public static function parseReasonHTML($content)
     {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
@@ -357,16 +360,28 @@ class Exporter
             }
 
             $obj = self::getDataFromCache($id, $versions, $types, $title);
+            $date_action = LawLib::getVersionIdFromString($obj->versions[0], $id);
+            $version_id = "{$date_action['date']}-{$date_action['action']}";
+
+            $law_content_id = "{$id}:{$version_id}:0";
+            $law_content_data = [
+                'law_content_id' => $law_content_id,
+                'law_id' => $id,
+                'version_id' => $version_id,
+                'idx' => 0,
+                'rule_no' => '法律名稱',
+                'content' => $obj->title,
+            ];
+            Elastic::dbBulkInsert('law_content', $law_content_id, $law_content_data);
+
             foreach ($obj->law_data as $idx => $law_data) {
-                $date_action = LawLib::getVersionIdFromString($obj->versions[0], $id);
-                $version_id = "{$date_action['date']}-{$date_action['action']}";
                 $law_content_id = "{$id}:{$version_id}:{$idx}";
 
                 $law_content_data = [
                     'law_content_id' => $law_content_id,
                     'law_id' => $id,
                     'version_id' => $version_id,
-                    'idx' => $idx,
+                    'idx' => $idx + 1,
                 ];
                 if (property_exists($law_data, 'rule_no')) {
                     $law_content_data['rule_no'] = $law_data->rule_no;
