@@ -860,7 +860,7 @@ class BillParser
                 $ret[] = $id;
             }
         }
-        $ret = array_unique($ret);
+        $ret = array_values(array_unique($ret));
         return $ret;
     }
 
