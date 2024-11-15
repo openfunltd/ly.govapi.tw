@@ -19,6 +19,14 @@ while ($rows = fgetcsv($fp)) {
 }
 fclose($fp);
 
+$fp = fopen(__DIR__ . "/law-data/laws-versions.csv", 'r');
+$cols = fgetcsv($fp);
+while ($rows = fgetcsv($fp)) {
+    $laws[$rows[0]]['version'] = LawLib::getVersionIdFromString($rows[2], $rows[0]);
+    $laws[$rows[0]]['version']['version_id'] = "{$laws[$rows[0]]['version']['date']}-{$laws[$rows[0]]['version']['action']}";
+}
+fclose($fp);
+
 $read_line = function($fp){
     $id = null;
     while ($line = fgets($fp)) {
@@ -85,14 +93,11 @@ while ($line = fgets($fp)) {
         $data['parent'] = sprintf("%05d", floor($id / 1000));
         $data['type'] = '子法';
     }
-    error_log($data['id']);
     $law_data_dir = __DIR__ . "/law-data/laws/{$data['id']}";
-    if (file_exists($law_data_dir)) {
-        $data['versions'] = LawLib::getVersionsByDir($law_data_dir);
-    }
     if (array_key_exists($data['id'], $laws)) {
         $data['categories'] = $laws[$data['id']]['categories'];
         $data['status'] = $laws[$data['id']]['狀態'];
+        $data['latest_version'] = $laws[$data['id']]['version'];
         unset($laws[$data['id']]);
     }
     Elastic::dbBulkInsert('law', $data['id'], $data);
