@@ -9,9 +9,7 @@ class CustomError extends Exception{
     public function setMessage($message){
         $this->message = $message;
     }
-
 }
-
 
 class Exporter
 {
@@ -33,9 +31,23 @@ class Exporter
             mkdir(__DIR__ . "/law-data/law_cache");
         }
         $cache_file = __DIR__ . "/law-data/law_cache/{$id}-{$versions[0]}.json";
-        if (file_exists($cache_file)) {
+        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2024-11-14 18:30')) {
             $obj = json_decode(file_get_contents($cache_file));
+            $hit = false;
             if ($obj->types == $types) {
+                $hit = true;
+            }
+            // check invalid date
+            foreach ($obj->law_history ?? []  as $history) {
+                if (!preg_match('#^\d+-\d+-\d+$#', $history->{'會議日期'})) {
+                    $hit = false;
+                }
+                if ($history->{'會議日期'} == '2532-22-28') {
+                    $hit = false;
+                }
+            }
+
+            if ($hit) {
                 return $obj;
             }
         }
@@ -61,6 +73,7 @@ class Exporter
                 } elseif ($type == '立法歷程') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-立法歷程.html");
                     $obj->law_history = self::parseHistoryHTML($content);
+                    $obj->law_history = self::handleHistoryData($obj->law_history, $id, $versions[0]);
                 } elseif ($type == '異動條文及理由') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-異動條文及理由.html");
                     $obj->law_reasons = self::parseReasonHTML($content);
@@ -298,7 +311,6 @@ class Exporter
                     }
                 }
             }
-
         }
         return $records;
     }
@@ -334,22 +346,263 @@ class Exporter
         return $reasons;
     }
 
+    protected static $_lcew_map = null;
+    protected static $_word_map = null;
+    public static function loadLCEW()
+    {
+        if (is_null(self::$_lcew_map)) {
+            self::$_lcew_map = new StdClass;
+        }
+        if (file_exists(__DIR__ . "/../../cache/word-map.json")) {
+            self::$_word_map = json_decode(file_get_contents(__DIR__ . "/../../cache/word-map.json"));
+        } else {
+            self::$_word_map = new StdClass;
+        }
+
+        foreach (glob(__DIR__ . "/../../cache/bill-list.jsonl.00.*") as $f) {
+            if (file_exists("{$f}.lcewmap")) {
+                self::$_lcew_map = json_decode(file_get_contents("{$f}.lcewmap"));
+                break;
+            }
+            $fp = fopen($f, 'r');
+            while ($line = fgets($fp)) {
+                $obj = json_decode($line);
+                foreach ($obj->attachments as $attachment) {
+                    if (!preg_match('#(LCEWA01_\d+_\d+)#', $attachment->link, $matches)) {
+                        continue;
+                    }
+
+                    if (!property_exists(self::$_lcew_map, $matches[1])) {
+                        self::$_lcew_map->{$matches[1]} = [];
+                    }
+                    self::$_lcew_map->{$matches[1]}[] = $obj->id;
+                }
+            }
+            fclose($fp);
+            file_put_contents("{$f}.lcewmap", json_encode(self::$_lcew_map));
+            break;
+        }
+    }
+
+    public static function getBillNoFromId($id)
+    {
+        if (!file_exists(__DIR__ . "/../../cache/mtcdoc/{$id}.doc")) {
+            $cmd = sprintf("wget -4 -O %s %s",
+                escapeshellarg(__DIR__ . "/../../cache/mtcdoc/{$id}.doc"),
+                escapeshellarg("https://lis.ly.gov.tw/lygazettec/mtcdoc?{$id}")
+            );
+            system($cmd, $ret);
+            if ($ret != 0) {
+                throw new CustomError("{$cmd} failed");
+            }
+        }
+        if (!file_exists(__DIR__ . "/../../cache/mtcdoc/{$id}.txt")) {
+            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s",
+                escapeshellarg(__DIR__ . "/../../cache/mtcdoc/{$id}.doc"),
+                escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
+            if ($ret) {
+                throw new CustomError("curl failed");
+            }
+            rename(__DIR__ . '/tmp.txt', __DIR__ . "/../../cache/mtcdoc/{$id}.txt");
+        }
+
+        $content = file_get_contents(__DIR__ . "/../../cache/mtcdoc/{$id}.txt");
+        if (preg_match('#議案編號：(\d+)#', $content, $matches)) {
+            return [$matches[1]];
+        }
+        if (preg_match('#院總第\d+號\s+委員\s+提案第\s+(\d+)\s+號#', $content, $matches)) {
+            $word = preg_replace('#\s+#', '', $matches[0]);
+            if (property_exists(self::$_word_map, $word)) {
+                return self::$_word_map->{$word};
+            }
+            $url = "https://v2.ly.govapi.tw/bills?字號=" . urlencode($word);
+            error_log("query $word");
+            $obj = json_decode(file_get_contents($url));
+            $ret = [];
+            foreach ($obj->bills as $bill) {
+                $ret[] = $bill->{'議案編號'};
+            }
+            self::$_word_map->{$word} = $ret;
+            file_put_contents(__DIR__ . "/../../cache/word-map.json", json_encode(self::$_word_map));
+            return $ret;
+        }
+        return [];
+    }
+
+    public static function updateDocData($doc, $law_id, $version_id)
+    {
+        if (strpos($doc->{'連結'}, 'https://lis.ly.gov.tw/lgcgi/lgmeetimage') === 0) {
+            return $doc;
+        }
+
+        if (strpos($doc->{'連結'}, 'https://lis.ly.gov.tw/lgcgi/lylgmeet_newimg?') === 0) {
+            return $doc;
+        }
+
+        if (strpos($doc->{'連結'}, 'https://lis.ly.gov.tw/lygazettec/mtcdoc?DN') === 0) {
+            $lcew_id = explode(':', $doc->{'連結'})[2];
+            if (preg_match('#^\d+(_\d)?$#', $lcew_id)) {
+                $bills = self::getBillNoFromId(explode('?', $doc->{'連結'})[1]);
+            } else if (property_exists(self::$_lcew_map, $lcew_id)) {
+                $bills = self::$_lcew_map->{$lcew_id};
+            } else {
+                $bills = self::getBillNoFromId(explode('?', $doc->{'連結'})[1]);
+            }
+            $hit_bill = null;
+            foreach ($bills as $billNo) {
+                if (!file_exists(__DIR__ . "/../bill/bill-data/{$billNo}.json.gz")) {
+                    continue;
+                }
+                $data = json_decode(gzdecode(file_get_contents(__DIR__ . "/../bill/bill-data/{$billNo}.json.gz")));
+                if (!property_exists($data, 'laws')) {
+                    continue;
+                }
+                if (!is_array($data->laws)) {
+                    throw new CustomError("{$billNo} 沒有 laws");
+                }
+                if (!in_array($law_id, $data->laws)) {
+                    continue;
+                }
+                $hit_bill = $billNo;
+                break;
+            }
+
+            if (is_null($hit_bill)) {
+                error_log("找不到 {$doc->{'連結'}} 對應的法案 law_id = {$law_id}");
+                //readline('continue');
+                return $doc;
+                throw new CustomError("找不到 {$doc->{'連結'}} 對應的法案");
+            }
+            $doc->billNo = $hit_bill;
+            return $doc;
+        }
+        print_r($doc);
+        var_dump($law_id);
+        var_dump($version_id);
+        exit;
+    }
+
+    public static function handleHistoryData($records, $law_id, $version_id)
+    {
+        $ret = [];
+        foreach ($records as $record) {
+            unset($record->{'立法紀錄連結'});
+            if ($record->{'會議日期'} == '6212228') {
+                // 01530:1978-05-19-修正
+                $record->{'會議日期'} = '661228';
+            }
+            $record->{'會議日期'} = trim($record->{'會議日期'});
+            if (preg_match('#^\d+$#', $record->{'會議日期'})) {
+                $d = $record->{'會議日期'}; // YYMMDD or YYYMMDD
+                $record->{'會議日期'} = sprintf("%04d-%02d-%02d",
+                    substr($d, 0, -4) + 1911, substr($d, -4, 2), substr($d, -2, 2));
+            } else {
+                unset($record->{'會議日期'});
+            }
+            if (preg_match('#^(\d+)卷(\d+)期(\d*)號((.*)冊)? (\d+)-(\d+)#u', $record->{'立法紀錄'}, $matches)) {
+                $matches[5] = trim($matches[5]);
+                if ($matches[5] == '一' or $matches[5] == '上') {
+                    $book_id = 1;
+                } elseif ($matches[5] == '二' or $matches[5] == '中') {
+                    $book_id = 2;
+                } elseif ($matches[5] == '三' or $matches[5] == '下') {
+                    $book_id = 3;
+                } elseif ($matches[5] == '四') {
+                    $book_id = 4;
+                } elseif ($matches[5] == '五') {
+                    $book_id = 5;
+                } elseif ($matches[5] == '六') {
+                    $book_id = 6;
+                } elseif ($matches[5] == '七') {
+                    $book_id = 7;
+                } elseif ($matches[5] == '八') {
+                    $book_id = 8;
+                } elseif ($matches[5] == '九') {
+                    $book_id = 9;
+                } elseif ($matches[5] == '十') {
+                    $book_id = 10;
+                } elseif ($matches[5] == '十一') {
+                    $book_id = 11;
+                } elseif ($matches[5] == '十二') {
+                    $book_id = 12;
+                } elseif ($matches[5] == '十三') {
+                    $book_id = 13;
+                } elseif ($matches[5] == '十四') {
+                    $book_id = 14;
+                } elseif ($matches[5] == '十五') {
+                    $book_id = 15;
+                } elseif ($matches[5] == '十六') {
+                    $book_id = 16;
+                } elseif ($matches[5] == '十七') {
+                    $book_id = 17;
+                } elseif ($matches[5] == '十八') {
+                    $book_id = 18;
+                } elseif ($matches[5] == '十九') {
+                    $book_id = 19;
+                } elseif ($matches[5] == '二十') {
+                    $book_id = 20;
+                } elseif (preg_match('#^\d+$#', $matches[5])) {
+                    $book_id = $matches[5];
+                } elseif ('' == $matches[4]) {
+                    $book_id = 0;
+                } else {
+                    $book_id = 0;
+                    print_R($matches);
+                    error_log("立法紀錄冊數不正確: " . $record->{'立法紀錄'});
+                    //throw new CustomError("立法紀錄冊數不正確: " . $record->{'立法紀錄'});
+                }
+                $record->{'公報編號'} = sprintf("%d%02d%02d",
+                    $matches[1], $matches[2], $book_id);
+            } else {
+                error_log("立法紀錄格式不正確: " . $record->{'立法紀錄'});
+                //readline('continue');
+            }
+
+            $docs = [];
+            foreach ($record->{'關係文書'} ?? [] as $old_doc) {
+                $doc = new StdClass;
+                $doc->{'類型'} = $old_doc[0];
+                $doc->{'連結'} = $old_doc[1];
+                $doc = self::updateDocData($doc, $law_id, $version_id);
+                $docs[] = $doc;
+            }
+            $record->{'關係文書'} = $docs;
+
+            $ret[] = $record;
+        }
+        return $ret;
+    }
+
     public function main()
     {
+        self::loadLCEW();
+
+        $fp = fopen(__DIR__ . '/law-data/laws-versions.csv', 'r');
+        fgetcsv($fp);
+        $law_latest_versions = [];
+        while ($rows = fgetcsv($fp)) {
+            list($id, $title, $versions, $types) = $rows;
+            $law_latest_versions[$id] = $versions;
+        }
+        fclose($fp);
+
         $fp = fopen(__DIR__ . '/law-data/laws-versions.csv', 'r');
         fgetcsv($fp);
 
         $reasons = null;
         $reason_law = null;
+        $content_version = null;
         while ($rows = fgetcsv($fp)) {
             list($id, $title, $versions, $types) = $rows;
 
             if ($reason_law === null) {
                 $reason_law = $id;
                 $reasons = [];
+                $content_version = [];
             } else if ($reason_law != $id) {
                 $reason_law = $id;
                 $reasons = [];
+                $content_version = [];
             }
 
             $versions = explode(';', $versions);
@@ -361,7 +614,24 @@ class Exporter
 
             $obj = self::getDataFromCache($id, $versions, $types, $title);
             $date_action = LawLib::getVersionIdFromString($obj->versions[0], $id);
-            $version_id = "{$date_action['date']}-{$date_action['action']}";
+            $version_id = "{$id}:{$date_action['date']}-{$date_action['action']}";
+
+            $current = '非現行';
+            if (implode(';', $versions) != $law_latest_versions[$id]) {
+                $current = '現行';
+            }
+
+            $law_version_data = [
+                'version_id' => $version_id,
+                'law_id' => $id,
+                'date' => $date_action['date'],
+                'action' => $date_action['action'],
+                'current' => $current,
+            ];
+            if ($obj->law_history ?? false) {
+                $law_version_data['history'] = $obj->law_history;
+            }
+            Elastic::dbBulkInsert('law_version', $version_id, $law_version_data);
 
             $law_content_id = "{$id}:{$version_id}:0";
             $law_content_data = [
@@ -371,6 +641,7 @@ class Exporter
                 'idx' => 0,
                 'rule_no' => '法律名稱',
                 'content' => $obj->title,
+                'current' => $current,
             ];
             Elastic::dbBulkInsert('law_content', $law_content_id, $law_content_data);
 
@@ -383,6 +654,7 @@ class Exporter
                     'law_id' => $id,
                     'version_id' => $version_id,
                     'idx' => $idx,
+                    'current' => $current,
                 ];
                 if (property_exists($law_data, 'rule_no')) {
                     $law_content_data['rule_no'] = $law_data->rule_no;
@@ -399,7 +671,12 @@ class Exporter
                     if (array_key_exists($key, $reasons)) {
                         $law_content_data['reason'] = $reasons[$key];
                     }
-
+                    if (array_key_exists($key, $content_version)) {
+                        $law_content_data['version_trace'] = $content_version[$key];
+                    } else {
+                        $content_version[$key] = $version_id;
+                        $law_content_data['version_trace'] = 'new';
+                    }
                 } elseif (property_exists($law_data, 'section_name')) {
                     $law_content_data['section_name'] = $law_data->section_name;
                 } else {
