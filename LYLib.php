@@ -126,7 +126,13 @@ class LYLib
             $ret->title = '立法院朝野黨團協商';
         } elseif ($type == '公聽會') {
             $ret->type = '公聽會';
-            // title 只能從 meet_data 抓
+            if (property_exists($data, 'meetingName')) {
+                $ret->title = $data->meetingName;
+            } else {
+                // title 只能從 meet_data 抓
+                print_r($data);
+                exit;
+            }
         } else {
             print_r($data);
             exit;
@@ -154,7 +160,14 @@ class LYLib
                     } catch (Exception $e) {
                     }
                 }
-                $ret->title = $data->meetingContent;
+                if (property_exists($data, 'meetingContent') and !is_null($data->meetingContent)) {
+                    $ret->title = $data->meetingContent;
+                } elseif (property_exists($data, 'meetingName') and !is_null($data->meetingName)) {
+                    $ret->title = $data->meetingName;
+                } else {
+                    print_r($data);
+                    exit;
+                }
                 // TODO: 處理會議相關法律
             } else {
                 print_r($data);
@@ -224,6 +237,11 @@ class LYLib
     {
         if (strpos($meet->meetingName , '黨團協商')) {
             return LYLib::consultToId($type, $meet, '黨團協商');
+        } elseif (strpos($meet->meetingName, '公聽會')) {
+            return LYLib::consultToId($type, $meet, '公聽會');
+        } elseif (strpos($meet->meetingName, '次全體')) {
+            // do nothing
+            // Ex: 第11屆第2會期財政委員會第5次全體委員會議 的 meetingContent 包含「公聽會」
         } elseif (strpos($meet->meetingContent, '公聽會')) {
             return LYLib::consultToId($type, $meet, '公聽會');
         }
