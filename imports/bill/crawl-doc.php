@@ -40,7 +40,9 @@ while ($obj = json_decode(fgets($fp))) {
 		} else if ($record->{'名稱'} == '關係文書(DOC)下載') {
 			$docUrl = $record->{'網址'};
 		} elseif ($record->{'名稱'} == '關係文書DOC') {
-			$docUrl = $record->{'網址'};
+            $docUrl = $record->{'網址'};
+        } elseif (stripos($record->{'名稱'}, '關係文書(含審查報告)DOC') === 0) {
+            $docUrls[] = $record->{'網址'};
 		} else if (strpos($docUrl, 'http://lci.ly.gov.tw/LyLCEW/LCEWA01') === 0 and strpos($record->{'名稱'}, '檔案上傳時間') === 0) {
 			if (strpos($record->{'網址'}, 'http://lci.ly.gov.tw/LyLCEW//LCEWA01') === 0) {              } else {
 				$docUrls[$record->{'網址'}] = $record->{'網址'};
@@ -49,7 +51,8 @@ while ($obj = json_decode(fgets($fp))) {
 	}
 
 	if (count($docUrls)) {
-		$docUrls = array_values($docUrls);
+        $docUrls = array_values($docUrls);
+        file_put_contents(__DIR__ . "/bill-docgz/{$billNo}.doc.gz", 'array');
 		foreach ($docUrls as $idx => $docUrl) {
 			$target = __DIR__ . '/bill-docgz/' . $billNo . '-' . $idx . '.doc.gz';
 			if (!file_exists($target) or filesize($target) < 100) {
