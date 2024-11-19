@@ -128,10 +128,12 @@ class LYLib
             $ret->type = '公聽會';
             if (property_exists($data, 'meetingName')) {
                 $ret->title = $data->meetingName;
+            } elseif (property_exists($data, '會議名稱')) {
+                $ret->title = $data->會議名稱;
             } else {
                 // title 只能從 meet_data 抓
                 print_r($data);
-                exit;
+                throw new Exception("公聽會抓不到名稱");
             }
         } else {
             print_r($data);
