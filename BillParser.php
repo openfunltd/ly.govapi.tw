@@ -218,6 +218,11 @@ class BillParser
 
             if ($doc_title == '審查報告 發文附件') {
                 $doc_obj = json_decode(file_get_contents($target));
+                // 如果另外有審查報告，那就把原先的審查報告移除
+                $obj->{'相關附件'} = array_values(array_filter($obj->{'相關附件'}, function($f) {
+                    return strpos($f->{'名稱'}, '含審查報告') === false;
+                }));
+
                 foreach ($doc_obj as $type => $urls) {
                     foreach (explode(',', $urls) as $idx => $url) {
                         $f = new StdClass;
