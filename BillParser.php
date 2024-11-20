@@ -200,6 +200,35 @@ class BillParser
             }
         }
 
+        if (preg_match('#click="handleClick\(&\#39;(.*)&\#39;,&\#39;(.*)&\#39;\)"\s+class="[^"]*" title="([^"]*)"#', $content, $matches)) {
+            $billNo = $matches[1];
+            $docuNo = $matches[2];
+            $doc_title = $matches[3];
+            $target = __DIR__ . "/imports/bill/bill-html/dpaper-list/{$billNo}-{$docuNo}.json";
+            if (!file_exists($target)) {
+                $url = "https://ppg.ly.gov.tw/ppg/api/v1/getDpaperList?billNo={$billNo}&docuNo={$docuNo}";
+                error_log("download {$url}");
+                $curl = curl_init($url);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                // ipv4
+                curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+                $content = curl_exec($curl);
+                file_put_contents($target, $content);
+            }
+
+            if ($doc_title == '審查報告 發文附件') {
+                $doc_obj = json_decode(file_get_contents($target));
+                foreach ($doc_obj as $type => $urls) {
+                    foreach (explode(',', $urls) as $idx => $url) {
+                        $f = new StdClass;
+                        $f->{'名稱'} = "關係文書(含審查報告)" . strtoupper($type) . ($idx + 1);
+                        $f->{'網址'} = $url;
+                        $obj->{'相關附件'}[] = $f;
+                    }
+                }
+            }
+        }
+
         $list_groups = [];
         foreach ($doc->getElementsByTagName('h3') as $h3_dom) {
             $list_groups[] = $h3_dom;
