@@ -461,6 +461,7 @@ class BillParser
             return;
         }
         $diff = null;
+        $diff_type = '一般';
         $cols = null;
 
         while (count($tr_doms)) {
@@ -471,6 +472,9 @@ class BillParser
                 $title = trim($td_doms->item(0)->nodeValue);
                 if (!is_null($diff)) {
                     yield $diff;
+                }
+                if (strpos($title, '(審查會通過)') !== false) {
+                    $title = '審查會通過';
                 }
                 $diff = new StdClass;
                 $diff->title = $title;
@@ -568,26 +572,57 @@ class BillParser
                 continue 2;
             }
 
+            if (is_null($cols) and in_array('審查會通過條文', $values)) {
+                $col_pos = [
+                    '說明' => array_search('說明', $values),
+                    '審查會通過條文' => array_search('審查會通過條文', $values),
+                ];
+                if (in_array('現行法', $values)) {
+                    $col_pos['現行法'] = array_search('現行法', $values);
+                    $diff->{'立法種類'} = '修正條文';
+                    $cols = ['修正', '現行法', '說明'];
+                } else {
+                    $diff->{'立法種類'} = '增訂條文';
+                    $cols = ['增訂', '說明'];
+                }
+                $diff_type = '審查會通過條文';
+                continue;
+            }
+
             if (is_null($cols)) {
                 echo $doc->saveHTML($tr_dom);
                 throw new Exception("{$billNo} no cols: " . implode(',', $values));
             }
 
 
-            if ($td_doms->length != count($cols)) {
-                continue;
-                echo implode(',', $cols) . "\n";
-                echo $doc->saveHTML($tr_dom);
-                throw new Exception("{$billNo} unknown td length");
+            if ($diff_type == '審查會通過條文') {
+                $values = [];
+                foreach ($col_pos as $k => $pos) {
+                    $v = trim($td_doms->item($pos)->nodeValue);
+                    $v = preg_replace("#\n +#", '', $v);
+                    if ($k == '審查會通過條文' and preg_match('#^（([^）]*)）(.*)$#us', $v, $matches)) {
+                        $values["{$k}:備註"] = trim($matches[1]);
+                        $values[$k] = trim($matches[2]);
+                    } else {
+                        $values[$k] = $v;
+                    }
+                }
+                $diff->rows[] = $values;
+            } else {
+                if ($td_doms->length != count($cols)) {
+                    continue;
+                    echo implode(',', $cols) . "\n";
+                    echo $doc->saveHTML($tr_dom);
+                    throw new Exception("{$billNo} unknown td length");
+                }
+                $values = [];
+                foreach ($td_doms as $td_dom) {
+                    $v = trim($td_dom->nodeValue);
+                    $v = preg_replace("#\n +#", '', $v);
+                    $values[] = $v;
+                }
+                $diff->rows[] = array_combine($cols, $values);
             }
-
-            $values = [];
-            foreach ($td_doms as $td_dom) {
-                $v = trim($td_dom->nodeValue);
-                $v = preg_replace("#\n +#", '', $v);
-                $values[] = $v;
-            }
-            $diff->rows[] = array_combine($cols, $values);
         }
         yield $diff;
 
