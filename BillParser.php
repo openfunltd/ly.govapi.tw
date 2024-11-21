@@ -393,11 +393,18 @@ class BillParser
             }
         }
 
-        $tr_doms = [];
         $skip_table = false;
         foreach ($doc->getElementsByTagName('table') as $table_dom) {
+            $tr_doms = [];
             if (!$table_dom->getElementsByTagName('td')->length) {
                 continue;
+            }
+            $parent_dom = $table_dom;
+            // 跳過 table 內的 table
+            while ($parent_dom = $parent_dom->parentNode) {
+                if ($parent_dom->nodeName == 'table') {
+                    continue 2;
+                }
             }
 
             $tr_dom = $table_dom->getElementsByTagName('tr')->item(0);
@@ -438,20 +445,20 @@ class BillParser
             foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
                 $tr_doms[] = $tr_dom;
             }
-        }
-
-        if ($tr_doms) {
-            $record->{'對照表'} = [];
-            try {
-                foreach (self::getDiffTableFromTrs($tr_doms, $doc, $billNo) as $diff) {
-                    if (!is_null($diff)) {
-                        $record->{'對照表'}[] = $diff;
+            if ($tr_doms) {
+                $record->{'對照表'} = $record->{'對照表'} ?? [];
+                try {
+                    foreach (self::getDiffTableFromTrs($tr_doms, $doc, $billNo) as $diff) {
+                        if (!is_null($diff)) {
+                            $record->{'對照表'}[] = $diff;
+                        }
                     }
+                } catch (Exception $e) {
+                    error_log("{$billNo} {$e->getMessage()}");
                 }
-            } catch (Exception $e) {
-                error_log("{$billNo} {$e->getMessage()}");
             }
         }
+
 
         return $record;
     }
@@ -479,10 +486,10 @@ class BillParser
 
             if ($td_doms->length == 1) {
                 $title = trim($td_doms->item(0)->nodeValue);
-                if (!is_null($diff)) {
+                if (!is_null($diff) and !is_null($diff->{'立法種類'})) {
                     yield $diff;
                 }
-                if (strpos($title, '(審查會通過)') !== false) {
+                if (strpos($title, '審查通過') !== false or strpos($title, '審查會通過') !== false) {
                     $title = '審查會通過';
                 }
                 $diff = new StdClass;
@@ -581,7 +588,11 @@ class BillParser
                 continue 2;
             }
 
-            if (is_null($cols) and in_array('說明', $values) and (in_array('審查會通過條文', $values) or in_array('審查會通過', $values))) {
+            if (is_null($cols) and in_array('說明', $values) and (
+                in_array('審查會通過條文', $values)
+                or in_array('審查會通過', $values)
+                or in_array('審查會條文', $values)
+            )) {
                 $col_pos = [
                     '說明' => array_search('說明', $values),
                 ];
@@ -589,6 +600,8 @@ class BillParser
                     $col_pos['審查會通過條文'] = array_search('審查會通過條文', $values);
                 } elseif (in_array('審查會通過', $values)) {
                     $col_pos['審查會通過條文'] = array_search('審查會通過', $values);
+                } elseif (in_array('審查會條文', $values)) {
+                    $col_pos['審查會通過條文'] = array_search('審查會條文', $values);
                 }
                 if (is_null($diff)) {
                     $diff = new StdClass;
@@ -625,6 +638,12 @@ class BillParser
                 $origin_values = $values;
                 $values = [];
                 foreach ($col_pos as $k => $pos) {
+                    if ($col_pos['說明'] != $td_doms->length - 1) {
+                        // 如果說明所在的位置不是最後一欄，表示可能欄位有合併儲存格
+                        if ($k == '說明' or $k == '現行法') {
+                            $pos ++;
+                        }
+                    }
                     $v = trim($td_doms->item($pos)->nodeValue);
                     $v = preg_replace("#\n +#", '', $v);
                     if ($k == '說明') {
@@ -666,31 +685,34 @@ class BillParser
                     $values['說明'] .= $p_dom->nodeValue;
                 }
                 $values['說明'] = trim($values['說明']);
-                if (!$values['現行法']) {
-                    $content = '';
-                    foreach ($td_doms as $pos => $td_dom) {
-                        if (in_array($pos, $col_pos) and ($pos == $col_pos['審查會通過條文'] or $pos == $col_pos['說明'])) {
-                            continue;
-                        }
-                        $part_content = '';
-                        foreach ($td_dom->getElementsByTagName('p') as $p_dom) {
-                            if ($p_dom->getElementsByTagName('b')->item(0)) {
-                                $part_content .= $p_dom->getElementsByTagName('b')->item(0)->nodeValue;
-                            } else {
-                                $part_content .= $p_dom->nodeValue;
+                if ($diff->{'立法種類'} == '修正條文') {
+                    if (!$values['現行法']) {
+                        $content = '';
+                        foreach ($td_doms as $pos => $td_dom) {
+                            if (in_array($pos, $col_pos) and ($pos == $col_pos['審查會通過條文'] or $pos == $col_pos['說明'])) {
+                                continue;
                             }
+                            $part_content = '';
+                            foreach ($td_dom->getElementsByTagName('p') as $p_dom) {
+                                if ($p_dom->getElementsByTagName('b')->item(0)) {
+                                    $part_content .= $p_dom->getElementsByTagName('b')->item(0)->nodeValue;
+                                } else {
+                                    $part_content .= $p_dom->nodeValue;
+                                }
+                            }
+                            if (strpos($part_content, '第') === 0) {
+                                $part_content = "版本：" . $part_content;
+                            }
+                            $content .= $part_content;
                         }
-                        if (strpos($part_content, '第') === 0) {
-                            $part_content = "版本：" . $part_content;
-                        }
-                        $content .= $part_content;
+                        $content = str_replace("\n", "", $content);
+                        preg_match_all('#：([^　]*)#u', $content, $matches);
+                        $ruleno_values = array_count_values($matches[1]);
+                        arsort($ruleno_values);
+                        $values['條號'] = key($ruleno_values);
+                    } else {
+                        $values['條號'] = explode('　', $values['現行法'])[0];
                     }
-                    preg_match_all('#：([^　]*)#u', $content, $matches);
-                    $ruleno_values = array_count_values($matches[1]);
-                    arsort($ruleno_values);
-                    $values['條號'] = key($ruleno_values);
-                } else {
-                    $values['條號'] = explode('　', $values['現行法'])[0];
                 }
 
                 $diff->rows[] = $values;
@@ -710,7 +732,9 @@ class BillParser
                 $diff->rows[] = array_combine($cols, $values);
             }
         }
-        yield $diff;
+        if (!is_null($diff) and !is_null($diff->{'立法種類'})) {
+            yield $diff;
+        }
     }
 
     public static function parseBillDoc($billNo, $content, $obj = null)
