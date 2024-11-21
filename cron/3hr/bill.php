@@ -46,15 +46,23 @@ foreach ($list as $idx => $v) {
 
     $bill_html_path = "{$data_dir}/bill-html/{$billNo}.gz";
     $bill_data_path = "{$data_dir}/bill-data/{$billNo}.json.gz";
+    $bill_doc_path = "{$data_dir}/bill-docgz/{$billNo}.doc.gz";
     $mtime = $html_mtime = filemtime($bill_html_path);
-    $parsed_doc_file = null;
-    if (file_exists("{$data_dir}/bill-doc-parsed/tikahtml/{$billNo}.doc.gz")) {
-        $parsed_doc_file = "{$data_dir}/bill-doc-parsed/tikahtml/{$billNo}.doc.gz";
+    $parsed_doc_file = [];
+    if (file_exists($bill_doc_path) and filesize($bill_doc_path) == 5 and file_get_contents($bill_doc_path) == 'array') {
+        $parsed_doc_file = glob("{$data_dir}/bill-doc-parsed/tikahtml/{$billNo}-*.doc.gz");
+        // 如果想要重新 parse 審查報告，可以把下面這行註解取消
+        //$mtime = time();
+    } else if (file_exists("{$data_dir}/bill-doc-parsed/tikahtml/{$billNo}.doc.gz")) {
+        $parsed_doc_file[] = "{$data_dir}/bill-doc-parsed/tikahtml/{$billNo}.doc.gz";
     } else if (file_exists("{$data_dir}/bill-doc-parsed/html/{$billNo}.doc.gz")) {
-        $parsed_doc_file = "{$data_dir}/bill-doc-parsed/html/{$billNo}.doc.gz";
+        $parsed_doc_file[] = "{$data_dir}/bill-doc-parsed/html/{$billNo}.doc.gz";
     }
+
     if ($parsed_doc_file) {
-        $mtime = max($mtime, filemtime($parsed_doc_file));
+        foreach ($parsed_doc_file as $f) {
+            $mtime = max($mtime, filemtime($f));
+        }
     }
     if (file_exists($bill_data_path) and fileatime($bill_data_path) >= $mtime) {
         continue;
@@ -75,12 +83,17 @@ foreach ($list as $idx => $v) {
     }
     $values = BillParser::addBillInfo($values);
     $values->mtime = date('c', $html_mtime);
-    if (is_null($parsed_doc_file)) {
+    if (!count($parsed_doc_file)) {
         $content = null;
-    } elseif (strpos($parsed_doc_file, 'tikahtml')) {
-        $content = gzdecode(file_get_contents($parsed_doc_file));
-    } else if (strpos($parsed_doc_file, '/html/')) {
-        $obj = json_decode(gzdecode(file_get_contents($parsed_doc_file)));
+    } elseif (count($parsed_doc_file) > 1) {
+        $content = '';
+        foreach ($parsed_doc_file as $f) {
+            $content .= gzdecode(file_get_contents($f));
+        }
+    } elseif (strpos($parsed_doc_file[0], 'tikahtml')) {
+        $content = gzdecode(file_get_contents($parsed_doc_file[0]));
+    } else if (strpos($parsed_doc_file[0], '/html/')) {
+        $obj = json_decode(gzdecode(file_get_contents($parsed_doc_file[0])));
         $content = (base64_decode($obj->content));
     } else {
     }
