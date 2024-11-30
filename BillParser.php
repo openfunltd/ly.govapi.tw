@@ -431,6 +431,10 @@ class BillParser
             if ($first_td_doms->length == 1) {
                 if (preg_match('#.*(草案|草案對照表|條文對照表)$#u', $title)) {
                     $skip_table = false;
+                } elseif (strpos($title, '審查會通過條文') !== false and strpos($title, '條文對照表') !== false) {
+                    $skip_table = false;
+                } elseif (preg_match('#委員.*擬具.*案#u', $title)) {
+                    $skip_table = false;
                 } else {
                     $skip_table = true;
                     error_log($title);
@@ -596,17 +600,11 @@ class BillParser
                 $col_pos = [
                     '說明' => array_search('說明', $values),
                 ];
-                if (in_array('審查會通過條文', $values)) {
-                    $col_pos['審查會通過條文'] = array_search('審查會通過條文', $values);
-                } elseif (in_array('審查會通過', $values)) {
-                    $col_pos['審查會通過條文'] = array_search('審查會通過', $values);
-                } elseif (in_array('審查會條文', $values)) {
-                    $col_pos['審查會通過條文'] = array_search('審查會條文', $values);
-                }
                 if (is_null($diff)) {
                     $diff = new StdClass;
                     $diff->title = '審查會通過條文';
                 }
+                $diff_type = '審查會通過條文';
                 if (in_array('現行法', $values)) {
                     $col_pos['現行法'] = array_search('現行法', $values);
                     $diff->{'立法種類'} = '修正條文';
@@ -619,7 +617,13 @@ class BillParser
                     $diff->{'立法種類'} = '增訂條文';
                     $cols = ['增訂', '說明'];
                 }
-                $diff_type = '審查會通過條文';
+                if (in_array('審查會通過條文', $values)) {
+                    $col_pos[$cols[0]] = array_search('審查會通過條文', $values);
+                } elseif (in_array('審查會通過', $values)) {
+                    $col_pos[$cols[0]] = array_search('審查會通過', $values);
+                } elseif (in_array('審查會條文', $values)) {
+                    $col_pos[$cols[0]] = array_search('審查會條文', $values);
+                }
                 continue;
             }
 
@@ -651,11 +655,11 @@ class BillParser
                         foreach ($td_doms->item($pos)->childNodes as $n) {
                             $values[$k] .= $doc->saveHTML($n);
                         }
-                    } else if ($k == '審查會通過條文' and preg_match('#^\(([^\)]*)\)(.*)$#us', $v, $matches)) {
-                        $values["{$k}:備註"] = trim($matches[1]);
+                    } else if ($k == $cols[0] and preg_match('#^\(([^\)]*)\)(.*)$#us', $v, $matches)) {
+                        $values["審查會通過條文:備註"] = trim($matches[1]);
                         $values[$k] = trim($matches[2]);
-                    } else if ($k == '審查會通過條文' and preg_match('#^（([^）]*)）(.*)$#us', $v, $matches)) {
-                        $values["{$k}:備註"] = trim($matches[1]);
+                    } else if ($k == $cols[0] and preg_match('#^（([^）]*)）(.*)$#us', $v, $matches)) {
+                        $values["審查會通過條文:備註"] = trim($matches[1]);
                         $values[$k] = trim($matches[2]);
                     } else {
                         $values[$k] = $v;
@@ -685,34 +689,32 @@ class BillParser
                     $values['說明'] .= $p_dom->nodeValue;
                 }
                 $values['說明'] = trim($values['說明']);
-                if ($diff->{'立法種類'} == '修正條文') {
-                    if (!$values['現行法']) {
-                        $content = '';
-                        foreach ($td_doms as $pos => $td_dom) {
-                            if (in_array($pos, $col_pos) and ($pos == $col_pos['審查會通過條文'] or $pos == $col_pos['說明'])) {
-                                continue;
-                            }
-                            $part_content = '';
-                            foreach ($td_dom->getElementsByTagName('p') as $p_dom) {
-                                if ($p_dom->getElementsByTagName('b')->item(0)) {
-                                    $part_content .= $p_dom->getElementsByTagName('b')->item(0)->nodeValue;
-                                } else {
-                                    $part_content .= $p_dom->nodeValue;
-                                }
-                            }
-                            if (strpos($part_content, '第') === 0) {
-                                $part_content = "版本：" . $part_content;
-                            }
-                            $content .= $part_content;
+                if (!array_key_exists('現行法', $values) or !$values['現行法']) {
+                    $content = '';
+                    foreach ($td_doms as $pos => $td_dom) {
+                        if (in_array($pos, $col_pos) and ($pos == $col_pos[$cols[0]] or $pos == $col_pos['說明'])) {
+                            continue;
                         }
-                        $content = str_replace("\n", "", $content);
-                        preg_match_all('#：([^　]*)#u', $content, $matches);
-                        $ruleno_values = array_count_values($matches[1]);
-                        arsort($ruleno_values);
-                        $values['條號'] = key($ruleno_values);
-                    } else {
-                        $values['條號'] = explode('　', $values['現行法'])[0];
+                        $part_content = '';
+                        foreach ($td_dom->getElementsByTagName('p') as $p_dom) {
+                            if ($p_dom->getElementsByTagName('b')->item(0)) {
+                                $part_content .= $p_dom->getElementsByTagName('b')->item(0)->nodeValue;
+                            } else {
+                                $part_content .= $p_dom->nodeValue;
+                            }
+                        }
+                        if (strpos($part_content, '第') === 0) {
+                            $part_content = "版本：" . $part_content;
+                        }
+                        $content .= $part_content;
                     }
+                    $content = str_replace("\n", "", $content);
+                    preg_match_all('#：([^　]*)#u', $content, $matches);
+                    $ruleno_values = array_count_values($matches[1]);
+                    arsort($ruleno_values);
+                    $values['條號'] = key($ruleno_values);
+                } else {
+                    $values['條號'] = explode('　', $values['現行法'])[0];
                 }
 
                 $diff->rows[] = $values;
