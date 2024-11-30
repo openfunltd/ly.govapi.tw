@@ -617,7 +617,7 @@ class Exporter
             $version_id = "{$id}:{$date_action['date']}-{$date_action['action']}";
 
             $current = '非現行';
-            if (implode(';', $versions) != $law_latest_versions[$id]) {
+            if (implode(';', $versions) == $law_latest_versions[$id]) {
                 $current = '現行';
             }
 
