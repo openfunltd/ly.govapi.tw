@@ -31,6 +31,8 @@ foreach ([
                 if ($overtime_limit <= 0) {
                     break;
                 }
+            } else {
+                $overtime_limit = 5;
             }
         }
 
