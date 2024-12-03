@@ -150,6 +150,7 @@ foreach ($meet_map as $meet_id => $meet_data) {
             continue;
         }
         $changes = [];
+        $checked = [];
         foreach ($source as $k => $v) {
             if ($k == '發言紀錄') {
                 foreach ($v as &$record) {
@@ -167,6 +168,13 @@ foreach ($meet_map as $meet_id => $meet_data) {
                 //error_log(json_encode($meet_data->{$k}, JSON_UNESCAPED_UNICODE));
                 $changes[] = $k;
             }
+            $checked[$k] = true;
+        }
+        foreach ($meet_data as $k => $v) {
+            if (isset($checked[$k])) {
+                continue;
+            }
+            $changes[] = $k;
         }
         if (!$changes) {
             continue;
