@@ -121,11 +121,21 @@ foreach ($list_files as $file) {
             $agenda['meetingDate'] = ['2024-05-31'];
         }
         $data_file = __DIR__ . "/gazette/gazette-agenda-data/{$agenda_id}.json";
+        $agenda = array_merge($agenda, [
+            'docUrls' => $agendas_doc[$agenda['agenda_id']],
+        ]);
         if (!file_exists($data_file)) {
             file_put_contents($data_file, json_encode($agenda, JSON_UNESCAPED_UNICODE));
-            Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], array_merge($agenda, [
-                'docUrls' => $agendas_doc[$agenda['agenda_id']],
-            ]));
+            Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], $agenda);
+        } else {
+            $data = json_decode(file_get_contents($data_file));
+            if (!property_exists($data, 'docUrls')) {
+                $data->docUrls = [];
+            }
+            if (count($data->docUrls) != count($agendas_doc[$agenda['agenda_id']])) {
+                file_put_contents($data_file, json_encode($agenda, JSON_UNESCAPED_UNICODE));
+                Elastic::dbBulkInsert('gazette_agenda', $agenda['agenda_id'], $agenda);
+            }
         }
 
         if (array_key_exists($agenda['gazette_id'], $gazettes)) {
