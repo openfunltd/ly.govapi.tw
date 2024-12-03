@@ -647,7 +647,7 @@ class LYLib
         if (file_exists($dir . "/agenda-html/{$basename}.html") and filesize($dir . "/agenda-html/{$basename}.html") > 0){
             return;
         }
-        $cmd = sprintf("curl --output %s --request POST --url 'https://unoserver.openfun.dev/request' --header 'Content-Type: multipart/form-data' --form %s --form 'convert-to=html'",
+        $cmd = sprintf("curl --output %s --request POST --url 'https://unoserver2.openfun.dev/request' --compressed --header 'Content-Type: multipart/form-data' --form %s --form 'convert-to=html'",
             escapeshellarg('tmp.html'),
             escapeshellarg('file=@' . $file)
         );
