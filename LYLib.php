@@ -660,7 +660,7 @@ class LYLib
         $content = file_get_contents('tmp.html');
 
         ini_set("pcre.backtrack_limit", "10000000");
-        $content = preg_replace_callback('#<img ([^>]+)src="data:([^"]+)"#u', function($matches) use ($file, $basename, $dir) {
+        $content = preg_replace_callback('#<img ([^>]*)src="data:([^"]+)"#u', function($matches) use ($file, $basename, $dir) {
             $attr = $matches[1];
             $data_uri = $matches[2];
 
@@ -726,7 +726,7 @@ class LYLib
         if (!file_exists($agenda_docxfile)) {
             error_log("to docx $agenda_docfile");
             // curl -s -v --request POST --url https://unoserver.openfun.dev/request --header 'Content-Type: multipart/form-data'  --form "file=@LCIDC01_1016201_00006.doc" --form 'convert-to=txt' --output test.txt
-            system(sprintf("curl --request POST --url https://unoserver.openfun.dev/request --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
+            system(sprintf("curl --request POST --url https://unoserver2.openfun.dev/request --compressed --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
             clearstatcache();
             if (filesize(__DIR__ . '/tmp.docx') < 1000) {
                 copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
