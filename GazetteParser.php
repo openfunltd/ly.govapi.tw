@@ -159,6 +159,7 @@ class GazetteParser
             self::$_name_list->{$term}['吳怡汀'] = '吳怡玎';
         }
         if ($term == 11) {
+            self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
             self::$_name_list->{$term}['鄭天財SraKaca'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['伍麗華SaidhaTahovecah'] = '伍麗華Saidhai‧Tahovecahe';
