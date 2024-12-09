@@ -27,56 +27,23 @@ while ($rows = fgetcsv($fp)) {
 }
 fclose($fp);
 
-$read_line = function($fp){
-    $id = null;
-    while ($line = fgets($fp)) {
-        $line = str_replace('像先總統 蔣公遺像 蔣故總統 經國先生遺像暨元首玉照辦法,機關學校團體懸掛國旗 國父遺像總統 蔣公遺像暨元首玉照辦法', '像先總統蔣公遺像蔣故總統經國先生遺像暨元首玉照辦法,機關學校團體懸掛國旗國父遺像總統蔣公遺像暨元首玉照辦法', $line);
-        $line = str_replace('機關學校團體懸掛國旗 國父', '機關學校團體懸掛國旗國父', $line);
+$url = 'https://data.ly.gov.tw/odw/usageFile.action?id=301&type=CSV&fname=301_CSV.csv';
+$target = __DIR__ . '/../../cache/301-law.csv';
 
-        if (preg_match('#(\d\d\d\d\d\d\d\d)\s+(.*)#', $line, $matches)) {
-            if (!is_null($id)) {
-                $name = preg_replace_callback('#\s*([A-Z0-9]+)\s*#', function($matches){
-                    return $matches[1];
-                }, $name);
-                yield $id => $name;
-            }
-            $id = $matches[1];
-            $name = ltrim($matches[2]);
-        } else {
-            // remove ^L
-            $line = preg_replace('#\x0c#', '', $line);
-            $name .= trim($line);
-        }
-    }
-    yield $id => $name;
-};
-
-$filename = __DIR__ . '/law.pdf';
-
-if (false) {
-$url = "https://data.ly.gov.tw/odw/LawNo.pdf";
-system(sprintf("wget -4 -O %s %s", escapeshellarg($filename), escapeshellarg($url)), $ret);
-if ($ret != 0) {
-    die("download failed\n");
-}
-
-system(sprintf("pdftotext -layout %s %s", escapeshellarg($filename), escapeshellarg($filename . '.txt')), $ret);
-}
-
-$fp = fopen($filename . '.txt', 'r');
+$fp = fopen($target, 'r');
+$cols = fgetcsv($fp);
+$cols[0] = 'lawNumber';
 error_log("start");
-while ($line = fgets($fp)) {
-    $terms = explode("\t", $line);
-    list($id, $name, $names) = $terms;
+while ($rows = fgetcsv($fp)) {
+    $values = array_combine($cols, $rows);
+    $id = $values['lawNumber'];
+    $name = $values['law'];
+    $names = $values['usedFor'] ? explode(';', $values['usedFor']) : [];
+    $name_aka = $values['lawSynonym'] ? explode(';', $values['lawSynonym']) : [];
+
     if (!preg_match('#^\d\d\d\d\d\d\d\d$#', $id)) {
-        var_dump($line);
+        var_dump($rows);
         throw new Exception("id not found: " . $id);
-    }
-    $names = trim($names);
-    if ($names == '') {
-        $names = [];
-    } else {
-        $names = explode(',', $names);
     }
     $data = [
         'id' => $id,
@@ -84,6 +51,7 @@ while ($line = fgets($fp)) {
         'parent' => '',
         'name' => $name,
         'name_other' => $names,
+        'name_aka' => $name_aka,
     ];
 
     if ($id % 1000 == 0) {
