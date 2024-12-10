@@ -595,6 +595,8 @@ class Exporter
         while ($rows = fgetcsv($fp)) {
             list($id, $title, $versions, $types) = $rows;
 
+            $version_data = new StdClass;
+
             if ($reason_law === null) {
                 $reason_law = $id;
                 $reasons = [];
@@ -628,6 +630,8 @@ class Exporter
                 'action' => $date_action['action'],
                 'current' => $current,
             ];
+            $version_data->data = $law_version_data;
+            $version_data->contents = [];
             if ($obj->law_history ?? false) {
                 $law_version_data['history'] = $obj->law_history;
             }
@@ -643,6 +647,7 @@ class Exporter
                 'content' => $obj->title,
                 'current' => $current,
             ];
+            $version_data->contents[] = $law_content_data;
             Elastic::dbBulkInsert('law_content', $law_content_id, $law_content_data);
 
             foreach ($obj->law_data as $idx => $law_data) {
@@ -684,8 +689,10 @@ class Exporter
                     throw new Exception("找不到 rule_no 或 section_name");
                 }
             
+                $version_data->contents[] = $law_content_data;
                 Elastic::dbBulkInsert('law_content', $law_content_id, $law_content_data);
             }
+            file_put_contents(__DIR__ . "/law-data/laws-result/{$version_id}.json", json_encode($version_data, JSON_UNESCAPED_UNICODE));
         }
         fclose($fp);
         Elastic::dbBulkCommit();
