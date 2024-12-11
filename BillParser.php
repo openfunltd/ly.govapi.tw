@@ -1128,6 +1128,49 @@ class BillParser
         return $values;
     }
 
+    public static function linkToLawContent($data)
+    {
+        $tables = $data->{'對照表'} ?? false;
+        $billNo = $data->billNo;
+        if (!$tables) {
+            // TODO: 需要處理沒有對照表的
+            return $data;
+        }
+        $first_time = $data->first_time;
+        $changed = false;
+        foreach ($tables as $table_idx => $table) {
+            $law_id = BillParser::parseLaws("「{$table->title}」");
+            if (!$law_id) {
+                error_log("{$billNo} 的法案對照表中找不到對應的法律");
+                continue;
+            }
+            $law_id = $law_id[0];
+            foreach ($table->rows as $row_idx => $row) {
+                if (array_key_exists('現行', $row) and $row['現行']) {
+                    $rule_no = explode('　', $row['現行'], 2)[0];
+                    try {
+                        $law_content_id = self::findLawContentID($law_id, $row['現行'], $first_time);
+                        $data->{'對照表'}[$table_idx]->rows[$row_idx]['law_content_id'] = $law_content_id;
+                        $changed = true;
+                        //error_log("連結成功：{$billNo} title={$table->title} law_id={$law_id} rule_no={$rule_no} law_content_id={$law_content_id}");
+                    } catch (Exception $e) {
+                        error_log("連結失敗：{$billNo} title={$table->title} law_id={$law_id} rule_no={$rule_no} error={$e->getMessage()}");
+                        continue;
+                    }
+                    $rule_no = explode('　', $row['現行'], 2)[0];
+                } elseif (array_key_exists('現行', $row) and $row['現行'] == '') {
+                    // do nothing
+                } elseif (array_key_exists('增訂', $row)) {
+                    // do nothing
+                } else {
+                    error_log("{$billNo} 的法案對照表中找不到現行法");
+                    continue;
+                }
+            }
+        }
+        return $data;
+    }
+
     public static function filterPerson($names, $term)
     {
         if (!is_array($names)) {
@@ -1138,5 +1181,85 @@ class BillParser
             throw new Exception('提案人不是陣列');
         }
         return GazetteParser::parsePeople(implode('', $names), $term, '提案');
+    }
+
+    protected static $law_rule_cache = [];
+
+    protected static function stdLawContentText($str)
+    {
+        $str = preg_replace('/\s+/', '', $str);
+        $str = str_replace('　', '', $str);
+        $str = preg_replace('#\[附表[^]]+\]#', '', $str);
+        return $str;
+    }
+
+    protected static function getLawHistory($law_id, $rule_no)
+    {
+        if (array_key_exists("{$law_id}:{$rule_no}", self::$law_rule_cache)) {
+            return self::$law_rule_cache["{$law_id}:{$rule_no}"];
+        }
+
+        $history = [];
+
+        foreach (glob(__DIR__ . "/imports/law/law-data/laws-result/{$law_id}:*") as $f) {
+            $obj = json_decode(file_get_contents($f));
+            foreach ($obj->contents as $content) {
+                if (($content->rule_no ?? false) != $rule_no) {
+                    continue;
+                }
+                if ($content->version_trace != 'new') {
+                    continue;
+                }
+                $content->std_content = self::stdLawContentText($content->content);
+                $history[] = $content;
+            }
+        }
+        usort($history, function ($a, $b) {
+            return $a->version_id <=> $b->version_id;
+        });
+        if (!$history) {
+            throw new Exception("{$law_id}:{$rule_no} not found");
+        }
+        self::$law_rule_cache["{$law_id}:{$rule_no}"] = $history;
+        return $history;
+    }
+
+    public static function searchLawVersion($history, $content)
+    {
+        $matches = [];
+        $std_content = self::stdLawContentText($content);
+        foreach ($history as $version) {
+            $similarity = similar_text($version->std_content, $std_content, $percent);
+            $matches[] = [
+                $version,
+                $similarity,
+                $percent,
+            ];
+        }
+
+        usort($matches, function ($a, $b) {
+            return ($b[2]  - $a[2]) * 10000;
+        });
+
+        if ($matches[0][2] == 100) {
+            return $matches[0][0]->law_content_id;
+        }
+        foreach ($matches as $match) {
+            echo "====== percent: {$match[2]}\n";
+            echo "bill    : $std_content\n";
+            echo "law     : {$match[0]->std_content}\n";
+            echo "======\n";
+        }
+        //readline('press any key to continue');
+        throw new Exception("not found match");
+    }
+
+    public static function findLawContentID($law_id, $content, $first_time)
+    {
+        list($rule_no, $content) = explode('　', $content, 2);
+        $history = self::getLawHistory($law_id, $rule_no);
+        $version_id = self::searchLawVersion($history, $content);
+
+        return $version_id;
     }
 }
