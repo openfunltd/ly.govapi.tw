@@ -146,6 +146,7 @@ foreach ($list as $idx => $v) {
                 $values->{$k} = $docdata->{$k};
             }
         }
+        $values = BillParser::linkToLawContent($values);
         break;
     }
 
