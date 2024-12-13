@@ -1141,6 +1141,14 @@ class BillParser
         foreach ($tables as $table_idx => $table) {
             $law_id = BillParser::parseLaws("「{$table->title}」");
             if (!$law_id) {
+                if (getenv('LOG_RESULT')) {
+                    file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
+                        'status' => 'error',
+                        'message' => '法案對照表中找不到對應的法律',
+                        'billNo' => $billNo,
+                        'title' => $table->title,
+                    ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+                }
                 error_log("{$billNo} 的法案對照表中找不到對應的法律");
                 continue;
             }
@@ -1152,9 +1160,28 @@ class BillParser
                         $law_content_id = self::findLawContentID($law_id, $row['現行'], $first_time);
                         $data->{'對照表'}[$table_idx]->rows[$row_idx]['law_content_id'] = $law_content_id;
                         $changed = true;
-                        //error_log("連結成功：{$billNo} title={$table->title} law_id={$law_id} rule_no={$rule_no} law_content_id={$law_content_id}");
+                        if (getenv('LOG_RESULT')) {
+                            file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
+                                'status' => 'ok',
+                                'billNo' => $billNo,
+                                'title' => $table->title,
+                                'law_id' => $law_id,
+                                'rule_no' => $rule_no,
+                                'law_content_id' => $law_content_id,
+                            ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+                        }
                     } catch (Exception $e) {
                         error_log("連結失敗：{$billNo} title={$table->title} law_id={$law_id} rule_no={$rule_no} error={$e->getMessage()}");
+                        if (getenv('LOG_RESULT')) {
+                            file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
+                                'status' => 'error',
+                                'billNo' => $billNo,
+                                'title' => $table->title,
+                                'law_id' => $law_id,
+                                'rule_no' => $rule_no,
+                                'error' => $e->getMessage(),
+                            ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+                        }
                         continue;
                     }
                     $rule_no = explode('　', $row['現行'], 2)[0];
@@ -1164,6 +1191,14 @@ class BillParser
                     // do nothing
                 } else {
                     error_log("{$billNo} 的法案對照表中找不到現行法");
+                    if (getenv('LOG_RESULT')) {
+                        file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
+                            'status' => 'error',
+                            'message' => '法案對照表中找不到現行法',
+                            'billNo' => $billNo,
+                            'title' => $table->title,
+                        ], JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
+                    }
                     continue;
                 }
             }
