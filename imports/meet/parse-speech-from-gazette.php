@@ -83,7 +83,7 @@ for ($y = $start; $y >= 2012; $y --) {
             $speech->meet_id = $meet_obj->id;
 
             $speech->gazette_id = basename($txtfile, '.txt');
-            if (preg_match('#(.*)[\(（]頁次：?(.*)[─－]([^）]*)#us', $speech->content, $matches)) {
+            if (preg_match('#(.*)[\(（]頁次：?(.*)[─－-]([^）]*)#us', $speech->content, $matches)) {
                 $speech->page_start = $transnumber($matches[2]);
                 $speech->page_end = $transnumber($matches[3]);
             } else if (preg_match('#(.*)（頁次：([^－]*)）$#us', $speech->content, $matches)) {
