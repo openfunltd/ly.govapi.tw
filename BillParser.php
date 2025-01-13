@@ -1125,6 +1125,12 @@ class BillParser
             $values->laws = self::parseLaws($values->{'議案名稱'});
         }
 
+        if (!$values->{'屆期'}) {
+            if (preg_match('#^203#', $billNo)) {
+                $values->{'屆期'} = intval(substr($billNo, 3, 2));
+            }
+        }
+
         return $values;
     }
 
