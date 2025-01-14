@@ -1131,6 +1131,16 @@ class BillParser
             }
         }
 
+        // 如果國會圖書館議事及發言系統有三讀紀錄，就在這邊更新
+        if ($date = self::checkLISCLosedBill($billNo) and strpos($values->{'狀態'}, '三讀') === false) {
+            $values->{'狀態'} = '三讀';
+            $values->{'議案流程'}[] = [
+                '日期' => [date('Y-m-d', strtotime($date))],
+                '狀態' => '三讀',
+                '院會/委員會' => '院會',
+            ];
+        }
+
         return $values;
     }
 
@@ -1302,5 +1312,26 @@ class BillParser
         $version_id = self::searchLawVersion($history, $content);
 
         return $version_id;
+    }
+
+    protected static $_lis_cache = null;
+    /**
+     * checkLISCLosedBill 從 cache/lis-cache.json 檢查這個議案是不是在國會圖書館議事及發言系統已經被
+     * 三讀通過，如果是的話，要把狀態改成三讀
+     */
+    public static function checkLISCLosedBill($billno_or_law)
+    {
+        if (is_null(self::$_lis_cache)) {
+            self::$_lis_cache = [];
+            $obj = json_decode(file_get_contents(__DIR__ . '/cache/lis-cache.json'));
+            foreach ($obj->bills as $bill) {
+                self::$_lis_cache[$bill->議案編號] = $bill->進度;
+                self::$_lis_cache[$bill->法律編號] = $bill->進度;
+            }
+        }
+        if (array_key_exists($billno_or_law, self::$_lis_cache)) {
+            return self::$_lis_cache[$billno_or_law];
+        }
+        return null;
     }
 }
