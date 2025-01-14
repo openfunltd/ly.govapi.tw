@@ -8,6 +8,8 @@ $records = [];
 $ids = [];
 while ($line = fgets($fp)) {
     $data = json_decode($line);
+    $data->進度 = intval(explode(' ', $data->進度)[0]);
+    $data->進度 += 19110000;
     $ids[$data->{'提案編號'}] = $data->進度;
     $records[] = $data;
 }
