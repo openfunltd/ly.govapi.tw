@@ -66,6 +66,13 @@ while ($rows = fgetcsv($fp)) {
         $data['categories'] = $laws[$data['id']]['categories'];
         $data['status'] = $laws[$data['id']]['狀態'];
         $data['latest_version'] = $laws[$data['id']]['version'];
+        if ($date = BillParser::checkLISCLosedBill($data['id'])) {
+            $data['latest_version'] = [
+                'date' => $date,
+                'version_id' => null,
+                'action' => null,
+            ];
+        }
         unset($laws[$data['id']]);
     }
     Elastic::dbBulkInsert('law', $data['id'], $data);
