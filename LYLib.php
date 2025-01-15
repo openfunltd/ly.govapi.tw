@@ -900,4 +900,75 @@ class LYLib
 
         return $ret;
     }
+
+    protected static $_meet_cache = null;
+
+    public static function getMeetsByDate($date, $type)
+    {
+        // 透過 API 去抓符合日期的會議，為了提升效率一次會抓一個月並 cache 起來
+        // 節省存取資料庫的時間
+
+        $year_month = date('Y-m', strtotime($date));
+        if (is_null(self::$_meet_cache)) {
+            self::$_meet_cache = [];
+        }
+        // 取得該月資料
+        if (!array_key_exists($year_month, self::$_meet_cache)) {
+            self::$_meet_cache[$year_month] = [];
+            $terms = [];
+            $terms[] = sprintf('日期:%s,%s',
+                "{$year_month}-01",
+                date('Y-m-d', strtotime("{$year_month}-01 +1 month -1 day"))
+            );
+            $terms[] = 'output_fields=name';
+            $terms[] = 'output_fields=會議代碼';
+            $terms[] = 'output_fields=委員會代號';
+            $terms[] = 'output_fields=日期';
+            $terms[] = 'limit=1000';
+
+            $url = "https://v2.ly.govapi.tw/meets?" . implode('&', $terms);
+            $json = file_get_contents($url);
+            $data = json_decode($json);
+            foreach ($data->meets as $meet) {
+                foreach ($meet->日期 as $d) {
+                    if (!array_key_exists($d, self::$_meet_cache[$year_month])) {
+                        self::$_meet_cache[$year_month][$d] = [];
+                    }
+                    self::$_meet_cache[$year_month][$d][] = $meet;
+                }
+            }
+        }
+
+        // 篩選種類
+        $meets = self::$_meet_cache[$year_month][$date] ?? [];
+        $meets = array_filter($meets, function($meet) use ($type) {
+            if ($type == '院會') {
+                return (explode('-', $meet->會議代碼)[0] == '院會');
+            } else {
+                $committees = explode(',', $type);
+                foreach ($committees as $committee) {
+                    if (!in_array($committee, $meet->{'委員會代號:str'} ?? [])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return true;
+        });
+
+        // 排序最吻合的
+        usort($meets, function($a, $b) use ($type) {
+            if ('院會' == explode('-', $a->會議代碼)[0]) {
+                return -1;
+            }
+            if ('院會' == explode('-', $b->會議代碼)[0]) {
+                return 1;
+            }
+            $count_a = count($a->{'委員會代號:str'});
+            $count_b = count($b->{'委員會代號:str'});
+            $count_ans = count(explode(',', $type));
+            return ($count_a - $count_ans) - ($count_b - $count_ans);
+        });
+        return array_values($meets);
+    }
 }
