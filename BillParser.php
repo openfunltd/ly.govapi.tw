@@ -1059,7 +1059,7 @@ class BillParser
 
         if (property_exists($values, '議案流程') and $values->{'議案流程'}) {
             $first_period = null;
-            foreach ($values->{'議案流程'} as $flow) {
+            foreach ($values->{'議案流程'} as $idx => $flow) {
                 $period = null;
                 if (is_object($flow)) {
                     $date = $flow->{'日期'};
@@ -1085,6 +1085,10 @@ class BillParser
                     }
                 }
                 if ($date) {
+                    $ret = LYLib::getMeetsByDate($date[0], $flow->{'院會/委員會'});
+                    if (count($ret)) {
+                        $values->{'議案流程'}[$idx]->會議代碼 = $ret[0]->會議代碼;
+                    }
                     foreach ($date as $d) {
                         if (!property_exists($values, 'first_time')) {
                             $values->first_time = $d;
