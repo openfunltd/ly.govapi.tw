@@ -2,6 +2,22 @@
 
 include(__DIR__ . '/../../BillParser.php');
 
+
+// 抓最近 100 則黨團協商會議的相關議案
+$url = "https://v2.ly.govapi.tw/meets?會議種類=黨團協商&output_fields=日期&output_fields=議事網資料&limit=1000";
+$obj = json_decode(file_get_contents($url));
+$bill_latest_meets = [];
+foreach ($obj->meets as $meet) {
+    foreach ($meet->議事網資料 ?? [] as $record) {
+        foreach ($record->關係文書->議案 ?? [] as $bill) {
+            if (isset($bill_latest_meets[$bill->議案編號])) {
+                continue;
+            }
+            $bill_latest_meets[$bill->議案編號] = $meet->日期[0];
+        }
+    }
+}
+
 $fp = fopen($_SERVER['argv'][1], 'r');
 $seq = 0;
 $total = intval(`wc -l {$_SERVER['argv'][1]}`);
@@ -13,6 +29,13 @@ while ($obj = json_decode(fgets($fp))) {
     }
     if (!file_exists(__DIR__ . "/bill-html/{$billNo}.gz")) {
         continue;
+    }
+    if (array_key_exists($billNo, $bill_latest_meets)) {
+        if (filemtime(__DIR__ . "/bill-html/{$billNo}.gz") < strtotime($bill_latest_meets[$billNo])) {
+            error_log("{$billNo} 因為黨團協商已經過期");
+            unlink(__DIR__ . "/bill-html/{$billNo}.gz");
+            continue;
+        }
     }
     //error_log($billNo);
     $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$billNo}.gz"));
