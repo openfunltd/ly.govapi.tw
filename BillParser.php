@@ -322,6 +322,25 @@ class BillParser
                 }
             }
         }
+
+        // check 協商會議
+        foreach ($doc->getElementsByTagName('a') as $a_dom) {
+            if (!preg_match('#^(\d+)/(\d+)/(\d+) 協商會議#', $a_dom->nodeValue, $matches)) {
+                continue;
+            }
+
+            $href = $a_dom->getAttribute('href');
+            if (!preg_match('#consult-among-political-parties/(\d+)#', $href, $matches2)) {
+                continue;
+            }
+            $p = new StdClass;
+            $p->{'日期'} = sprintf("%04d-%02d-%02d", 1911 + intval($matches[1]), $matches[2], $matches[3]);
+            $p->{'狀態'} = '黨團協商';
+            $p->{'院會/委員會'} = '黨團協商';
+            $p->{'會議代碼'} = '黨團協商-' . $matches2[1];
+            $obj->{'議案流程'}[] = $p;
+        }
+
         return $obj;
     }
 
@@ -1084,7 +1103,7 @@ class BillParser
                         $first_period = $period;
                     }
                 }
-                if ($date) {
+                if ($date and !($values->{'議案流程'}[$idx]->會議代碼 ?? false)) {
                     $ret = LYLib::getMeetsByDate($date[0], $flow->{'院會/委員會'});
                     if (count($ret)) {
                         $values->{'議案流程'}[$idx]->會議代碼 = $ret[0]->會議代碼;
