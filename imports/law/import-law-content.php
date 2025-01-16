@@ -31,7 +31,7 @@ class Exporter
             mkdir(__DIR__ . "/law-data/law_cache");
         }
         $cache_file = __DIR__ . "/law-data/law_cache/{$id}-{$versions[0]}.json";
-        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2024-11-14 18:30')) {
+        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2025-01-15 19:30')) {
             $obj = json_decode(file_get_contents($cache_file));
             $hit = false;
             if ($obj->types == $types) {
@@ -72,8 +72,9 @@ class Exporter
                     // do nothing, 因為異動條文直接 diff 就可以得到了
                 } elseif ($type == '立法歷程') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-立法歷程.html");
-                    $obj->law_history = self::parseHistoryHTML($content);
-                    $obj->law_history = self::handleHistoryData($obj->law_history, $id, $versions[0]);
+                    $obj->law_history = self::parseHistoryHTML($content, $committees);
+                    $obj->committees = $committees;
+                    $obj->law_history = self::handleHistoryData($obj->law_history, $id, $versions[0], $committees);
                 } elseif ($type == '異動條文及理由') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-異動條文及理由.html");
                     $obj->law_reasons = self::parseReasonHTML($content);
@@ -245,11 +246,32 @@ class Exporter
         return $lines;
     }
 
-    public static function parseHistoryHTML($content)
+    public static function parseHistoryHTML($content, &$committees)
     {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
+        $committees = [];
+        foreach ($doc->getElementsByTagName('b') as $b_dom) {
+            if ($b_dom->nodeValue == '委員會：') {
+            } elseif ($b_dom->nodeValue == '審查委員會：') {
+            } else {
+                continue;
+            }
+
+            $font_dom = $b_dom->nextSibling;
+            while ($font_dom = $font_dom->nextSibling) {
+                if ($font_dom->nodeName != 'font') {
+                    continue;
+                }
+                $committees = explode(' ', trim($font_dom->nodeValue));
+                $committees = array_map(function($a) {
+                    return $a . '委員會';
+                }, $committees);
+                break;
+            }
+        }
         $records = array();
+
         foreach ($doc->getElementsByTagName('table') as $table_dom) {
             if ($table_dom->getAttribute('class') == 'sumtab04') {
                 foreach ($table_dom->getElementsByTagName('div') as $div_dom) {
@@ -482,7 +504,7 @@ class Exporter
         exit;
     }
 
-    public static function handleHistoryData($records, $law_id, $version_id)
+    public static function handleHistoryData($records, $law_id, $version_id, $committees)
     {
         $ret = [];
         foreach ($records as $record) {
@@ -496,6 +518,18 @@ class Exporter
                 $d = $record->{'會議日期'}; // YYMMDD or YYYMMDD
                 $record->{'會議日期'} = sprintf("%04d-%02d-%02d",
                     substr($d, 0, -4) + 1911, substr($d, -4, 2), substr($d, -2, 2));
+
+                if (strpos($record->{'進度'}, '委員會') !== false) {
+                    $type = implode(',', $committees);
+                } elseif ($record->{'進度'} == '黨團協商') {
+                    $type = '黨團協商';
+                } else {
+                    $type = '院會';
+                }
+                $meets= LYLib::getMeetsByDate($record->{'會議日期'}, $type);
+                if ($meets) {
+                    $record->{'會議代碼'} = $meets[0]->會議代碼;
+                }
             } else {
                 unset($record->{'會議日期'});
             }
@@ -634,6 +668,9 @@ class Exporter
             $version_data->contents = [];
             if ($obj->law_history ?? false) {
                 $law_version_data['history'] = $obj->law_history;
+            }
+            if ($obj->committees ?? false) {
+                $law_version_data['committees'] = $obj->committees;
             }
             Elastic::dbBulkInsert('law_version', $version_id, $law_version_data);
 
