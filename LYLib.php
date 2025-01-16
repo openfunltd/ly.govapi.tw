@@ -941,6 +941,7 @@ class LYLib
             $terms[] = 'output_fields=name';
             $terms[] = 'output_fields=會議代碼';
             $terms[] = 'output_fields=委員會代號';
+            $terms[] = 'output_fields=議事網資料';
             $terms[] = 'output_fields=日期';
             $terms[] = 'limit=1000';
 
@@ -948,6 +949,15 @@ class LYLib
             $json = file_get_contents($url);
             $data = json_decode($json);
             foreach ($data->meets as $meet) {
+                $billNos = [];
+                foreach ($meet->議事網資料 ?? [] as $record) {
+                    foreach ($record->關係文書->議案 ?? [] as $bill) {
+                        if ($bill->議案編號 ?? false) {
+                            $billNos[] = $bill->議案編號;
+                        }
+                    }
+                }
+                $meet->議事網資料 = $billNos;
                 foreach ($meet->日期 as $d) {
                     if (!array_key_exists($d, self::$_meet_cache[$year_month])) {
                         self::$_meet_cache[$year_month][$d] = [];
@@ -962,6 +972,8 @@ class LYLib
         $meets = array_filter($meets, function($meet) use ($type) {
             if ($type == '院會') {
                 return (explode('-', $meet->會議代碼)[0] == '院會');
+            } elseif ($type == '黨團協商') {
+                return (explode('-', $meet->會議代碼)[0] == '黨團協商');
             } else {
                 $committees = explode(',', $type);
                 foreach ($committees as $committee) {
@@ -976,11 +988,8 @@ class LYLib
 
         // 排序最吻合的
         usort($meets, function($a, $b) use ($type) {
-            if ('院會' == explode('-', $a->會議代碼)[0]) {
+            if (in_array(explode('-', $a->會議代碼)[0], ['院會', '黨團協商'])) {
                 return -1;
-            }
-            if ('院會' == explode('-', $b->會議代碼)[0]) {
-                return 1;
             }
             $count_a = count($a->{'委員會代號:str'});
             $count_b = count($b->{'委員會代號:str'});
