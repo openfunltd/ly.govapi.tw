@@ -31,7 +31,7 @@ class Exporter
             mkdir(__DIR__ . "/law-data/law_cache");
         }
         $cache_file = __DIR__ . "/law-data/law_cache/{$id}-{$versions[0]}.json";
-        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2025-01-15 19:30')) {
+        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2025-01-16 16:00')) {
             $obj = json_decode(file_get_contents($cache_file));
             $hit = false;
             if ($obj->types == $types) {
@@ -66,6 +66,7 @@ class Exporter
             throw $e;
         }
 
+        $billNos = [];
         foreach ($types as $type) {
             try {
                 if ($type == '異動條文') {
@@ -74,7 +75,7 @@ class Exporter
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-立法歷程.html");
                     $obj->law_history = self::parseHistoryHTML($content, $committees);
                     $obj->committees = $committees;
-                    $obj->law_history = self::handleHistoryData($obj->law_history, $id, $versions[0], $committees);
+                    $obj->law_history = self::handleHistoryData($obj->law_history, $id, $versions[0], $committees, $billNos);
                 } elseif ($type == '異動條文及理由') {
                     $content = self::file_get_contents(__DIR__ . "/law-data/laws/{$id}/{$versions[0]}-異動條文及理由.html");
                     $obj->law_reasons = self::parseReasonHTML($content);
@@ -504,7 +505,7 @@ class Exporter
         exit;
     }
 
-    public static function handleHistoryData($records, $law_id, $version_id, $committees)
+    public static function handleHistoryData($records, $law_id, $version_id, $committees, &$billNos)
     {
         $ret = [];
         foreach ($records as $record) {
@@ -518,18 +519,6 @@ class Exporter
                 $d = $record->{'會議日期'}; // YYMMDD or YYYMMDD
                 $record->{'會議日期'} = sprintf("%04d-%02d-%02d",
                     substr($d, 0, -4) + 1911, substr($d, -4, 2), substr($d, -2, 2));
-
-                if (strpos($record->{'進度'}, '委員會') !== false) {
-                    $type = implode(',', $committees);
-                } elseif ($record->{'進度'} == '黨團協商') {
-                    $type = '黨團協商';
-                } else {
-                    $type = '院會';
-                }
-                $meets= LYLib::getMeetsByDate($record->{'會議日期'}, $type);
-                if ($meets) {
-                    $record->{'會議代碼'} = $meets[0]->會議代碼;
-                }
             } else {
                 unset($record->{'會議日期'});
             }
@@ -598,7 +587,60 @@ class Exporter
                 $doc->{'類型'} = $old_doc[0];
                 $doc->{'連結'} = $old_doc[1];
                 $doc = self::updateDocData($doc, $law_id, $version_id);
+                if ($doc->billNo ?? false) {
+                    $billNos[$doc->billNo] = true;
+                }
                 $docs[] = $doc;
+            }
+
+            if ($record->{'會議日期'} ?? false) {
+                if (strpos($record->{'進度'}, '委員會') !== false) {
+                    $type = implode(',', $committees);
+                } elseif ($record->{'進度'} == '黨團協商') {
+                    $type = '黨團協商';
+                } else {
+                    $type = '院會';
+                }
+                $meets= LYLib::getMeetsByDate($record->{'會議日期'}, $type);
+                if ($meets) {
+                    if ($type == '黨團協商') {
+                        usort($meets, function($a, $b) use ($billNos, $committees) {
+                            // 檢查 $billNos 有沒有在 $meets->議事網資料 裡面，有越多越前面
+                            $a_hit = 0;
+                            $b_hit = 0;
+                            foreach (array_keys($billNos) as $billNo) {
+                                if (in_array($billNo, $a->議事網資料 ?? [])) {
+                                    $a_hit ++;
+                                }
+                                if (in_array($billNo, $b->議事網資料 ?? [])) {
+                                    $b_hit ++;
+                                }
+                            }
+
+                            if ($a_hit != $b_hit) {
+                                return $b_hit - $a_hit;
+                            }
+
+                            // 再來比較 $committees 有沒有在 $meets->{'委員會代號:str'} 裡面，有越多越前面
+                            $a_hit = 0;
+                            $b_hit = 0;
+                            foreach ($committees as $committee) {
+                                if (in_array($committee, $a->{'委員會代號:str'} ?? [])) {
+                                    $a_hit ++;
+                                }
+                                if (in_array($committee, $b->{'委員會代號:str'} ?? [])) {
+                                    $b_hit ++;
+                                }
+                            }
+                            if ($a_hit != $b_hit) {
+                                return $b_hit - $a_hit;
+                            }
+                        });
+                        $record->{'會議代碼'} = $meets[0]->會議代碼;
+                    } else {
+                        $record->{'會議代碼'} = $meets[0]->會議代碼;
+                    }
+                }
             }
             $record->{'關係文書'} = $docs;
 
