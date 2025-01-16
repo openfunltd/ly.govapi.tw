@@ -260,7 +260,7 @@ class LYLib
         return $meet_obj;
     }
 
-    public static function meetNameToId($oname)
+    public static function meetNameToId($oname, $extra_data = null)
     {
         $ret = new StdClass;
         $ret->tmpMeeting = null;
@@ -446,6 +446,24 @@ class LYLib
         }
         if ($name == '') {
             return null;
+        }
+        if (strpos($name, '黨團協商') !== false) {
+            if (!($extra_data['meetingNo'] ?? false)) {
+                throw new Exception("{$oname} 有問題");
+            }
+            $ret->title = $oname;
+            $ret->type = '黨團協商';
+            $ret->id = '黨團協商-' . $extra_data['meetingNo'];
+            if ($extra_data['meetingUnit'] ?? false) {
+                if ($extra_data['meetingUnit'] == '朝野黨團協商') {
+                } elseif (preg_match('#^朝野黨團協商\((.*委員會)\)$#', $extra_data['meetingUnit'], $matches)) {
+                    $committee_id = self::getCommitteeId($matches[1]);
+                    $ret->committees[] = $committee_id;
+                } else {
+                    throw new Exception("{$extra_data['meetingUnit']} 有問題");
+                }
+            }
+            return $ret;
         }
         throw new Exception("{$oname} 有問題");
     }
