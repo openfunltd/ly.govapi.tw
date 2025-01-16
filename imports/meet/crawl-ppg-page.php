@@ -29,7 +29,10 @@ foreach ($meet_group as $meetingNo => $meets) {
     foreach ($meets as $meet) {
         $meet = LYLib::filterMeetData($meet);
         try {
-            $meet_obj = LYLib::meetNameToId($meet->meetingName);
+            $meet_obj = LYLib::meetNameToId($meet->meetingName, [
+                'meetingNo' => $meetingNo,
+                'meetingUnit' => $meet->meetingUnit,
+            ]);
         } catch (Exception $e) {
             continue;
         }
