@@ -68,7 +68,7 @@ foreach ($meet_group as $meetingNo => $meets) {
         }
         error_log("{$target} {$url}");
         $json_target = __DIR__ . "/ppg_meet_page_json/{$meetingNo}-{$meet->date}.json";
-        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2024-10-21 09:40')) {
+        if (!file_exists($json_target) or filemtime($json_target) < strtotime('2025-01-17 09:29')) {
             try {
                 $info = MeetParser::parseMeetPage(file_get_contents($target), __DIR__, $meetingNo, $url);
             } catch (Exception $e) {

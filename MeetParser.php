@@ -2,6 +2,16 @@
 
 class MeetParser
 {
+    public static function getLawIdByBillNo($billNo)
+    {
+        $target = __DIR__ . "/imports/bill/bill-data/{$billNo}.json.gz";
+        if (!file_exists($target)) {
+            return [];
+        }
+        $obj = json_decode(gzdecode(file_get_contents($target)));
+        return $obj->laws ?? [];
+    }
+
     public static function parseMeetPage($content, $dir, $meetingNo, $url)
     {
         $doc = new DOMDocument;
@@ -206,6 +216,7 @@ class MeetParser
                     } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
                     } else {
                         $record['billNo'] = $matches[1];
+                        $record['laws'] = self::getLawIdByBillNo($record['billNo']);
                     }
 
                     foreach ($span_dom->parentNode->parentNode->parentNode->getElementsByTagName('span') as $comment_dom) {
@@ -245,6 +256,7 @@ class MeetParser
                     } else if (!preg_match('#/ppg/bills/(\d+)/details#u', $a_dom->getAttribute('href'), $matches)) {
                     } else {
                         $record['billNo'] = $matches[1];
+                        $record['laws'] = self::getLawIdByBillNo($record['billNo']);
                     }
 
                     foreach ($span_dom->parentNode->parentNode->parentNode->getElementsByTagName('span') as $comment_dom) {
