@@ -334,7 +334,7 @@ class BillParser
                 continue;
             }
             $p = new StdClass;
-            $p->{'日期'} = sprintf("%04d-%02d-%02d", 1911 + intval($matches[1]), $matches[2], $matches[3]);
+            $p->{'日期'} = [sprintf("%04d-%02d-%02d", 1911 + intval($matches[1]), $matches[2], $matches[3])];
             $p->{'狀態'} = '黨團協商';
             $p->{'院會/委員會'} = '黨團協商';
             $p->{'會議代碼'} = '黨團協商-' . $matches2[1];
