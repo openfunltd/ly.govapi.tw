@@ -27,8 +27,18 @@ while ($rows = fgetcsv($fp)) {
 }
 fclose($fp);
 
-$url = 'https://data.ly.gov.tw/odw/usageFile.action?id=301&type=CSV&fname=301_CSV.csv';
 $target = __DIR__ . '/../../cache/301-law.csv';
+$url = 'https://data.ly.gov.tw/odw/usageFile.action?id=301&type=CSV&fname=301_CSV.csv';
+$tmp_target = __DIR__ . '/../../cache/301-law.csv.tmp';
+$cmd = sprintf("curl -4 -o %s %s", escapeshellarg($tmp_target), escapeshellarg($url));
+system($cmd);
+if (!filesize($tmp_target)) {
+    throw new Exception("download failed");
+} elseif (md5_file($tmp_target) != md5_file($target)) {
+    rename($tmp_target, $target);
+} else {
+    unlink($tmp_target);
+}
 
 $fp = fopen($target, 'r');
 $cols = fgetcsv($fp);
