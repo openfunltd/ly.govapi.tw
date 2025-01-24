@@ -4,7 +4,7 @@ class Crawler
 {
     protected $curl;
 
-    protected function http($url, $post_params = null)
+    protected function http($url, $post_params = null, $get_redirect = false)
     {
         for ($i = 0; $i < 3; $i ++) {
             curl_setopt($this->curl, CURLOPT_URL, $url);
@@ -19,6 +19,10 @@ class Crawler
 	    curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
             $content = curl_exec($this->curl);
             $info = curl_getinfo($this->curl);
+
+            if ($get_redirect and $info['http_code'] == 302) {
+                return $info['redirect_url'];
+            }
             if ($info['http_code'] != 200) {
                 if ($i == 2) {
                     throw new Exception("抓取 {$url} 失敗, code = {$info['http_code']}");
@@ -218,7 +222,9 @@ class Crawler
     {
         error_log("抓取條文 {$category} > {$category2} > {$title} ({$status}) 資料");
 
-        $url = 'https://lis.ly.gov.tw' . $url;
+        if (strpos($url, 'https') !== 0) {
+            $url = 'https://lis.ly.gov.tw' . $url;
+        }
         $content = $this->http($url);
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
@@ -470,6 +476,42 @@ class Crawler
         }
     }
 
+    public function crawlMissingLaw()
+    {
+        $laws = [];
+        $fp = fopen(__DIR__ . '/law-data/laws.csv', 'r');
+        $cols = fgetcsv($fp);
+        while ($rows = fgetcsv($fp)) {
+            $laws[$rows[0]] = true;
+        }
+        fclose($fp);
+
+        $fp = fopen(__DIR__ . '/../../cache/301-law.csv', 'r');
+        $cols = fgetcsv($fp);
+        $cols[0] = 'lawNumber';
+        while ($rows = fgetcsv($fp)) {
+            $values = array_combine($cols, $rows);
+            if (intval($values['lawNumber']) % 1000 != 0) {
+                continue;
+            }
+            $law_id = substr($values['lawNumber'], 0, 5);
+            if (array_key_exists($law_id, $laws)) {
+                continue;
+            }
+            $url = "https://www.ly.gov.tw/Pages/ashx/LawRedirect.ashx?CODE=". $law_id;
+            $content = $this->http($url, null, true);
+            if (strpos($content, '您查詢的網址暫時無法服務')) {
+                error_log("{$url} 暫時無法服務");
+                continue;
+            } else {
+                $url = $content;
+            }
+            $title = $values['law'];
+            $this->crawlLaw('', '', '', $title, $url);
+        }
+        fclose($fp);
+    }
+
     public function main()
     {
         if (!file_exists(__DIR__ . '/law-data/laws')) {
@@ -489,6 +531,9 @@ class Crawler
 
         // 再回頭去最新公布法律抓新公布法
         $this->crawlLatestLaws();
+
+        // 再從 law_id 去找沒有資料的
+        $this->crawlMissingLaw();
     }
 }
 
