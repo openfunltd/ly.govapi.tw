@@ -112,7 +112,7 @@ foreach ($obj->hits->hits as $hit) {
         }
         $cmd = (sprintf("pdftotext -layout %s -", escapeshellarg($file)));
         $content = `$cmd`;
-        file_put_contents(__DIR__ . '/tmp.txt', $content);
+        //file_put_contents(__DIR__ . '/tmp.txt', $content);
         error_log("{$file} {$meet_data->ppg_url}");
         $info = GazetteParser::parseInterpellation($content);
         foreach ($info->interpellations as $interpellation) {
