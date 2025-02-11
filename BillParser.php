@@ -517,6 +517,9 @@ class BillParser
                 }
                 $diff = new StdClass;
                 $diff->title = $title;
+                $names = [];
+                $diff->law_id = self::parseLaws("「{$title}」", $names)[0];
+                $diff->law_name = $names[0];
                 $diff->{'立法種類'} = null;
                 continue;
             }
