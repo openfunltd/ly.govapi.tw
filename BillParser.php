@@ -546,6 +546,7 @@ class BillParser
                 continue 2;
 
             case '修正條文,現行條文,說明':
+            case '修正後條文,現行條文,說明':
             case '修正條文,現行條文,修正說明':
             case '修正條文,現行規定,說明':
             case '修正規定,現行規定,說明':
@@ -1051,11 +1052,15 @@ class BillParser
         return null;
     }
 
-    public static function parseLaws($name)
+    public static function parseLaws($name, &$names = 'empty')
     {
         $ret = [];
+        if ($names != 'empty') {
+            $names = [];
+        }
         preg_match_all('#「([^」]+)」#u', $name, $matches);
         foreach ($matches[1] as $n) {
+            $names[] = $n;
             if ($id = self::searchLaw($n)) {
                 $ret[] = $id;
             }
@@ -1151,7 +1156,7 @@ class BillParser
 
         // 處理法案
         if ($values->{'議案類別'} == '法律案' or $values->{'議案類別'} == '--') {
-            $values->laws = self::parseLaws($values->{'議案名稱'});
+            $values->laws = self::parseLaws($values->{'議案名稱'}, $names);
         }
 
         if (!$values->{'屆期'}) {
@@ -1184,7 +1189,7 @@ class BillParser
         $first_time = $data->first_time;
         $changed = false;
         foreach ($tables as $table_idx => $table) {
-            $law_id = BillParser::parseLaws("「{$table->title}」");
+            $law_id = BillParser::parseLaws("「{$table->title}」", $names);
             if (!$law_id) {
                 if (getenv('LOG_RESULT')) {
                     file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
