@@ -714,6 +714,7 @@ class BillParser
                 $values['說明'] = trim($values['說明']);
                 if (!array_key_exists('現行法', $values) or !$values['現行法']) {
                     $content = '';
+                    // 從說明和增訂以外的欄位取得條號
                     foreach ($td_doms as $pos => $td_dom) {
                         if (in_array($pos, $col_pos) and ($pos == $col_pos[$cols[0]] or $pos == $col_pos['說明'])) {
                             continue;
@@ -731,13 +732,23 @@ class BillParser
                         }
                         $content .= $part_content;
                     }
-                    $content = str_replace("\n", "", $content);
                     preg_match_all('#：([^　]*)#u', $content, $matches);
                     $ruleno_values = array_count_values($matches[1]);
                     arsort($ruleno_values);
                     $values['條號'] = key($ruleno_values);
+                    if (strpos($values['條號'], '名稱：') === 0) {
+                        $values['條號'] = '名稱';
+                    }
                 } else {
                     $values['條號'] = explode('　', $values['現行法'])[0];
+                }
+
+                if ($values['增訂'] ?? false and strpos($values['增訂'], '名稱：') !== false) {
+                    if ($diff->title == '條文對照表') {
+                        $diff->title = $title = explode('：', $values['增訂'])[1] . '草案';
+                        $diff->law_id = self::parseLaws("「{$title}」", $names)[0];
+                        $diff->law_name = $names[0];
+                    }
                 }
 
                 $diff->rows[] = $values;
