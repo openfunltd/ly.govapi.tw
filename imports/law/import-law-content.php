@@ -762,6 +762,15 @@ class Exporter
                         $law_content_data['version_trace'] = 'new';
                     }
                 } elseif (property_exists($law_data, 'section_name')) {
+                    list($rule_no, $content) = explode(' ', $law_data->section_name, 2);
+                    $key = $rule_no . '-' . crc32($content);
+
+                    if (array_key_exists($key, $content_version)) {
+                        $law_content_data['version_trace'] = $content_version[$key];
+                    } else {
+                        $content_version[$key] = $version_id;
+                        $law_content_data['version_trace'] = 'new';
+                    }
                     $law_content_data['section_name'] = $law_data->section_name;
                 } else {
                     print_r($obj);
