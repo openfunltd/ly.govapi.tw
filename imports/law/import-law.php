@@ -22,6 +22,10 @@ fclose($fp);
 $fp = fopen(__DIR__ . "/law-data/laws-versions.csv", 'r');
 $cols = fgetcsv($fp);
 while ($rows = fgetcsv($fp)) {
+    if (!array_key_exists('first_version', $laws[$rows[0]])) {
+        $laws[$rows[0]]['first_version'] = LawLib::getVersionIdFromString($rows[2], $rows[0]);
+        $laws[$rows[0]]['first_version']['version_id'] = "{$laws[$rows[0]]['first_version']['date']}-{$laws[$rows[0]]['first_version']['action']}";
+    }
     $laws[$rows[0]]['version'] = LawLib::getVersionIdFromString($rows[2], $rows[0]);
     $laws[$rows[0]]['version']['version_id'] = "{$laws[$rows[0]]['version']['date']}-{$laws[$rows[0]]['version']['action']}";
 }
@@ -76,6 +80,7 @@ while ($rows = fgetcsv($fp)) {
         $data['categories'] = $laws[$data['id']]['categories'];
         $data['status'] = $laws[$data['id']]['狀態'];
         $data['latest_version'] = $laws[$data['id']]['version'];
+        $data['first_version'] = $laws[$data['id']]['first_version'];
         if ($date = BillParser::checkLISCLosedBill($data['id'])) {
             $data['latest_version'] = [
                 'date' => $date,
