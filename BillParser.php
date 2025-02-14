@@ -349,7 +349,7 @@ class BillParser
         return preg_Replace('/\s+/', '', $str);
     }
 
-    public static function parseTikaBillDoc($billNo, $content, $obj)
+    public static function parseTikaBillDoc($billNo, $content, $obj, $date = null)
     {
         $record = new StdClass;
         $record->billNo = $billNo;
@@ -471,7 +471,7 @@ class BillParser
             if ($tr_doms) {
                 $record->{'對照表'} = $record->{'對照表'} ?? [];
                 try {
-                    foreach (self::getDiffTableFromTrs($tr_doms, $doc, $billNo) as $diff) {
+                    foreach (self::getDiffTableFromTrs($tr_doms, $doc, $billNo, $date) as $diff) {
                         if (!is_null($diff)) {
                             $record->{'對照表'}[] = $diff;
                         }
@@ -486,7 +486,7 @@ class BillParser
         return $record;
     }
 
-    public static function getDiffTableFromTrs($tr_doms, $doc, $billNo)
+    public static function getDiffTableFromTrs($tr_doms, $doc, $billNo, $date)
     {
         if (in_array($billNo, [
             "1010224070100900", // 缺少欄位？
@@ -518,7 +518,7 @@ class BillParser
                 $diff = new StdClass;
                 $diff->title = $title;
                 $names = [];
-                $diff->law_id = self::parseLaws("「{$title}」", $names)[0];
+                $diff->law_id = self::parseLaws("「{$title}」", $names, $date)[0];
                 $diff->law_name = $names[0];
                 $diff->{'立法種類'} = null;
                 continue;
@@ -746,7 +746,7 @@ class BillParser
                 if ($values['增訂'] ?? false and strpos($values['增訂'], '名稱：') !== false) {
                     if ($diff->title == '條文對照表') {
                         $diff->title = $title = explode('：', $values['增訂'])[1] . '草案';
-                        $diff->law_id = self::parseLaws("「{$title}」", $names)[0];
+                        $diff->law_id = self::parseLaws("「{$title}」", $names, $date)[0];
                         $diff->law_name = $names[0];
                     }
                 }
@@ -773,10 +773,10 @@ class BillParser
         }
     }
 
-    public static function parseBillDoc($billNo, $content, $obj = null)
+    public static function parseBillDoc($billNo, $content, $obj = null, $date = null)
     {
         if (strpos($content, 'org.apache.tika.parser.CompositeParser')) {
-            return self::parseTikaBillDoc($billNo, $content, $obj);
+            return self::parseTikaBillDoc($billNo, $content, $obj, $date);
         }
         $record = new StdClass;
         $record->billNo = $billNo;
@@ -1011,7 +1011,7 @@ class BillParser
     }
 
     protected static $_law_names = null;
-    public static function searchLaw($s)
+    public static function searchLaw($s, $date = null)
     {
         if (is_null(self::$_law_names)) {
             $cmd = [
@@ -1035,7 +1035,7 @@ class BillParser
                     if (!array_key_exists($n, self::$_law_names)) {
                         self::$_law_names[$n] = [];
                     }
-                    self::$_law_names[$n][$id] = $id;
+                    self::$_law_names[$n][$id] = $source->latest_version ?? null;
                 }
             }
         }
@@ -1048,9 +1048,24 @@ class BillParser
             if (!array_key_exists($cs, self::$_law_names)) {
                 continue;
             }
-            $ids = self::$_law_names[$cs];
+            $ids = array_keys(self::$_law_names[$cs]);
             if (count($ids) == 1) {
                 return array_values($ids)[0];
+            }
+            $date = strtotime($date);
+            $names = self::$_law_names[$cs];
+            $names = array_filter($names, function ($v) use ($date) {
+                if ($v->action != '廢止') {
+                    return true;
+                }
+
+                if ($date > strtotime($v->date)) {
+                    return false;
+                }
+                return true;
+            });
+            if (count($names) == 1) {
+                return array_keys($names)[0];
             }
             error_log("{$s} 有多個可能的法律名稱: " . implode(',', $ids));
             return null;
@@ -1066,7 +1081,7 @@ class BillParser
         return null;
     }
 
-    public static function parseLaws($name, &$names = 'empty')
+    public static function parseLaws($name, &$names = 'empty', $date = null)
     {
         $ret = [];
         if ($names != 'empty') {
@@ -1075,7 +1090,7 @@ class BillParser
         preg_match_all('#「([^」]+)」#u', $name, $matches);
         foreach ($matches[1] as $n) {
             $names[] = $n;
-            if ($id = self::searchLaw($n)) {
+            if ($id = self::searchLaw($n, $date)) {
                 $ret[] = $id;
             }
         }
@@ -1170,7 +1185,7 @@ class BillParser
 
         // 處理法案
         if ($values->{'議案類別'} == '法律案' or $values->{'議案類別'} == '--') {
-            $values->laws = self::parseLaws($values->{'議案名稱'}, $names);
+            $values->laws = self::parseLaws($values->{'議案名稱'}, $names, $values->first_time);
         }
 
         if (!$values->{'屆期'}) {
@@ -1203,7 +1218,7 @@ class BillParser
         $first_time = $data->first_time;
         $changed = false;
         foreach ($tables as $table_idx => $table) {
-            $law_id = BillParser::parseLaws("「{$table->title}」", $names);
+            $law_id = BillParser::parseLaws("「{$table->title}」", $names, $data->first_time);
             if (!$law_id) {
                 if (getenv('LOG_RESULT')) {
                     file_put_contents(__DIR__ . '/cache/log-' . getenv('LOG_RESULT'), json_encode([
