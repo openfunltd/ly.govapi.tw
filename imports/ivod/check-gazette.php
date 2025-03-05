@@ -12,6 +12,9 @@ $cols = fgetcsv($fp);
 $max_meeting_date = null;
 while ($rows = fgetcsv($fp)) {
     $values = array_combine($cols, $rows);
+    if (strlen($values['meetingDate']) == 14) {
+        $values['meetingDate'] = substr($values['meetingDate'], 0, 7);
+    }
     $max_meeting_date = max($max_meeting_date, intval($values['meetingDate']));
 }
 $max_meeting_date += 19110000;
