@@ -124,11 +124,12 @@ for ($v = 155000; $v <= $max_v; $v ++) {
         'tool' => 'pyannote',
         'id' => "{$v}-pyannote",
     ]);
+    // 2024-12-31 起移除 init_prompt, 因為好像效果變差
     $add_job('/queue/add', [
         'url' => $url,
         'tool' => 'whisperx',
         'id' => "{$v}-whisperx",
-        'init_prompt' => mb_substr($init_prompt, 0, 150, 'UTF-8'),
+        'init_prompt' => '', //mb_substr($init_prompt, 0, 150, 'UTF-8'),
     ]);
     $add_job('/queue/add', [
         'url' => $url,
@@ -190,7 +191,7 @@ for (; $v > 0; $v --) {
         'url' => $url,
         'tool' => 'whisperx',
         'id' => "{$v}-whisperx",
-        'init_prompt' => mb_substr($init_prompt, 0, 150, 'UTF-8'),
+        'init_prompt' => '', //mb_substr($init_prompt, 0, 150, 'UTF-8'),
     ]);
     $add_job('/queue/add', [
         'url' => $url,
