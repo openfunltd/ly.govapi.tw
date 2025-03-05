@@ -78,9 +78,11 @@ class LYLib
                 $meet->meetingNo .= sprintf("02%03d", $matches[1]);
             } elseif (preg_match('#請願接待室$#', $meet->meetingRoom, $matches)) {
                 $meet->meetingNo .= sprintf("03%03d", 0);
+            } elseif (preg_match('#青島三館(\d+)會議室$#', $meet->meetingRoom, $matches)) {
+                $meet->meetingNo .= sprintf("04%04d", $matches[1]);
             } else {
                 echo $meet->meetingRoom . "\n";
-                exit;
+                throw new Exception("{$meet->meetingRoom} 有問題");
             }
             $meet->meetingType = '其他會議'; // Ex: 公聽會 記者會 座談會 等等
             return $meet;
