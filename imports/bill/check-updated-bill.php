@@ -61,8 +61,15 @@ while ($obj = json_decode(fgets($fp))) {
         error_log("{$values->billNo} html={$values->{'議案狀態'}} list={$obj->content5}");
         rename(__DIR__ . "/bill-html/{$billNo}.gz", __DIR__ . "/bill-html/old/{$billNo}.gz");
     }
+    // 沒有相關附件就重新抓取
     if ($obj->billType == 20 and !strpos(json_encode($values->{'相關附件'}, JSON_UNESCAPED_UNICODE), '關係文書DOC')) {
         error_log("{$billNo} 無相關附件");
+        rename(__DIR__ . "/bill-html/{$billNo}.gz", __DIR__ . "/bill-html/old/{$billNo}.gz");
+    }
+
+    // 如果沒有議案流程日期就重新抓取
+    if ($obj->billType == 20 and !($values->議案流程[0]->日期 ?? false)) {
+        error_log("{$billNo} 無議案流程日期");
         rename(__DIR__ . "/bill-html/{$billNo}.gz", __DIR__ . "/bill-html/old/{$billNo}.gz");
     }
 }
