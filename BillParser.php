@@ -603,6 +603,7 @@ class BillParser
                 continue 2;
 
             case '修正名稱,現行名稱,說明':
+            case '修正名稱,法案名稱,說明':
             case '修正名稱,現行條文,說明':
                 if (!is_null($diff->{'立法種類'})) {
                     yield $diff;
