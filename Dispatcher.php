@@ -2217,6 +2217,9 @@ class Dispatcher
     public static function dispatch()
     {
         $uri = $_SERVER['REQUEST_URI'];
+        if (strpos($uri, '/v1') === 0) {
+            $uri = substr($uri, 3);
+        }
 
         if ($uri == '/swagger.yaml') {
             header('Content-Type: text/plain');
