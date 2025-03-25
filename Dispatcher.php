@@ -2,7 +2,8 @@
 
 /**
  * @OA\Info(
- *   title="立法院 API", version="1.0.0"
+ *   title="立法院 API", version="1.0.0",
+ *   description="<b><font color='red'>v1 API 已停止維護，請改用 <a href='https://ly.govapi.tw/v2'>v2 API</a></font></b>"
  * )
  * @OA\Tag(name="stat", description="統計")
  * @OA\Tag(name="legislator", description="立法委員")

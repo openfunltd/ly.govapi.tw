@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: '立法院 API'
-  description: '<b><font color="red">ly.govapi.tw 已停止維護，請改用 <a href="https://v2.ly.govapi.tw">https://v2.ly.govapi.tw</a></font></b>'
+  description: "<b><font color='red'>v1 API 已停止維護，請改用 <a href='https://ly.govapi.tw/v2'>v2 API</a></font></b>"
   version: 1.0.0
 paths:
   /legislator:
