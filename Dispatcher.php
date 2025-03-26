@@ -2224,6 +2224,10 @@ class Dispatcher
         if (strpos($uri, '/v1') === 0) {
             $uri = substr($uri, 3);
         }
+        if (strpos($uri, '/v2') === 0) {
+            header('Location: /v2/');
+            exit;
+        }
 
         if ($uri == '/swagger.yaml') {
             header('Content-Type: text/plain');
