@@ -346,4 +346,297 @@ class MeetParser
         }
         return $meet_data;
     }
+
+    public static function getLawNameFromString($str)
+    {
+        $str = preg_replace('#修正草案$#u', '', $str);
+        if (preg_match('#(.*)部分條文$#u', $str, $matches)) {
+            return $matches[1];
+        }
+        $str = preg_replace('#第(.*)條.*$#u', '', $str);
+        // 遠洋漁業條例增訂第十四條之一及第三十八條之一條文草案
+        if (preg_match('#(.*)增訂.*$#', $str, $matches)) {
+            return $matches[1];
+        }
+        return $str;
+    }
+
+    public static function getAgendasFromMeetContent($content, $ppg_data, $meet)
+    {
+        $origin_content = $content;
+        if (strpos($content, '一、') === 0) {
+            $agendas = [];
+
+            // 分隔 一、 二、 等項目
+            $words = ['二', '三', '四', '五', '六', '七', '八', '九'];
+            $pos_start = mb_strlen('一、');
+            foreach ($words as $w) {
+                $offset = 0;
+                while (true) {
+                    $pos_end = mb_strpos($content, $w . '、', $offset);
+                    // 檢查一下，如果前面不是句號或是跳行，就再往下找
+                    if (false == $pos_end) {
+                        break;
+                    }
+
+                    $prev_char = mb_substr($content, $pos_end - 1, 1, 'UTF-8');
+                    if (in_array($prev_char, [
+                        '。', "\n", '】', ' ',
+                    ])) {
+                        break;
+                    }
+                    $offset = $pos_end + 1;
+                }
+                if (false === $pos_end) {
+                    $agendas = array_merge(
+                        $agendas,
+                        self::getAgendasFromMeetContent(mb_substr($content, $pos_start), $ppg_data, $meet)
+                    );
+                    break;
+                } else {
+                    $agendas = array_merge(
+                        $agendas,
+                        self::getAgendasFromMeetContent(mb_substr($content, $pos_start, $pos_end - $pos_start), $ppg_data, $meet)
+                    );
+                    $pos_start = $pos_end + mb_strlen($w . '、');
+                }
+            }
+            return $agendas;
+        }
+
+        $sub_titles = [];
+        $content = preg_replace('#。$#u', '', $content);
+        $content = str_replace('（', '(', $content);
+        $content = str_replace('）', ')', $content);
+        $content = str_replace('(詢答及處理)', '', $content);
+
+        while (true) {
+            // 處理結尾的各種備註
+            if (preg_match('#^(.*)\([^\)]*\)$#us', trim($content), $matches)) {
+                $content = trim($matches[1]);
+                continue;
+            }
+            if (preg_match('#^(.*)【[^】]*】$#us', trim($content), $matches)) {
+                $content = trim($matches[1]);
+                continue;
+            }
+            break;
+        }
+        if (preg_match('#備註：.*$#', $content, $matches)) {
+            $content = substr($content, 0, strpos($content, $matches[0]));
+            $content = trim($content);
+        }
+
+        $content = str_replace('：(一)', '。(一)', $content);
+        // 處理包含 "算凍結案計6案。(一)客家委員會 ... " 的情況
+        if (preg_match('#。\(一\)#', $content, $matches)) {
+            $sub_title_pos = strpos($content, '。(一)');
+            $sub_content = substr($content, $sub_title_pos + strlen('。(一)'));
+            $content = substr($content, 0, $sub_title_pos);
+            $words = ['二', '三', '四', '五', '六', '七', '八', '九'];
+            $pos_start = 0;
+            foreach ($words as $w) {
+                $pos_end = strpos($sub_content, "($w)");
+                if (false === $pos_end) {
+                    $sub_titles[] = substr($sub_content, $pos_start);
+                    break;
+                } else {
+                    $sub_titles[] = substr($sub_content, $pos_start, $pos_end - $pos_start);
+                    $pos_start = $pos_end + strlen("($w)");
+                }
+            }
+        }
+        $content = preg_replace('#\s*。$#u', '', trim($content));
+
+        if ($meet->meet_type == '全院委員會') {
+            if (preg_match('#^審查(.*)覆議案$#u', $content, $matches)) {
+                $agenda = new StdClass;
+                $agenda->type = '複議案';
+                $agenda->title = '複議案:';
+                $agenda->laws = [];
+                $agenda->bills = [];
+                $law_names = [];
+                foreach ($ppg_data->關係文書->bills as $bill) {
+                    $agenda->bills[] = [
+                        'title' => $bill->title,
+                        'billNo' => $bill->billNo ?? null,
+                    ];
+                    if ($bill->laws ?? false) {
+                        $laws = $bill->laws;
+                        preg_match_all('#「([^」]+)」#u', $bill->title, $matches);
+                        $names = $matches[1];
+                    } else {
+                        $laws = BillParser::parseLaws($bill->title, $names);
+                    }
+                    $law_names = array_merge($law_names, $names);
+                    foreach ($laws ?? [] as $law) {
+                        $agenda->laws[] = $law;
+                    }
+                }
+                $agenda->title = '複議案:' . implode('、', $law_names);
+                $agenda->laws = array_values(array_unique($agenda->laws));
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+        } elseif ('委員會' == $meet->meet_type) {
+            if (preg_match('#^選舉第\d+屆第\d+會期召集委員$#u', $content)) {
+                $agenda = new StdClass;
+                $agenda->type = '選舉';
+                $agenda->title = '選舉召集委員';
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#邀請(.*)率同(.*)，並備質詢$#u', $content, $matches)) {
+                $agenda = new StdClass;
+                $agenda->type = '質詢';
+                $agenda->title = '質詢:' . $matches[1];
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^審查(.*)函送(.*)(\d+)年度預算凍結書面報告#u', $content, $matches)) {
+                // 審查內政部函送國家住宅及都市更新中心113年度預算凍結書面報告案計1案
+                $unit = $matches[2];
+                $unit = preg_replace('#及所屬$#u', '', $unit);
+                $agenda = new StdClass;
+                $agenda->type = '預算解凍';
+                $agenda->title = '預算解凍:' . $unit;
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^(審查或處理|處理|審查)\d+年度中央政府總預算案有關(.*)預算凍結#u', $content, $matches)) {
+                // 審查或處理113年度中央政府總預算案有關大陸委員會預算凍結案計5案
+                // 處理113年度中央政府總預算案有關行政院預算凍結書面報告
+                // 審查113年度中央政府總預算案有關行政院預算凍結書面報告案計2案
+                $unit = $matches[2];
+                $unit = preg_replace('#及所屬$#u', '', $unit);
+                $agenda = new StdClass;
+                $agenda->type = '預算解凍';
+                $agenda->title = '預算解凍:' . $unit;
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^邀請(.*)就「(.*)」進行(專題)?報告，並備質詢$#u', $content, $matches)) {
+                // 邀請內政部部長、行政院主計總處副主計長、原住民族委員會、行政院公共工程委員會、交通部、交通部觀光署、環境部、勞動部、農業部、教育部、衛生福利部、經濟部、財政部、國軍退除役官兵輔導委員會、金融監督管理委員會就「0403震災之災後救助、重建規劃及補助方式」及「從東華實驗室失火事件檢討災害防救之完備化」進行專題報告，並備質詢
+                // 邀請公平交易委員會主任委員就「外送平台併購是否涉及限制競爭之調查程序、認定原則及對消費者權益影響之配套措施」進行報告，並備質詢
+                $matches[2] = str_replace('」及「', '、', $matches[2]);
+                $agenda = new StdClass;
+                $agenda->type = '專題報告';
+                $agenda->title = '專題報告:' . $matches[2];
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^審查(.*)部分條文修正草案$#u', $content, $matches)) {
+                // 審查國籍法部分條文修正草案
+                $agenda = new StdClass;
+                $agenda->type = '法案';
+                $agenda->title = '法案:' . $matches[1];
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^「([^」]+)」及「([^」]+)」$#u', $content, $matches)) {
+                // 「新住民權益保障法草案」及「新住民基本法草案」
+                $agenda = new StdClass;
+                $agenda->type = '法案';
+                $agenda->title = '法案:' . 
+                    self::getLawNameFromString($matches[1]) . '、' . 
+                    self::getLawNameFromString($matches[2]);
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^(繼續)?審查(.*)擬具「([^」]+)」案$#u', $content, $matches)) {
+                // 繼續審查委員鄭天財Sra Kacaw等20人擬具「原住民族基本法增訂第二十條之一條文草案」案。
+                $agenda = new StdClass;
+                $agenda->type = '法案';
+                $agenda->title = '法案:' . self::getLawNameFromString($matches[3]);
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+
+            if (preg_match('#^討論立法院(.*)委員會「(.*)」草案$#u', $content, $matches)) {
+                // 討論立法院內政委員會「數位身分證換發政策及預算執行調閱小組運作要點」草案
+                $agenda = new StdClass;
+                $agenda->type = '法案';
+                $agenda->title = '法案:' . $matches[2];
+                $agendas[] = $agenda;
+                return $agendas;
+            }
+        }
+
+        if (preg_match('#^(繼續)?審查「([^」]+)」#u', $content, $matches)) {
+            $agenda = new StdClass;
+            $agenda->type = '法案';
+            $agenda->title = '法案:' . self::getLawNameFromString($matches[2]);
+            $agendas[] = $agenda;
+            return $agendas;
+        }   
+        if (preg_match('#^(繼續)?審查：#u', $content) 
+            or (strpos($content, '審查') !== false and strpos($content, '草案」') !== false)
+        ) {
+            preg_match_all('#「([^」]+)」#u', $content, $matches);
+            $laws = [];
+            foreach ($matches[1] as $law) {
+                $laws[] = self::getLawNameFromString($law);
+            }
+            $laws = array_values(array_unique($laws));
+
+            $agenda = new StdClass;
+            $agenda->type = '法案';
+            $agenda->title = '法案:' . implode('、', $laws);
+            $agenda->laws = $laws;
+            $agendas[] = $agenda;
+            return $agendas;
+        }
+        if (mb_strlen($content) < 100) {
+            $agenda = new StdClass;
+            $agenda->type = '其他';
+            $agenda->title = $content;
+            $agendas[] = $agenda;
+            return $agendas;
+        }
+        return [];
+        echo "TODO: " . ($origin_content) . "\n";
+        echo "  content: " . ($content) . "\n";
+        echo "  length: " . mb_strlen($content, 'UTF-8') . "\n";
+        error_log('meet_id=' . $meet->meet_id);
+        readline('continue');
+        return [];
+    }
+
+    public static function summarizeMeet($meet)
+    {
+        // 首先根據 ppg_data 來判斷要拆分幾天（因為院會是多日都同個議程，但是委員會可能每天審不同議程）
+        $summaries = [];
+        foreach ($meet->ppg_data as $ppg_data) {
+            $summary = new StdClass;
+            $summary->title = '';
+            $summary->content = $ppg_data->content;
+            $summary->agendas = [];
+            $summary->dates = [];
+            foreach ($ppg_data->dates as $date) {
+                preg_match('#(\d+)年(\d+)月(\d+)日#u', $date, $matches);
+                $summary->dates[] = sprintf("%04d-%02d-%02d", $matches[1] + 1911, $matches[2], $matches[3]);
+            }
+
+            $ppg_data->content = trim($ppg_data->content);
+            $ppg_data->content = preg_replace('#。$#u', '', $ppg_data->content);
+
+
+            $summary->agendas = self::getAgendasFromMeetContent($ppg_data->content, $ppg_data, $meet);
+            $summaries[] = $summary;
+        }
+        $summaries = array_map(function ($summary) {
+            $summary->title = implode('；', array_unique(array_map(function ($agenda) {
+                return $agenda->title;
+            }, $summary->agendas)));
+            return $summary;
+        }, $summaries);
+        return $summaries;
+    }
 }
