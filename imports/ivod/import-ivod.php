@@ -6,7 +6,7 @@ include(__DIR__ . '/../../imports/Importer.php');
 $crawled = 0;
 
 if (!getenv('date')) {
-    putenv('date=' . (time() - 86400 * 3 * 30));
+    putenv('date=' . (time() - 86400 * 7));
 }
 foreach ([
     'Full' => 'current-full-id',
