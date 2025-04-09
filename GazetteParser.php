@@ -646,9 +646,9 @@ class GazetteParser
 
             if (preg_match('#^案由：(.*)$#u', trim($line), $matches)) {
                 $interpellation->reason = $matches[1];
-                if (preg_match('#^本院([^，、]+)委員([^，、]+)[，、]#u', $interpellation->reason, $matches)) {
+                if (preg_match('#^本院([^，、]+)委員([^，、]+)[，、]#u', str_replace(' ', '', $interpellation->reason), $matches)) {
                     $interpellation->legislators = [$matches[1] . $matches[2]];
-                } elseif (preg_match('#^本院委員(.*)，#u', $interpellation->reason, $matches)) {
+                } elseif (preg_match('#^本院委員(.*)，#u', str_replace(' ', '', $interpellation->reason), $matches)) {
                     //本院委員鄭麗君、李俊俋，
                     $interpellation->legislators = explode('、', $matches[1]);
                 } elseif (preg_match('#^本院([^，]*黨團)，#u', $interpellation->reason, $matches)) {
