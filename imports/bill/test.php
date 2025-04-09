@@ -48,5 +48,5 @@ if (file_exists(__DIR__ . '/bill-doc-parsed/tikahtml/' . $billNo . '.doc.gz')) {
 }
 echo json_encode($values, JSON_UNESCAPED_UNICODE) . "\n";
 echo "=======\n";
-$docdata = BillParser::parseBillDoc($billNo, $content, $obj);
+$docdata = BillParser::parseBillDoc($billNo, $content, $obj, $values->first_time);
 echo json_encode($docdata, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
