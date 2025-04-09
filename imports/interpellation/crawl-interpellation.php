@@ -138,7 +138,7 @@ foreach ($obj->hits->hits as $hit) {
             } else if (file_get_contents($target_file) == json_encode($interpellation, JSON_UNESCAPED_UNICODE)) {
                 continue;
             } else {
-                throw new Exception("書面質詢資料不該變動，警告！{$interpellation->id}");
+                error_log("書面質詢資料不該變動，警告！{$interpellation->id}");
             }
             file_put_contents($target_file, json_encode($interpellation, JSON_UNESCAPED_UNICODE));
             Elastic::dbBulkInsert('interpellation', $interpellation->id, $interpellation);
