@@ -43,6 +43,7 @@ class LYLib
         if (preg_match('#^第(\d+)屆第(\d+)會期第(\d+)次全體委員會#', $meet->meetingName, $matches)) {
             $meet->meetingName = sprintf("第%d屆第%d會期%s第%d次全體委員會", $matches[1], $matches[2], $meet->meetingUnit, $matches[3]);
         }
+        $meet->meetingName = str_replace('(變更議程)', '', $meet->meetingName);
         $meet->meetingName = str_replace('立', '立', $meet->meetingName);
         $meet->meetingName = str_replace('會體委員會議', '全體委員會議', $meet->meetingName);
         $meet->meetingName = preg_replace('#全體委$#', '全體委員會', $meet->meetingName);
