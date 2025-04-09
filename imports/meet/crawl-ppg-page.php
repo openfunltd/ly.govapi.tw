@@ -73,7 +73,7 @@ foreach ($meet_group as $meetingNo => $meets) {
                 $info = MeetParser::parseMeetPage(file_get_contents($target), __DIR__, $meetingNo, $url);
             } catch (Exception $e) {
                 error_log($e->getMessage());
-                readline('continue?');
+                //readline('continue?');
                 continue;
             }
             file_put_contents($json_target, json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -90,7 +90,7 @@ foreach ($meet_group as $meetingNo => $meets) {
         foreach ($infos as $info) {
             echo substr(json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 0, 300) . "\n";
         }
-        readline('continue?');
+        //readline('continue?');
     }
     if (count($names) > 1) {
         error_log("{$meetingNo} has different names: " . json_encode($names, JSON_UNESCAPED_UNICODE));
