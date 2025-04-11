@@ -1,5 +1,7 @@
 <?php
 
+include(__DIR__ . '/../../init.inc.php');
+
 $ivod_latest_rettim_file = __DIR__ . '/../../cache/ivod-latest-rettim';
 if (file_exists($ivod_latest_rettim_file)) {
     $time = intval(file_get_contents($ivod_latest_rettim_file));

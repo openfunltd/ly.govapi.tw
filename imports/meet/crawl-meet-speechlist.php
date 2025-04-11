@@ -4,11 +4,11 @@ include(__DIR__ . '/../../init.inc.php');
 
 // 委員會發言索引
 $url = 'https://data.ly.gov.tw/odw/usageFile.action?id=223&type=CSV&fname=223_CSV.csv';
-system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . '/../../cache/223-meet-speech.csv'), escapeshellarg($url)));
+system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . '/../../cache/223-meet-speech.csv'), escapeshellarg($url)));
 
 // 院會發言名單
 $url = 'https://data.ly.gov.tw/odw/usageFile.action?id=221&type=CSV&fname=221_CSV.csv';
-system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . '/../../cache/221-meet-speech.csv'), escapeshellarg($url)));
+system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . '/../../cache/221-meet-speech.csv'), escapeshellarg($url)));
 
 // [smeetingDate] => 104/05/05
 // [meetingRoom] => 議場

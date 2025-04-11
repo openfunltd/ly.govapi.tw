@@ -76,7 +76,7 @@ while ($line = fgets($fp)) {
         }
         echo $url . "\n";
         $url = explode(';', $url)[0];
-        $cmd = sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg($url));
+        $cmd = sprintf("curl -o %s -4 %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg($url));
         system($cmd, $ret);
         if ($ret != 0) {
             throw new Exception("Error: $cmd");
