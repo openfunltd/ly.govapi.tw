@@ -208,7 +208,7 @@ class Exporter
 
                 // 如果 <td> 內純文字開頭，表示進入法案內容，就可以跳出了
                 if ($pos >= $td_dom->childNodes->length or $td_dom->childNodes->item($pos)->nodeName == '#text') {
-                    $line->rule_no = trim($name);
+                    $line->rule_no = str_replace(' ', '', trim($name));
                     $line->content = self::trim($td_dom->nodeValue);
                     $lines[] = $line;
                     break;
@@ -741,7 +741,7 @@ class Exporter
                     'current' => $current,
                 ];
                 if (property_exists($law_data, 'rule_no')) {
-                    $law_content_data['rule_no'] = $law_data->rule_no;
+                    $law_content_data['rule_no'] = str_replace(' ', '', trim($law_data->rule_no));
                     $law_data->content = preg_replace('#^　　#', '', $law_data->content);
                     $law_content_data['content'] = $law_data->content;
 
