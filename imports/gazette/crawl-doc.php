@@ -34,10 +34,10 @@ foreach ($obj->hits->hits as $hit) {
 
         $docfilepath = __DIR__ . "/docfile/{$docfilename}";
         if (!file_exists($docfilepath)) {
-            system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($docUrl)), $ret);
+            system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($docUrl)), $ret);
             if ($ret) {
                 print_r($source);
-                throw new Exception('wget failed');
+                throw new Exception('curl failed');
             }
             copy(__DIR__ . "/tmp.doc", $docfilepath);
             unlink(__DIR__ . "/tmp.doc");

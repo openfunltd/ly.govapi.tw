@@ -62,10 +62,10 @@ foreach ($handle_gazette($obj->hits->hits) as $gazette) {
     error_log($gazette->gazette_id);
     $gazette_pdffile = __DIR__ . "/gazette-pdf/{$gazette->gazette_id}.pdf";
     if (!file_exists($gazette_pdffile)) {
-        system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . "/tmp.pdf"), escapeshellarg($gazette->ppg_full_gazette_url)), $ret);
+        system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.pdf"), escapeshellarg($gazette->ppg_full_gazette_url)), $ret);
         if ($ret) {
             print_r($gazette);
-            throw new Exception('wget failed');
+            throw new Exception('curl failed');
         }
         copy(__DIR__ . "/tmp.pdf", $gazette_pdffile);
         unlink(__DIR__ . "/tmp.pdf");
