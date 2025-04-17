@@ -10,11 +10,10 @@ if (!is_file($cmd)) {
     throw new Exception("File not found: $cmd");
 }
 $cmd_id = implode('_', array_slice(explode('/', $cmd), -2));
-$pid = getmypid();
 $pid_file = "/tmp/lycron-{$cmd_id}.pid";
 if (file_exists($pid_file)) {
     $pid = file_get_contents($pid_file);
-    if (posix_kill($pid, 0)) {
+    if ($pid and posix_kill($pid, 0)) {
         $run_time = time() - filemtime($pid_file);
         if ($run_time > 3600) {
             $data = [
@@ -38,6 +37,7 @@ if (file_exists($pid_file)) {
         throw new Exception("Already running: $cmd");
     }
 }
+$pid = getmypid();
 file_put_contents($pid_file, $pid);
 
 if (!is_executable($cmd)) {
