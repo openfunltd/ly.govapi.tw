@@ -1,5 +1,6 @@
 <?php
 
+include(__DIR__ . '/../../init.inc.php');
 $target = __DIR__ . '/../../cache/lis-progress.jsonl';
 
 // 先進首頁，並從首頁找到「法律提案相關資料及審議進度」的連結
