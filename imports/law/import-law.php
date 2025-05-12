@@ -81,14 +81,15 @@ while ($rows = fgetcsv($fp)) {
         $data['status'] = $laws[$data['id']]['狀態'];
         $data['latest_version'] = $laws[$data['id']]['version'];
         $data['first_version'] = $laws[$data['id']]['first_version'];
-        if ($date = BillParser::checkLISCLosedBill($data['id'])) {
-            $data['latest_version'] = [
-                'date' => $date,
-                'version_id' => null,
-                'action' => null,
-            ];
-        }
         unset($laws[$data['id']]);
+    }
+
+    if ($date = BillParser::checkLISCLosedBill($data['id'])) {
+        $data['latest_version'] = [
+            'date' => $date,
+            'version_id' => null,
+            'action' => null,
+        ];
     }
     Elastic::dbBulkInsert('law', $data['id'], $data);
 }
