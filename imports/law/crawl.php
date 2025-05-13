@@ -1,5 +1,6 @@
 <?php
 
+include(__DIR__ . '/../../init.inc.php');
 class Crawler
 {
     protected $curl;

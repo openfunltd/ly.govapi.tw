@@ -410,7 +410,8 @@ class Exporter
     public static function getBillNoFromId($id)
     {
         if (!file_exists(__DIR__ . "/../../cache/mtcdoc/{$id}.doc")) {
-            $cmd = sprintf("wget -4 -O %s %s",
+            // curl ipv4
+            $cmd = sprintf("curl -4 -o %s %s",
                 escapeshellarg(__DIR__ . "/../../cache/mtcdoc/{$id}.doc"),
                 escapeshellarg("https://lis.ly.gov.tw/lygazettec/mtcdoc?{$id}")
             );
