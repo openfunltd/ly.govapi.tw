@@ -61,8 +61,11 @@ $obj = Elastic::dbQuery("/{prefix}gazette_agenda/_search", 'GET', json_encode($c
 foreach ($handle_gazette($obj->hits->hits) as $gazette) {
     error_log($gazette->gazette_id);
     $gazette_pdffile = __DIR__ . "/gazette-pdf/{$gazette->gazette_id}.pdf";
-    if (!file_exists($gazette_pdffile)) {
-        system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.pdf"), escapeshellarg($gazette->ppg_full_gazette_url)), $ret);
+    if (!file_exists($gazette_pdffile) or filesize($gazette_pdffile) < 1000) {
+        system(sprintf("curl --user-agent %s -4 -o %s %s",
+            escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
+            escapeshellarg(__DIR__ . "/tmp.pdf"),
+            escapeshellarg($gazette->ppg_full_gazette_url)), $ret);
         if ($ret) {
             print_r($gazette);
             throw new Exception('curl failed');
