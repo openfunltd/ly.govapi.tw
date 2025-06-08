@@ -55,11 +55,14 @@ while ($obj = json_decode(fgets($fp))) {
         file_put_contents(__DIR__ . "/bill-docgz/{$billNo}.doc.gz", 'array');
 		foreach ($docUrls as $idx => $docUrl) {
 			$target = __DIR__ . '/bill-docgz/' . $billNo . '-' . $idx . '.doc.gz';
-			if (!file_exists($target) or filesize($target) < 100) {
+			if (!file_exists($target) or filesize($target) < 1000) {
 				error_log("{$docUrl} to {$values->billNo}-{$idx}.doc.gz");
 				$docUrl = str_replace('http://', 'https://', $docUrl);
                 $docUrl = str_replace('https://lci.ly.gov.tw/LyLCEW/', 'https://ppg.ly.gov.tw/ppg/download/', $docUrl);
-                system(sprintf("curl --ipv4 --connect-timeout 10 -o %s %s", escapeshellarg("{$values->billNo}-{$idx}.doc"), escapeshellarg($docUrl)));
+                system(sprintf("curl -L --user-agent %s --ipv4 --connect-timeout 10 -o %s %s",
+                    escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
+                    escapeshellarg("{$values->billNo}-{$idx}.doc"),
+                    escapeshellarg($docUrl)));
 				system("gzip " . escapeshellarg("{$values->billNo}-{$idx}.doc"));
 				rename("{$values->billNo}-{$idx}.doc.gz", $target);
 			}
@@ -81,7 +84,10 @@ while ($obj = json_decode(fgets($fp))) {
         error_log("{$docUrl} to {$values->billNo}.doc.gz");
         $docUrl = str_replace('http://', 'https://', $docUrl);
         $docUrl = str_replace('https://lci.ly.gov.tw/LyLCEW/', 'https://ppg.ly.gov.tw/ppg/download/', $docUrl);
-        system(sprintf("curl --ipv4 --connect-timeout 10 -o %s %s", escapeshellarg("{$values->billNo}.doc"), escapeshellarg($docUrl)));
+        system(sprintf("curl -L --user-agent %s --ipv4 --connect-timeout 10 -o %s %s",
+            escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
+            escapeshellarg("{$values->billNo}.doc"),
+            escapeshellarg($docUrl)));
         system("gzip " . escapeshellarg("{$values->billNo}.doc"));
         copy("{$values->billNo}.doc.gz", $target);
 		unlink("{$values->billNo}.doc.gz");
