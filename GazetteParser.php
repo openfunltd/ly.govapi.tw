@@ -1166,7 +1166,7 @@ class GazetteParser
 
         $ret->{'時間'} = trim(ltrim($ret->{'時間'}, ':'));
         if (!preg_match('#^(中華民國)?(\d+)年(\d+)月(\d+)日#u', $ret->{'時間'}, $matches)) {
-            throw new Exception("時間格式不正確: {$ret->{'時間'}}");
+            throw new Exception("時間格式不正確: {$ret->{'時間'}} meet_id={$meet_id}");
         }
         $current_date = mktime(0, 0, 0, $matches[3], $matches[4], $matches[2] + 1911);
         if ($meet_type == '聯席會議' or ($meet_type == '委員會' and $current_meet_info->committees[0] != 27)) {
