@@ -30,6 +30,11 @@ while ($obj = json_decode(fgets($fp))) {
     if (!file_exists(__DIR__ . "/bill-html/{$billNo}.gz")) {
         continue;
     }
+    if (BillParser::checkLISCLosedBill($billNo)) {
+        error_log("{$billNo} 已經三讀，需要重新更新");
+        unlink(__DIR__ . "/bill-html/{$billNo}.gz");
+        continue;
+    }
     if (array_key_exists($billNo, $bill_latest_meets)) {
         if (filemtime(__DIR__ . "/bill-html/{$billNo}.gz") < strtotime($bill_latest_meets[$billNo])) {
             error_log("{$billNo} 因為黨團協商已經過期");
