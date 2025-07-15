@@ -1,6 +1,7 @@
 <?php
 
-include(__DIR__ . '/../../BillParser.php');
+include(__DIR__ . "/../../init.inc.php");
+include(__DIR__ . "/../Importer.php");
 
 $term = getenv('term');
 
