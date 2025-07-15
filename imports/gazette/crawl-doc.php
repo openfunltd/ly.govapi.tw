@@ -33,8 +33,10 @@ foreach ($obj->hits->hits as $hit) {
         $docfilename = basename($docUrl);
 
         $docfilepath = __DIR__ . "/docfile/{$docfilename}";
-        if (!file_exists($docfilepath)) {
-            system(sprintf("curl -4 -o %s %s", escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($docUrl)), $ret);
+        if (!file_exists($docfilepath) or filesize($docfilepath) < 1000) {
+            system(sprintf("curl --user-agent %s -4 -o %s %s",
+                escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
+                escapeshellarg(__DIR__ . "/tmp.doc"), escapeshellarg($docUrl)), $ret);
             if ($ret) {
                 print_r($source);
                 throw new Exception('curl failed');
