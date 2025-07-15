@@ -49,7 +49,13 @@ foreach ($obj->hits->hits as $hit) {
             LYLib::getAgendaHTML($docUrl);
             //exit;
         }
-        if (!file_exists(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") or filesize(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") == 0){
+        if (!file_exists(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") or filesize(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") < 1000){
+            if (in_array($docfilename, [
+                'LCIDC01_1056401_00006.doc',
+            ])) {
+                // 特例，這個檔案有問題，tika 會失敗
+                continue;
+            }
             error_log("tika " . $docfilename);
             $cmd = sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($docfilepath), escapeshellarg(__DIR__ . '/tmp.txt'));
             system($cmd, $ret);
