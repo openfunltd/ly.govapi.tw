@@ -23,6 +23,8 @@ if (true) { //!file_exists($target_jsonl)) {
 }
 
 foreach ([
+    'crawl-lis-progress.php',
+    'check-lis-progress.php',
     'check-updated-bill.php',
     'crawl-entry.php',
     'crawl-doc.php',
