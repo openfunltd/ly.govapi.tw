@@ -413,8 +413,11 @@ class BillParser
         }
 
         $skip_table = false;
-        foreach ($doc->getElementsByTagName('table') as $table_dom) {
-            $tr_doms = [];
+        $tables = [];
+        // 有的時候同一個表格會被拆成好幾個 table ，因此需要合併起來
+        for ($i = 0; $i < $doc->getElementsByTagName('table')->length; $i ++) {
+            $table_dom = $doc->getElementsByTagName('table')->item($i);
+
             if (!$table_dom->getElementsByTagName('td')->length) {
                 continue;
             }
@@ -426,9 +429,7 @@ class BillParser
                 }
             }
 
-            $tr_dom = $table_dom->getElementsByTagName('tr')->item(0);
-            $first_td_doms = $tr_dom->getElementsByTagName('td');
-
+            // 如果是最上面的院組號表格就跳過
             $title = trim($table_dom->getElementsByTagName('td')->item(0)->nodeValue);
             $title = str_replace('　', '', $title);
             if ($p_dom = $table_dom->getElementsByTagName('p')->item(0)) {
@@ -446,6 +447,32 @@ class BillParser
             if (strpos($title, '附表：') === 0 or strpos($title, '院總第') === 0) {
                 continue;
             }
+            $table_data = new StdClass;
+            $table_data->tr_doms = [];
+            $tr_dom = $table_dom->getElementsByTagName('tr')->item(0);
+            $first_td_doms = $tr_dom->getElementsByTagName('td');
+            $table_data->first_td_doms = $first_td_doms;
+            foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
+                $table_data->tr_doms[] = $tr_dom;
+            }
+
+            while ($table_dom->nextSibling->nodeName == '#text'
+                and trim($table_dom->nextSibling->nodeValue) == ''
+                and $table_dom->nextSibling->nextSibling->nodeName == 'table') {
+                $i ++;
+                $table_dom = $table_dom->nextSibling->nextSibling;
+                foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
+                    $table_data->tr_doms[] = $tr_dom;
+                }
+            }
+
+            $tables[] = $table_data;
+        }
+
+        foreach ($tables as $table_data) {
+            $tr_doms = $table_data->tr_doms;
+            $first_td_doms = $table_data->first_td_doms;
+
 
             if ($first_td_doms->length == 1) {
                 if (preg_match('#.*(草案|草案對照表|條文對照表)$#u', $title)) {
@@ -465,9 +492,6 @@ class BillParser
                 continue;
             }
 
-            foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
-                $tr_doms[] = $tr_dom;
-            }
             if ($tr_doms) {
                 $record->{'對照表'} = $record->{'對照表'} ?? [];
                 try {
@@ -1052,8 +1076,8 @@ class BillParser
                 continue;
             }
             $ids = array_keys(self::$_law_names[$cs]);
-            if (count($ids) == 1) {
-                return array_values($ids)[0];
+            IF (count($ids) == 1) {
+                return [array_values($ids)[0], $cs];
             }
             $date = strtotime($date);
             $names = self::$_law_names[$cs];
@@ -1068,7 +1092,7 @@ class BillParser
                 return true;
             });
             if (count($names) == 1) {
-                return array_keys($names)[0];
+                return [array_keys($names)[0], $cs];
             }
             error_log("{$s} 有多個可能的法律名稱: " . implode(',', $ids));
             return null;
@@ -1092,9 +1116,11 @@ class BillParser
         }
         preg_match_all('#「([^」]+)」#u', $name, $matches);
         foreach ($matches[1] as $n) {
-            $names[] = $n;
-            if ($id = self::searchLaw($n, $date)) {
-                $ret[] = $id;
+            if ($terms = self::searchLaw($n, $date)) {
+                $ret[] = $terms[0];
+                $names[] = $terms[1];
+            } else {
+                $names[] = $n;
             }
         }
         $ret = array_values(array_unique($ret));
