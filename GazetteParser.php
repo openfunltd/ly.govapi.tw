@@ -1253,7 +1253,10 @@ class GazetteParser
 
             $doc_file = __DIR__ . '/imports/gazette/agenda-doc/' . $filename;
             if (!file_Exists($doc_file)) {
-                system(sprintf("wget -4 -O %s %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg($url)), $ret);
+                system(sprintf("curl -4 --user-agent %s -o %s %s",
+                    escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
+                    escapeshellarg(__DIR__ . '/tmp.doc'),
+                    escapeshellarg($url)), $ret);
                 if ($ret) {
                     throw new Exception("下載失敗: " . $url);
                 }
