@@ -82,7 +82,8 @@ foreach ($handle_gazette($obj->hits->hits) as $gazette) {
         system(sprintf("pdftotext -layout %s %s", escapeshellarg($gazette_pdffile), escapeshellarg(__DIR__ . "/tmp.txt")), $ret);
         if ($ret) {
             print_r($gazette);
-            throw new Exception('pdftotext failed');
+            echo $gazette_pdffile . "\n";
+            throw new Exception('pdftotext failed: ' . $gazette_pdffile);
         }
         copy(__DIR__ . "/tmp.txt", $gazette_txtfile);
         unlink(__DIR__ . "/tmp.txt");
