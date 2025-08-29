@@ -26,7 +26,7 @@ class Importer
                 $info['http_code'],
                 $error));
             error_log('Failed to get URL: ' . $url . ' retry: ' . $retry . ' error: ' . $error);
-            sleep($retry + 1);
+            sleep($retry * 5 + 1);
             curl_close($curl);
         }
         throw new Exception('Failed to get URL: ' . $url);
