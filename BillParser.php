@@ -1223,6 +1223,24 @@ class BillParser
             }
         }
 
+        if ($values->{'提案來源'} == '審查報告' and !count($values->相關附件)) {
+            // 如果審查報告找不到相關附件的話，可以去關聯議案找
+            foreach ($values->關連議案 as $bill) {
+                $billNo = $bill->billNo;
+                if (file_exists(__DIR__ . "/imports/bill/bill-data/{$billNo}.json.gz")) {
+                    $related = json_decode(gzdecode(file_get_contents(__DIR__ . "/imports/bill/bill-data/{$billNo}.json.gz")));
+                    foreach ($related->相關附件 as $a) {
+                        if (strpos($a->{'名稱'}, '含審查報告')) {
+                            $values->相關附件[] = $a;
+                        }
+                    }
+                    if (count($values->相關附件)) {
+                        break;
+                    }
+                }
+            }
+        }
+
         // 如果國會圖書館議事及發言系統有三讀紀錄，就在這邊更新
         if ($date = self::checkLISCLosedBill($billNo) and strpos($values->{'狀態'}, '三讀') === false) {
             $values->{'狀態'} = '三讀';
