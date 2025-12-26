@@ -759,12 +759,16 @@ class BillParser
                         }
                         $content .= $part_content;
                     }
-                    preg_match_all('#：([^　]*)#u', $content, $matches);
-                    $ruleno_values = array_count_values($matches[1]);
-                    arsort($ruleno_values);
-                    $values['條號'] = key($ruleno_values);
-                    if (strpos(trim($values['條號']), '名稱：') === 0) {
+                    if (strpos($content, '法案名稱：') === 0) {
                         $values['條號'] = '名稱';
+                    } else {
+                        preg_match_all('#：([^　]*)#u', $content, $matches);
+                        $ruleno_values = array_count_values($matches[1]);
+                        arsort($ruleno_values);
+                        $values['條號'] = key($ruleno_values);
+                        if (strpos(trim($values['條號']), '名稱：') === 0) {
+                            $values['條號'] = '名稱';
+                        }
                     }
                 } else {
                     $values['條號'] = explode('　', $values['現行法'])[0];
