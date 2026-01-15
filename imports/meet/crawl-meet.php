@@ -27,6 +27,9 @@ for ($p = 1; ; $p ++) {
     }
     error_log("page: $p, items: " . count($json->jsonList));
     foreach ($json->jsonList as $meet) {
+        if ($meet->meetingNo == '2026010533') {
+            $meet->meetingName = '第11屆第4會期社會福利及衛生環境、司法及法制委員會第2次聯席會議';
+        }
         file_put_contents(__DIR__ . '/../../cache/42-meet.jsonl', json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
     }
     if (count($json->jsonList) < 10) {
