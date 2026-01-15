@@ -25,6 +25,7 @@ for ($p = 1; ; $p ++) {
         error_log("fetch $url failed");
         break;
     }
+    error_log("page: $p, items: " . count($json->jsonList));
     foreach ($json->jsonList as $meet) {
         file_put_contents(__DIR__ . '/../../cache/42-meet.jsonl', json_encode($meet, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
     }
