@@ -456,14 +456,36 @@ class BillParser
                 $table_data->tr_doms[] = $tr_dom;
             }
 
-            while ($table_dom->nextSibling->nodeName == '#text'
-                and trim($table_dom->nextSibling->nodeValue) == ''
-                and $table_dom->nextSibling->nextSibling->nodeName == 'table') {
-                $i ++;
-                $table_dom = $table_dom->nextSibling->nextSibling;
-                foreach ($table_dom->getElementsByTagName('tr') as $tr_dom) {
-                    $table_data->tr_doms[] = $tr_dom;
+            // 檢查跟下個 table 之間還有沒有文字
+            $check_table_dom = $table_dom;
+            while (true) {
+                $has_text = false;
+                while ($check_table_dom = $check_table_dom->nextSibling) {
+                    if ($check_table_dom->nodeName == '#text'
+                        and trim($check_table_dom->nodeValue) == '') {
+                        continue;
+                    } elseif ($check_table_dom->nodeName == 'table') {
+                        error_log("check next table" . $check_table_dom->getElementsByTagName('td')->item(0)->nodeValue);
+                        break;
+                    } elseif ($check_table_dom->nodeName == 'p' and trim($check_table_dom->nodeValue) == '') {
+                        continue;
+                    } elseif ($check_table_dom->nodeName == 'div' and $check_table_dom->getAttribute('class') == 'footer') {
+                        continue;
+                    } else {
+                        error_log("check text: " . $doc->saveHTML($check_table_dom));
+                        $has_text = true;
+                        break 2;
+                    }
                 }
+
+                if (!$has_text and $check_table_dom and $check_table_dom->nodeName == 'table') {
+                    foreach ($check_table_dom->getElementsByTagName('tr') as $tr_dom) {
+                        $table_data->tr_doms[] = $tr_dom;
+                    }
+                    $i ++;
+                    continue;
+                }
+                break;
             }
 
             $tables[] = $table_data;
@@ -472,7 +494,6 @@ class BillParser
         foreach ($tables as $table_data) {
             $tr_doms = $table_data->tr_doms;
             $first_td_doms = $table_data->first_td_doms;
-
 
             if ($first_td_doms->length == 1) {
                 if (preg_match('#.*(草案|草案對照表|條文對照表)$#u', $title)) {
@@ -483,7 +504,7 @@ class BillParser
                     $skip_table = false;
                 } else {
                     $skip_table = true;
-                    error_log($title);
+                    error_log('skip: ' . $title);
                     continue;
                 }
             }
