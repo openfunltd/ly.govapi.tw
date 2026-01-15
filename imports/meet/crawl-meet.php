@@ -8,10 +8,15 @@ for ($p = 1; ; $p ++) {
     $url = sprintf("https://data.ly.gov.tw/odw/openDatasetJson.action?id=42&selectTerm=all&page=%d", $p);
     error_log($url);
     for ($retry = 0; $retry < 3; $retry ++) {
-        $content = Importer::getURL($url, 20);
+        try {
+            $content = Importer::getURL($url, 30);
+        } catch (Exception $e) {
+            continue;
+        }
         $json = json_decode($content);
         if (!$json) {
             error_log("fetch $url failed, retry...");
+            sleep(60);
             continue;
         }
         break;
