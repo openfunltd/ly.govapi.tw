@@ -31,7 +31,7 @@ class Exporter
             mkdir(__DIR__ . "/law-data/law_cache");
         }
         $cache_file = __DIR__ . "/law-data/law_cache/{$id}-{$versions[0]}.json";
-        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2025-01-16 16:00')) {
+        if (file_exists($cache_file) and filemtime($cache_file) > strtotime('2026-01-16 16:00')) {
             $obj = json_decode(file_get_contents($cache_file));
             $hit = false;
             if ($obj->types == $types) {
@@ -276,7 +276,7 @@ class Exporter
         foreach ($doc->getElementsByTagName('table') as $table_dom) {
             if ($table_dom->getAttribute('class') == 'sumtab04') {
                 foreach ($table_dom->getElementsByTagName('div') as $div_dom) {
-                    if ($div_dom->getAttribute('id') == 'all') {
+                    if ($div_dom->getAttribute('id') != 'all') {
                         continue;
                     }
                     foreach ($div_dom->getElementsByTagName('tr') as $tr_dom) {
