@@ -25,7 +25,10 @@ while ($obj = json_decode(fgets($fp))) {
     $docUrls = array();
 
 	$pdfUrl = $docUrl = false;
-	if (!$values->{'相關附件'}) {
+    if (!count($values->{'相關附件'})) {
+        $values = BillParser::addBillInfo($values);
+	}
+    if (!$values->{'相關附件'}) {
 		continue;
 	}
     foreach ($values->{'相關附件'} as $record) {
@@ -75,7 +78,8 @@ while ($obj = json_decode(fgets($fp))) {
 				$docUrl = 'http://lci.ly.gov.tw/LyLCEW/agenda1/' . $matches[1] . '/word' . $matches[2] . '.doc';
 			}
 		}
-	}
+    }
+
 	$target = __DIR__ . '/bill-docgz/' . $billNo . '.doc.gz';
     if (!file_exists($target) or filesize($target) < 100) {
 		if (!$docUrl) {
