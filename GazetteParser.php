@@ -165,6 +165,7 @@ class GazetteParser
             self::$_name_list->{$term}['鄭天財SraKaca'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
             self::$_name_list->{$term}['伍麗華SaidhaTahovecah'] = '伍麗華Saidhai‧Tahovecahe';
+            self::$_name_list->{$term}['伍麗華SaidhaiTahovecah'] = '伍麗華Saidhai‧Tahovecahe';
             self::$_name_list->{$term}['伍麗華'] = '伍麗華Saidhai‧Tahovecahe';
             self::$_name_list->{$term}['張啟楷'] = '張啓楷';
             self::$_name_list->{$term}['羅廷偉'] = '羅廷瑋';
@@ -189,6 +190,7 @@ class GazetteParser
         $str = str_replace(json_decode('"\u00a0"'), '', $str);
         $str = str_replace(' ', '', $str);
         $str = str_replace('‧', '', $str);
+        $str = str_replace('.', '', $str);
         $str = str_replace('．', '', $str);
         $str = str_replace('·', '', $str);
         $str = str_replace('、', '', $str);
@@ -977,6 +979,7 @@ class GazetteParser
 
     public static function parseAgendaWholeMeetingNote($agenda, $meet_id = null, $meet_obj= null)
     {
+        error_log("parseAgendaWholeMeetingNote: $agenda");
         $fp = fopen($agenda, "r");
         $doms = [];
         while ($line = fgets($fp)) {
