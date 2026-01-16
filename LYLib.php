@@ -761,7 +761,11 @@ class LYLib
         }
         if (!file_exists($agenda_htmlfile) or filesize($agenda_htmlfile) == 0 ){
             error_log("to html $agenda_docxfile");
-            self::parseDoc($agenda_docxfile, __DIR__ . '/imports/gazette/');
+            if (filesize($agenda_docxfile) < 100) {
+                self::parseDoc($agenda_docfile, __DIR__ . '/imports/gazette/');
+            } else {
+                self::parseDoc($agenda_docxfile, __DIR__ . '/imports/gazette/');
+            }
         }
         return $agenda_htmlfile;
     }
