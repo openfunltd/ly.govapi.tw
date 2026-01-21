@@ -174,12 +174,17 @@ $page = 1;
 $records = [];
 
 // 開始抓資料並下一頁
+$post_fields = null;
 while (true) {
     error_log("page: $page https://lis.ly.gov.tw" . $href);
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    if (!is_null($post_fields)) {
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, implode('&', $post_fields));
+    }
 
     curl_setopt($curl, CURLOPT_URL, "https://lis.ly.gov.tw" . $href);
     curl_setopt($curl, CURLOPT_REFERER, $referer);
@@ -207,29 +212,32 @@ while (true) {
     // 找下一頁
     $hit_input_dom = null;
     foreach ($doc->getElementsByTagName('input') as $input_dom) {
-        if ($input_dom->getAttribute('title') != '最末頁') {
+        if ($input_dom->getAttribute('title') != '次頁') {
             continue;
         }
         $hit_input_dom = $input_dom;
         break;
     }
+
     if (is_null($hit_input_dom)) {
-        throw new Exception('找不到最末頁');
-    }
-    $href = null;
-    foreach ($hit_input_dom->parentNode->parentNode->getElementsByTagName('a') as $a_dom) {
-        $v = trim($a_dom->nodeValue);
-        // remove &nbsp;
-        $v = str_replace("\xc2\xa0", '', $v);
-        if ($v == $page + 1) {
-            $page ++;
-            $href = $a_dom->getAttribute('href');
-            break;
-        }
-    }
-    if (is_null($href)) {
         break;
     }
+    $form = $doc->getElementsByTagName('form')->item(0);
+    $href = $form->getAttribute('action');
+    $post_fields = [];
+    foreach ($form->getElementsByTagName('input') as $input_dom) {
+        if ($input_dom->getAttribute('type') == 'image') {
+            continue;
+        }
+        $name = $input_dom->getAttribute('name');
+        if (!$name) {
+            continue;
+        }
+        $post_fields[] = urlencode($name) . '=' . urlencode($input_dom->getAttribute('value'));
+    }
+    $post_fields[] = urlencode('_IMG_次頁.x') . '=' . rand(0, 30);
+    $post_fields[] = urlencode('_IMG_次頁.y') . '=' . rand(0, 30);
+    $page ++;
 }
 
 file_put_contents($target . ".tmp", '');
