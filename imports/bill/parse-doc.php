@@ -34,7 +34,7 @@ foreach ($list as $idx => $v) {
             $cmd = sprintf("zcat %s > %s", escapeshellarg($input_file), escapeshellarg(__DIR__ . '/tmp.doc'));
             system($cmd);
 
-            $cmd = (sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg(__DIR__ . '/tmp.html')));
+            $cmd = (sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg(__DIR__ . '/tmp.doc'), escapeshellarg(__DIR__ . '/tmp.html')));
             error_log($cmd);
             system($cmd, $ret);
             if ($ret) {

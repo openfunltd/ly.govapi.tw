@@ -421,7 +421,7 @@ class Exporter
             }
         }
         if (!file_exists(__DIR__ . "/../../cache/mtcdoc/{$id}.txt")) {
-            system(sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s",
+            system(sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s",
                 escapeshellarg(__DIR__ . "/../../cache/mtcdoc/{$id}.doc"),
                 escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
             if ($ret) {

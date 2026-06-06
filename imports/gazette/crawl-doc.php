@@ -57,7 +57,7 @@ foreach ($obj->hits->hits as $hit) {
                 continue;
             }
             error_log("tika " . $docfilename);
-            $cmd = sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($docfilepath), escapeshellarg(__DIR__ . '/tmp.txt'));
+            $cmd = sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' > %s", escapeshellarg($docfilepath), escapeshellarg(__DIR__ . '/tmp.txt'));
             system($cmd, $ret);
             if ($ret) {
                 throw new Exception('tika failed');

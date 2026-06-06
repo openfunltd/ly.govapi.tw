@@ -1273,7 +1273,7 @@ class GazetteParser
             }
             if (!file_exists($txt_file) or filesize($txt_file) < 10) {
                 error_log("轉檔: " . $txt_file);
-                $cmd = sprintf("curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt'));
+                $cmd = sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt'));
                 system($cmd, $ret);
                 //system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
                 if ($ret) {
