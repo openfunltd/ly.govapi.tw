@@ -127,8 +127,8 @@ class LYLib
         if ($type == '黨團協商') {
             $ret->type = $type;
             $ret->title = '立法院朝野黨團協商';
-        } elseif ($type == '公聽會') {
-            $ret->type = '公聽會';
+        } elseif (in_array($type, ['公聽會', '考察'])) {
+            $ret->type = $type;
             if (property_exists($data, 'meetingName')) {
                 $ret->title = $data->meetingName;
             } elseif (property_exists($data, '會議名稱')) {
@@ -158,7 +158,7 @@ class LYLib
                     print_r($ret);
                     throw new Exception("{$data->meetingUnit} 有問題");
                 }
-            } elseif ('公聽會' == $ret->type) {
+            } elseif (in_array($ret->type, ['公聽會', '考察'])) {
                 if (strpos($data->meetingUnit, '委員會') and $data->meetingUnit != '全院委員會') {
                     try {
                         $ret->committees[] = self::getCommitteeId($data->meetingUnit);
@@ -249,6 +249,8 @@ class LYLib
             // Ex: 第11屆第2會期財政委員會第5次全體委員會議 的 meetingContent 包含「公聽會」
         } elseif (strpos($meet->meetingContent, '公聽會')) {
             return LYLib::consultToId($type, $meet, '公聽會');
+        } elseif (strpos($meet->meetingContent, '考察')) {
+            return LYLib::consultToId($type, $meet, '考察');
         }
 
         $meet_obj = null;
