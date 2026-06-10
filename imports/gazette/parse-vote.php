@@ -91,6 +91,11 @@ foreach ($files as $filepath) {
         $doc['meet_id'] = $meet_id;
         $doc['term'] = $term;
         $doc['session_period'] = $session_period;
+        $doc['投票委員'] = array_merge(
+            $doc['贊成'] ?? [],
+            $doc['反對'] ?? [],
+            $doc['棄權'] ?? []
+        );
         Elastic::dbBulkInsert('gazette_vote', $lcidc_doc_id . '_' . $vote->line_no, $doc);
         $count_votes++;
     }
