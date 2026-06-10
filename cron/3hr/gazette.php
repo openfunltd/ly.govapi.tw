@@ -13,6 +13,7 @@ foreach ([
     'gazette.php',
     'gazette/crawl.php',
     'gazette/crawl-doc.php',
+    'gazette/parse-vote.php',
 ] as $script) {
     $cmd = sprintf("php %s",
         escapeshellarg(__DIR__ . '/../../imports/' . $script)
