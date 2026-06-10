@@ -84,7 +84,7 @@ $handle_jobs = function() use (&$jobs) {
 $max_v = $v = max(intval(file_get_contents(__DIR__ . '/current-id')), 146312);
 $error_name = [];
 $c = 0;
-for ($v = 155000; $v <= $max_v; $v ++) {
+for ($v = 169400; $v <= $max_v; $v ++) {
 //for (; $v > 0; $v --) {
     //error_log($v);
     $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
@@ -96,13 +96,17 @@ for ($v = 155000; $v <= $max_v; $v ++) {
     $error_retry = false;
     if (file_exists($transcript_target)) {
         $content = file_get_contents($transcript_target);
-        if (strpos($content, 'status: error') === false and strpos($content, 'error: get-ly-ivod.php') === false) {
+        if (strpos($content, 'status: error') === false
+            and strpos($content, 'error: get-ly-ivod.php') === false
+            and strpos($content, 'yt-dlp failed') === false
+        ) {
             continue;
         }
         $error_retry = true;
         // 有 error 的話要再重試
-        if (time() - filemtime($transcript_target) < 5 * 60) { // 失敗的話五分鐘內不重試
-            error_log("skip retry {$v} until: " . date('Y-m-d H:i:s', filemtime($transcript_target) + 5 * 60));
+        $wait_minute = 20;
+        if (time() - filemtime($transcript_target) < $wait_minute * 60) { // 失敗的話五分鐘內不重試
+            error_log("skip retry {$v} until: " . date('Y-m-d H:i:s', filemtime($transcript_target) + $wait_minute * 60));
             continue;
         }
     }
@@ -131,11 +135,13 @@ for ($v = 155000; $v <= $max_v; $v ++) {
         'id' => "{$v}-whisperx",
         'init_prompt' => '', //mb_substr($init_prompt, 0, 150, 'UTF-8'),
     ]);
+    /*
     $add_job('/queue/add', [
         'url' => $url,
         'tool' => 'clean',
         'id' => "{$v}-clean",
     ]);
+     */
     $c ++;
     if ($c > 2) {
         break;
