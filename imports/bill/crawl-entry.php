@@ -7,7 +7,7 @@ $total = 0;
 while ($obj = json_decode(fgets($fp))) {
     $id = $obj->id;
     $total ++;
-    if (filesize(__DIR__ . "/bill-html/{$id}.gz") < 9000) {
+    if (file_exists(__DIR__ . "//bill-html/{$id}.gz") and filesize(__DIR__ . "/bill-html/{$id}.gz") < 9000) {
         $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$id}.gz"));
         if (strpos($content, '此筆資料尚未建置')) {
             unlink(__DIR__ . "/bill-html/{$id}.gz");

@@ -9,9 +9,9 @@ foreach (BillParser::getBillTypes() as $billType => $bill_type) {
     foreach ([1,2,3,4] as $proposalType) {
         for ($p = 1; ; $p ++) {
             if ($term) {
-                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=1000&term=%d&page=%d&sortCode=11&billType=%d&proposalType=%d", $term, $p, $billType, $proposalType);
+                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=200&term=%d&page=%d&sortCode=11&billType=%d&proposalType=%d", $term, $p, $billType, $proposalType);
             } else {
-                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=1000&page=%d&sortCode=11&billType=%d&proposalType=%d", $p, $billType, $proposalType);
+                $url = sprintf("https://ppg.ly.gov.tw/ppg/api/v1/all-bills?size=200&page=%d&sortCode=11&billType=%d&proposalType=%d", $p, $billType, $proposalType);
             }
             error_log($url);
             $content = Importer::getURL($url, 300, 3);
