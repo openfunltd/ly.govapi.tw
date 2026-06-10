@@ -1,11 +1,18 @@
 <?php
 
+include(__DIR__ . "/../../init.inc.php");
 $fp = fopen($_SERVER['argv'][1], 'r');
 $seq = 0;
 $total = 0;
 while ($obj = json_decode(fgets($fp))) {
     $id = $obj->id;
     $total ++;
+    if (filesize(__DIR__ . "/bill-html/{$id}.gz") < 9000) {
+        $content = gzdecode(file_get_contents(__DIR__ . "/bill-html/{$id}.gz"));
+        if (strpos($content, '此筆資料尚未建置')) {
+            unlink(__DIR__ . "/bill-html/{$id}.gz");
+        }
+    }
     if (!file_exists(__DIR__ . "/bill-html/{$id}.gz")) {
         $seq ++ ;
         sleep(1);
