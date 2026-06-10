@@ -48,6 +48,7 @@ foreach ($files as $filepath) {
     }
     $agenda_data = json_decode(file_get_contents($agenda_data_file));
     $term = $agenda_data->term;
+    $session_period = $agenda_data->sessionPeriod;
 
     if (isset($cache[$lcidc_doc_id])) {
         $count_skipped++;
@@ -88,6 +89,8 @@ foreach ($files as $filepath) {
         $doc = (array) $vote;
         $doc['lcidc_doc_id'] = $lcidc_doc_id;
         $doc['meet_id'] = $meet_id;
+        $doc['term'] = $term;
+        $doc['session_period'] = $session_period;
         Elastic::dbBulkInsert('gazette_vote', $lcidc_doc_id . '_' . $vote->line_no, $doc);
         $count_votes++;
     }
