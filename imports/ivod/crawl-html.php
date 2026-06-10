@@ -12,8 +12,11 @@ if (file_exists($ivod_latest_rettim_file)) {
         if (intval(date('i')) % 10 === 0) {
             // 每 10 分鐘檢查一次
         } else {
-            error_log("skip");
-            exit;
+            if (($_SERVER['argv'][1] ?? false) !== 'force') {
+                // 如果不是強制執行，就不檢查
+                error_log("skip");
+                exit;
+            }
         }
     }
 }
