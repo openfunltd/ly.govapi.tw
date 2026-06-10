@@ -15,8 +15,9 @@ class Crawler
                 }, array_keys($post_params)));
                 curl_setopt($this->curl, CURLOPT_POSTFIELDS, $postfields);
             } else {
-                curl_setopt($this->curl, CURLOPT_POSTFIELDS, null);
-	    }
+                curl_setopt($this->curl, CURLOPT_HTTPGET, true);
+            }
+            error_log($url);
 	    curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
             $content = curl_exec($this->curl);
             $info = curl_getinfo($this->curl);
@@ -28,8 +29,8 @@ class Crawler
                 if ($i == 2) {
                     throw new Exception("抓取 {$url} 失敗, code = {$info['http_code']}");
                 }
-                error_log("抓取 {$url} 失敗, code = {$info['http_code']}，等待 10 秒後重試");
-                sleep(10);
+                error_log("抓取 {$url} 失敗, code = {$info['http_code']}，等待 3 秒後重試");
+                sleep(3);
                 continue;
             }
 
@@ -528,7 +529,7 @@ class Crawler
         $categories = $this->crawlCategory();
 
         // 去看有沒有分類的數量有變，表示可能有新增法條
-        $this->crawlLawList($categories);
+       // $this->crawlLawList($categories);
 
         // 再回頭去最新公布法律抓新公布法
         $this->crawlLatestLaws();
