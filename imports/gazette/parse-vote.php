@@ -24,8 +24,22 @@ foreach ($r->hits->hits as $hit) {
 }
 error_log(sprintf("Built lcidc→meet map with %d entries", count($lcidc_to_meet)));
 
-// Build lcidc_doc_id -> legislative term (屆) map from local gazette-agenda-data/ JSON files
+// Build doc filename id -> agenda info map from gazette-agenda-data/ JSON files.
+// One agenda can have multiple docUrls (e.g., agenda 1060405_00001 has both
+// LCIDC01_1060405_00002.doc and LCIDC01_1060405_00003.doc), so the doc filename
+// number does not always match the agenda_id number.
+error_log("Building doc filename → agenda map...");
 $agenda_data_dir = __DIR__ . '/gazette-agenda-data';
+$doc_to_agenda = [];
+foreach (glob($agenda_data_dir . '/*.json') as $f) {
+    $a = json_decode(file_get_contents($f));
+    foreach ($a->docUrls as $url) {
+        if (preg_match('#LCIDC01_(\d+_\d+)\.doc#', $url, $m)) {
+            $doc_to_agenda[$m[1]] = $a;
+        }
+    }
+}
+error_log(sprintf("Built doc→agenda map with %d entries", count($doc_to_agenda)));
 
 $files = glob(__DIR__ . '/agenda-tikahtml/LCIDC01_' . $prefix . '*.doc.html');
 sort($files);
@@ -41,14 +55,14 @@ foreach ($files as $filepath) {
         continue;
     }
     $lcidc_doc_id = $m[1];
-    $agenda_data_file = $agenda_data_dir . '/' . $lcidc_doc_id . '.json';
-    if (!file_exists($agenda_data_file)) {
-        error_log("[{$lcidc_doc_id}] no gazette-agenda-data file, skipping");
+    if (!isset($doc_to_agenda[$lcidc_doc_id])) {
+        error_log("[{$lcidc_doc_id}] no gazette-agenda-data entry, skipping");
         continue;
     }
-    $agenda_data = json_decode(file_get_contents($agenda_data_file));
+    $agenda_data = $doc_to_agenda[$lcidc_doc_id];
     $term = $agenda_data->term;
     $session_period = $agenda_data->sessionPeriod;
+    $agenda_id = $agenda_data->agenda_id;
 
     if (isset($cache[$lcidc_doc_id])) {
         $count_skipped++;
@@ -88,6 +102,7 @@ foreach ($files as $filepath) {
     foreach ($ret->votes as $vote) {
         $doc = (array) $vote;
         $doc['lcidc_doc_id'] = $lcidc_doc_id;
+        $doc['agenda_id'] = $agenda_id;
         $doc['meet_id'] = $meet_id;
         $doc['term'] = $term;
         $doc['session_period'] = $session_period;
