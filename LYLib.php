@@ -670,7 +670,7 @@ class LYLib
         if (file_exists($dir . "/agenda-html/{$basename}.html") and filesize($dir . "/agenda-html/{$basename}.html") > 0){
             return;
         }
-        $cmd = sprintf("curl --output %s --request POST --url 'https://unoserver2.openfun.dev/request' --compressed --header 'Content-Type: multipart/form-data' --form %s --form 'convert-to=html'",
+        $cmd = sprintf("env https_proxy= curl --output %s --request POST --url 'https://unoserver2.openfun.dev/request' --compressed --header 'Content-Type: multipart/form-data' --form %s --form 'convert-to=html'",
             escapeshellarg('tmp.html'),
             escapeshellarg('file=@' . $file)
         );
@@ -749,7 +749,7 @@ class LYLib
         if (!file_exists($agenda_docxfile)) {
             error_log("to docx $agenda_docfile");
             // curl -s -v --request POST --url https://unoserver.openfun.dev/request --header 'Content-Type: multipart/form-data'  --form "file=@LCIDC01_1016201_00006.doc" --form 'convert-to=txt' --output test.txt
-            system(sprintf("curl --request POST --url https://unoserver2.openfun.dev/request --compressed --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
+            system(sprintf("env https_proxy= curl --request POST --url https://unoserver2.openfun.dev/request --compressed --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
             clearstatcache();
             if (filesize(__DIR__ . '/tmp.docx') < 1000) {
                 copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
