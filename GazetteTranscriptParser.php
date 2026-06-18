@@ -45,6 +45,48 @@ class GazetteTranscriptParser
                             exit;
                         }
                     }
+                    // Old gazette format: 表決結果名單：is the last line of the block,
+                    // and names are split across subsequent blocks as:
+                    //   block+N: ["一、贊成者：17人", "許忠信　黃文玲　..."]
+                    //   block+N+1: ["二、反對者：36人", "吳育昇　..."]
+                    // Try to parse that format when the vote object has no data yet.
+                    if (!isset($vote->{'會議名稱'}) && !isset($vote->{'表決結果'})) {
+                        $map = ['贊成者' => '贊成', '反對者' => '反對', '棄權者' => '棄權'];
+                        $next = $idx + 1;
+                        while (isset($ret->blocks[$next])) {
+                            $nb = $ret->blocks[$next];
+                            if (!preg_match('#^[一二三四五六七八九]、(贊成者|反對者|棄權者)：(\d+)人#u', $nb[0] ?? '', $m)) {
+                                break;
+                            }
+                            $key = $map[$m[1]];
+                            // Collect name lines: lines without ：(structural lines) from the block
+                            $names = '';
+                            foreach (array_slice($nb, 1) as $nl) {
+                                if (strpos($nl, '：') !== false) break;
+                                $names .= str_replace(' ', '', $nl);
+                            }
+                            $vote->{$key} = $names ? GazetteParser::parsePeople($names, $term) : [];
+                            $next++;
+                        }
+                        // Extract 出席/贊成/反對/棄權人數 from the preceding 主席：報告表決結果 line
+                        foreach (array_reverse($ret->blocks[$idx]) as $prev_line) {
+                            if (preg_match('#出席委員(\d+)人，贊成者(\d+)人，反對者(\d+)人，棄權者(\d+)人#u', $prev_line, $m)) {
+                                $vote->{'表決結果'} = [
+                                    '出席人數' => intval($m[1]),
+                                    '贊成人數' => intval($m[2]),
+                                    '反對人數' => intval($m[3]),
+                                    '棄權人數' => intval($m[4]),
+                                ];
+                                break;
+                            }
+                        }
+                        if (isset($ret->title)) {
+                            $vote->{'會議名稱'} = $ret->title;
+                        }
+                        if (!isset($vote->{'贊成'}) && !isset($vote->{'表決結果'})) {
+                            continue; // still no data, skip
+                        }
+                    }
                     $ret->votes[] = $vote;
                 }
             }

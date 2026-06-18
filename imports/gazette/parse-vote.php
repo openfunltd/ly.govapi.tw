@@ -2,6 +2,22 @@
 
 include(__DIR__ . '/../../init.inc.php');
 
+function resolve_meet_id_from_name($name, $term) {
+    $name = trim($name);
+    $name = str_replace('　', '', $name); // strip full-width spaces
+    if (!$name) return null;
+    // If 屆 is missing, prepend it using the known term
+    if (!preg_match('/第\d+屆/u', $name)) {
+        $name = "第{$term}屆{$name}";
+    }
+    try {
+        $meet = LYLib::meetNameToId($name);
+        return $meet->id ?? null;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
 $prefix = getenv('prefix') ?: '';
 $cache_file = __DIR__ . '/vote-processed.json';
 $cache = file_exists($cache_file) ? json_decode(file_get_contents($cache_file), true) : [];
@@ -98,8 +114,9 @@ foreach ($files as $filepath) {
         continue;
     }
 
-    $meet_id = $lcidc_to_meet[$lcidc_doc_id] ?? null;
+    $file_meet_id = $lcidc_to_meet[$lcidc_doc_id] ?? null;
     foreach ($ret->votes as $vote) {
+        $meet_id = $file_meet_id ?? resolve_meet_id_from_name($vote->{'會議名稱'} ?? '', $term);
         $doc = (array) $vote;
         $doc['lcidc_doc_id'] = $lcidc_doc_id;
         $doc['agenda_id'] = $agenda_id;
@@ -114,7 +131,7 @@ foreach ($files as $filepath) {
         Elastic::dbBulkInsert('gazette_vote', $lcidc_doc_id . '_' . $vote->line_no, $doc);
         $count_votes++;
     }
-    error_log(sprintf("[%s] %d votes (meet_id=%s)", $lcidc_doc_id, $vote_count, $meet_id ?? 'null'));
+    error_log(sprintf("[%s] %d votes (file_meet_id=%s)", $lcidc_doc_id, $vote_count, $file_meet_id ?? 'null'));
 
     if ($count_new % 100 === 0) {
         Elastic::dbBulkCommit('gazette_vote');
