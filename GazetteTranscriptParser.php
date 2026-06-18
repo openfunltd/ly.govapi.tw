@@ -6,10 +6,12 @@ class GazetteTranscriptParser
     {
         $ret->votes = [];
         foreach ($ret->blocks as $idx => $block) {
+            $block_pos = 0;
             while ($line = array_shift($block)) {
+                $block_pos++;
                 if (trim($line) === '表決結果名單：') {
                     $vote = new StdClass;
-                    $vote->line_no = $ret->block_lines[$idx];
+                    $vote->line_no = $ret->block_lines[$idx] + $block_pos - 1;
                     $prev_key = null;
                     while ($line = array_shift($block)) {
                         if (preg_match('#^會議名稱：(.*)\s+表決型態：(.*)$#u', trim($line), $matches)) {
@@ -40,6 +42,11 @@ class GazetteTranscriptParser
                             }
                         } else {
                             // Unrecognised line — break so old-format handler can run.
+                            // If it's another 表決結果名單：marker (double-marker in same block),
+                            // push it back so level-2 can create a new vote for it.
+                            if (trim($line) === '表決結果名單：') {
+                                array_unshift($block, $line);
+                            }
                             break;
                         }
                     }
@@ -50,6 +57,12 @@ class GazetteTranscriptParser
                     // B) Comma-variant: 表決結果名單: and "一、贊成者：人，贊成者 69人" in
                     //    the SAME block (comma prevents block-split); names follow in same block.
                     if (!isset($vote->{'會議名稱'}) && !isset($vote->{'表決結果'})) {
+                        // If the next line to be read is another 表決結果名單：, this vote has no
+                        // data (it was a spurious trigger from a double-marker). Skip it and let
+                        // level-2 process the real marker on its next iteration.
+                        if (isset($block[0]) && trim($block[0]) === '表決結果名單：') {
+                            continue;
+                        }
                         $map = ['贊成者' => '贊成', '反對者' => '反對', '棄權者' => '棄權'];
                         $next = $idx + 1;
 
