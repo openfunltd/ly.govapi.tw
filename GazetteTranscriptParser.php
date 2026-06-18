@@ -39,35 +39,76 @@ class GazetteTranscriptParser
                                 break;
                             }
                         } else {
-                            var_dump($vote);
-                            var_dump($line);
-                            continue 2;
-                            exit;
+                            // Unrecognised line — break so old-format handler can run.
+                            break;
                         }
                     }
-                    // Old gazette format: 表決結果名單：is the last line of the block,
-                    // and names are split across subsequent blocks as:
-                    //   block+N: ["一、贊成者：17人", "許忠信　黃文玲　..."]
-                    //   block+N+1: ["二、反對者：36人", "吳育昇　..."]
-                    // Try to parse that format when the vote object has no data yet.
+                    // Old gazette format (第8/9屆): two variants:
+                    // A) 表決結果名單：is the LAST line of block; names in subsequent blocks:
+                    //      block+N: ["一、贊成者：17人", names...]
+                    //      block+N+1: ["二、反對者：36人", names...]
+                    // B) Comma-variant: 表決結果名單: and "一、贊成者：人，贊成者 69人" in
+                    //    the SAME block (comma prevents block-split); names follow in same block.
                     if (!isset($vote->{'會議名稱'}) && !isset($vote->{'表決結果'})) {
                         $map = ['贊成者' => '贊成', '反對者' => '反對', '棄權者' => '棄權'];
                         $next = $idx + 1;
+
+                        // Variant B: $line holds the unmatched line from level-3 break;
+                        // remaining $block has name lines that belong to the same block.
+                        if ($line && preg_match('#^[一二三四五六七八九]、(贊成者|反對者|棄權者)[：]#u', $line, $m)) {
+                            $key = $map[$m[1]];
+                            $names = '';
+                            while ($block && strpos($block[0], '：') === false) {
+                                $names .= str_replace(' ', '', array_shift($block));
+                            }
+                            try {
+                                $vote->{$key} = $names ? GazetteParser::parsePeople($names, $term) : [];
+                            } catch (Exception $e) {
+                                $vote->{$key} = [];
+                            }
+                            // Collect any further 反對/棄權 sections remaining in the block
+                            while ($block) {
+                                $fl = array_shift($block);
+                                if (!preg_match('#^[一二三四五六七八九]、(贊成者|反對者|棄權者)[：]#u', $fl, $m2)) continue;
+                                $key2 = $map[$m2[1]];
+                                $names2 = '';
+                                while ($block && strpos($block[0], '：') === false) {
+                                    $names2 .= str_replace(' ', '', array_shift($block));
+                                }
+                                try {
+                                    $vote->{$key2} = $names2 ? GazetteParser::parsePeople($names2, $term) : [];
+                                } catch (Exception $e) {
+                                    $vote->{$key2} = [];
+                                }
+                            }
+                        }
+
+                        // Variant A (and remaining sections for variant B): names in subsequent blocks.
                         while (isset($ret->blocks[$next])) {
                             $nb = $ret->blocks[$next];
                             if (!preg_match('#^[一二三四五六七八九]、(贊成者|反對者|棄權者)：(\d+)人#u', $nb[0] ?? '', $m)) {
                                 break;
                             }
                             $key = $map[$m[1]];
-                            // Collect name lines: lines without ：(structural lines) from the block
-                            $names = '';
-                            foreach (array_slice($nb, 1) as $nl) {
-                                if (strpos($nl, '：') !== false) break;
-                                $names .= str_replace(' ', '', $nl);
+                            if (!isset($vote->{$key})) {
+                                if (intval($m[2]) === 0) {
+                                    $vote->{$key} = [];
+                                } else {
+                                    $names = '';
+                                    foreach (array_slice($nb, 1) as $nl) {
+                                        if (strpos($nl, '：') !== false) break;
+                                        $names .= str_replace(' ', '', $nl);
+                                    }
+                                    try {
+                                        $vote->{$key} = $names ? GazetteParser::parsePeople($names, $term) : [];
+                                    } catch (Exception $e) {
+                                        $vote->{$key} = [];
+                                    }
+                                }
                             }
-                            $vote->{$key} = $names ? GazetteParser::parsePeople($names, $term) : [];
                             $next++;
                         }
+
                         // Extract 出席/贊成/反對/棄權人數 from the preceding 主席：報告表決結果 line
                         foreach (array_reverse($ret->blocks[$idx]) as $prev_line) {
                             if (preg_match('#出席委員(\d+)人，贊成者(\d+)人，反對者(\d+)人，棄權者(\d+)人#u', $prev_line, $m)) {
