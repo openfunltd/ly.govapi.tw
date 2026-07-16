@@ -683,7 +683,7 @@ class LYLib
         $content = file_get_contents('tmp.html');
 
         ini_set("pcre.backtrack_limit", "10000000");
-        $content = preg_replace_callback('#<img ([^>]*)src="data:([^"]+)"#u', function($matches) use ($file, $basename, $dir) {
+        $content = preg_replace_callback('#<img ([^>]*?)src="data:([^"]+)"#', function($matches) use ($file, $basename, $dir) {
             $attr = $matches[1];
             $data_uri = $matches[2];
 
