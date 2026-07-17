@@ -421,8 +421,9 @@ class Exporter
             }
         }
         if (!file_exists(__DIR__ . "/../../cache/mtcdoc/{$id}.txt")) {
-            system(sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s",
+            system(sprintf("env https_proxy= curl -T %s -H %s -H 'Accept: text/plain' https://tika.api.openfun.dev/tika > %s",
                 escapeshellarg(__DIR__ . "/../../cache/mtcdoc/{$id}.doc"),
+                escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')),
                 escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
             if ($ret) {
                 throw new CustomError("curl failed");

@@ -172,6 +172,7 @@ class GazetteParser
             self::$_name_list->{$term}['游灝'] = '游顥';
             self::$_name_list->{$term}['林倩绮'] = '林倩綺';
             self::$_name_list->{$term}['吳憶沛'] = '吳沛憶';
+            self::$_name_list->{$term}['李坤成'] = '李坤城';
         }
 
         return self::$_name_list->{$term};
@@ -1275,7 +1276,7 @@ class GazetteParser
             }
             if (!file_exists($txt_file) or filesize($txt_file) < 10) {
                 error_log("轉檔: " . $txt_file);
-                $cmd = sprintf("env https_proxy= curl -T %s https://tika.openfun.dev/tika -H 'Accept: text/plain' > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt'));
+                $cmd = sprintf("env https_proxy= curl -T %s -H %s -H 'Accept: text/plain' https://tika.api.openfun.dev/tika > %s", escapeshellarg($doc_file), escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')), escapeshellarg(__DIR__ . '/tmp.txt'));
                 system($cmd, $ret);
                 //system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
                 if ($ret) {

@@ -59,8 +59,9 @@ foreach ($docfiles as $idx => $docfilepath) {
         $source = (file_exists($docxpath) && filesize($docxpath) >= 1000) ? $docxpath : $docfilepath;
         error_log("  tika from " . basename($source));
         $cmd = sprintf(
-            "env https_proxy= curl -s -T %s https://tika.openfun.dev/tika -H 'Accept: text/html' -o %s",
+            "env https_proxy= curl -s -T %s -H %s -H 'Accept: text/html' https://tika.api.openfun.dev/tika -o %s",
             escapeshellarg($source),
+            escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')),
             escapeshellarg(__DIR__ . '/tmp-reprocess.html')
         );
         system($cmd, $ret);
