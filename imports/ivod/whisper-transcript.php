@@ -116,20 +116,33 @@ foreach ($pending as $v => $job_id) {
 }
 
 // ──────────────────────────────────────────────
-// Step 2：掃描 wav/ 目錄，送出新 job
+// Step 2：掃描 wav/ 目錄，送出新 job（最多 3 個，clip 優先、最新優先）
 // ──────────────────────────────────────────────
 
-$new_jobs = [];
+$max_full_id = intval(file_get_contents($ivod_dir . '/current-full-id'));
+$clips = [];
+$fulls = [];
 foreach (glob($ivod_dir . '/wav/*.wav') ?: [] as $wav_file) {
     $v = intval(basename($wav_file, '.wav'));
     if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
-    if (file_exists($ivod_dir . "/ivod-asr-jobs/{$v}.json")) continue; // 已送出
+    if (file_exists($ivod_dir . "/ivod-asr-jobs/{$v}.json")) continue;
+    if ($v <= $max_full_id) {
+        $fulls[] = $v;
+    } else {
+        $clips[] = $v;
+    }
+}
+rsort($clips); // 最新的優先
+rsort($fulls);
+$to_submit = array_slice(array_merge($clips, $fulls), 0, 3);
 
+$new_jobs = [];
+foreach ($to_submit as $v) {
     $wav_name = "ivod-{$v}.wav";
     $asr_path = $asr_input_dir . '/' . $wav_name;
 
-    if (!copy($wav_file, $asr_path)) {
-        error_log("copy failed: {$wav_file}");
+    if (!copy($ivod_dir . "/wav/{$v}.wav", $asr_path)) {
+        error_log("copy failed: {$v}.wav");
         continue;
     }
 
