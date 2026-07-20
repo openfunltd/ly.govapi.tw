@@ -33,7 +33,7 @@ function asr_submit($wav_name) {
         CURLOPT_POSTFIELDS => json_encode([
             'tool' => 'pipeline',
             'input' => "local:{$wav_name}",
-            'params' => ['language' => 'zh'],
+            'params' => ['language' => 'zh', 'model_id' => 'large'],
         ]),
         CURLOPT_HTTPHEADER => [
             "X-Api-Key: {$api_key}",
