@@ -2,208 +2,184 @@
 
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/IVodParser.php');
-$crawled = 0;
-$overtime_limit = 5;
-$endtime = $_SERVER['argv'][1] ?? null;
-if (!is_null($endtime)) {
-    $endtime = strtotime($endtime);
-} else {
-    $endtime = time() - 6 * 30 * 86400;
+
+$ivod_dir = __DIR__;
+$asr_base = 'https://asr-tool.api.openfun.dev';
+$asr_input_dir = '/srv/data/api.openfun.dev/asr-tool/input';
+$api_key = getenv('OPENFUN_API_KEY');
+
+// ──────────────────────────────────────────────
+// 工具函式
+// ──────────────────────────────────────────────
+
+function asr_get($job_id) {
+    global $asr_base, $api_key;
+    $curl = curl_init("{$asr_base}/jobs/{$job_id}");
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ["X-Api-Key: {$api_key}"],
+    ]);
+    $result = curl_exec($curl);
+    curl_close($curl);
+    return json_decode($result);
 }
 
-$jobs = [];
-
-$add_job = function($action, $params) use (&$jobs) {
-    $get_params = [];
-    $get_params[] = 'key=' . getenv('WHISPERAPI_KEY');
-    foreach ($params as $k => $v) {
-        $get_params[] = urlencode($k) . '=' . urlencode($v);
-    }
-    $url = sprintf("https://%s%s?%s", getenv('WHISPERAPI_HOST'), $action, implode('&', $get_params));
-    $obj = json_decode(file_get_contents($url));
-    $job_id = $obj->job_id ?? false;
-    if (!$job_id) {
-        throw new Exception("job_id not found: " . $url);
-    }
-    error_log("add job: {$obj->api_url}");
-    $jobs[] = [$job_id, $obj->api_url];
-};
-
-$handle_jobs = function() use (&$jobs) {
-    error_log('handle_jobs');
-    $start_time = null;
-    $data = null;
-    if (count($jobs) == 0) {
-        error_log("no job, sleep 60 seconds");
-        sleep(60);
-    }
-    while (count($jobs) > 0) {
-        list($job_id, $api_url) = $jobs[0];
-        if (is_null($start_time)) {
-            $start_time = time();
-            error_log(sprintf("(remain: %d) checking: %s", count($jobs), $api_url));
-        }
-        $obj = json_decode(file_get_contents($api_url));
-        if ($obj->job->status != 'error' and $obj->job->status != 'done') {
-            if (time() - $start_time > 6000) {
-                throw new Exception("timeout: " . $api_url);
-            }
-            sleep(1);
-            continue;
-        }
-        $start_time = null;
-
-        $id = $obj->job->data->id;
-        list($v, $tool) = explode('-', $id);
-        if ($tool == 'clean') {
-            $data = null;
-            error_log("clean done: {$id}");
-            array_shift($jobs);
-            continue;
-        }
-        if (is_null($data)) {
-            $data = new StdClass;
-            $data->id = $v;
-        }
-        if ($data->id != $v) {
-            throw new Exception("id not match: {$data->id} != $v");
-        }
-        $data->{$tool} = $obj->job;
-        error_log("job done: {$id}");
-        array_shift($jobs);
-
-        if ($data->{'whisperx'} and $data->{'pyannote'}) {
-            $transcript_target = __DIR__ . '/ivod-transcript/' . $v . '.json';
-            file_put_contents($transcript_target, json_encode($data, JSON_UNESCAPED_UNICODE));
-            error_log("transcript done: {$v}");
-            $data = null;
-        }
-    }
-};
-
-$max_v = $v = max(intval(file_get_contents(__DIR__ . '/current-id')), 146312);
-$error_name = [];
-$c = 0;
-for ($v = 169400; $v <= $max_v; $v ++) {
-//for (; $v > 0; $v --) {
-    //error_log($v);
-    $url = sprintf("https://ivod.ly.gov.tw/Play/Clip/1M/%d", $v);
-    $html_target = __DIR__ . "/html/{$v}.html";
-    if (!file_exists($html_target)) {
-        continue;
-    }
-    $transcript_target = __DIR__ . '/ivod-transcript/' . $v . '.json';
-    $error_retry = false;
-    if (file_exists($transcript_target)) {
-        $content = file_get_contents($transcript_target);
-        if (strpos($content, 'status: error') === false
-            and strpos($content, 'error: get-ly-ivod.php') === false
-            and strpos($content, 'yt-dlp failed') === false
-        ) {
-            continue;
-        }
-        $error_retry = true;
-        // 有 error 的話要再重試
-        $wait_minute = 20;
-        if (time() - filemtime($transcript_target) < $wait_minute * 60) { // 失敗的話五分鐘內不重試
-            error_log("skip retry {$v} until: " . date('Y-m-d H:i:s', filemtime($transcript_target) + $wait_minute * 60));
-            continue;
-        }
-    }
-    $ivod = IVodParser::parseHTML($v, file_get_contents($html_target));
-    if ($error_retry and strtotime($ivod->start_time) < time() - 86400 * 7) { // 如果是一週以上失敗的影片就不再重試
-        //continue;
-    }
-    if ($endtime and strtotime($ivod->start_time) < $endtime) {
-        $overtime_limit --;
-        if ($overtime_limit <= 0) {
-            break;
-        }
-    }
-    $init_prompt = sprintf("會議名稱：%s\n發言委員：%s", $ivod->會議名稱, $ivod->委員名稱);
-    error_log("{$v}: ({$ivod->start_time}-{$ivod->end_time}) {$ivod->會議名稱}");
-
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'pyannote',
-        'id' => "{$v}-pyannote",
+function asr_submit($wav_name) {
+    global $asr_base, $api_key;
+    $curl = curl_init("{$asr_base}/jobs");
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode([
+            'tool' => 'pipeline',
+            'input' => "local:{$wav_name}",
+            'params' => ['language' => 'zh'],
+        ]),
+        CURLOPT_HTTPHEADER => [
+            "X-Api-Key: {$api_key}",
+            'Content-Type: application/json',
+        ],
     ]);
-    // 2024-12-31 起移除 init_prompt, 因為好像效果變差
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'whisperx',
-        'id' => "{$v}-whisperx",
-        'init_prompt' => '', //mb_substr($init_prompt, 0, 150, 'UTF-8'),
-    ]);
-    /*
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'clean',
-        'id' => "{$v}-clean",
-    ]);
-     */
-    $c ++;
-    if ($c > 2) {
-        break;
+    $result = curl_exec($curl);
+    curl_close($curl);
+    return json_decode($result);
+}
+
+// pipeline 結果轉成向下相容的舊格式（同時保留 pipeline 原始結果）
+function pipeline_to_transcript($v, $job_result) {
+    $data = new StdClass;
+    $data->id = (string)$v;
+
+    // 保留 pipeline 原始結果
+    $data->pipeline = $job_result;
+
+    // 舊 pyannote 格式：[[start, end, speaker], ...]（從 speakers 展開）
+    $pyannote_segs = [];
+    foreach ($job_result->result->speakers ?? [] as $speaker) {
+        foreach ($speaker->segments as $seg) {
+            $pyannote_segs[] = [$seg->start, $seg->end, $speaker->id];
+        }
+    }
+    usort($pyannote_segs, fn($a, $b) => $a[0] <=> $b[0]);
+    $data->pyannote = (object)[
+        'status' => 'done',
+        'result' => (object)['result' => $pyannote_segs],
+    ];
+
+    // 舊 whisperx 格式：result->json 是 JSON 字串，內有 segments
+    $whisperx_segs = [];
+    foreach ($job_result->result->segments ?? [] as $seg) {
+        $whisperx_segs[] = ['start' => $seg->start, 'end' => $seg->end, 'text' => $seg->text];
+    }
+    $data->whisperx = (object)[
+        'status' => 'done',
+        'result' => (object)[
+            'json' => json_encode(['segments' => $whisperx_segs], JSON_UNESCAPED_UNICODE),
+        ],
+    ];
+
+    return $data;
+}
+
+function save_transcript($v, $job_result) {
+    global $ivod_dir, $asr_input_dir;
+    $transcript = pipeline_to_transcript($v, $job_result);
+    file_put_contents($ivod_dir . "/ivod-transcript/{$v}.json", json_encode($transcript, JSON_UNESCAPED_UNICODE));
+    @unlink($ivod_dir . "/wav/{$v}.wav");
+    @unlink($ivod_dir . "/ivod-asr-jobs/{$v}.json");
+    @unlink($asr_input_dir . "/ivod-{$v}.wav");
+    error_log("transcript done: {$v}");
+}
+
+// ──────────────────────────────────────────────
+// Step 1：輪詢上次未完成的 job（crash 後恢復）
+// ──────────────────────────────────────────────
+
+$pending = [];
+foreach (glob($ivod_dir . '/ivod-asr-jobs/*.json') ?: [] as $f) {
+    $v = intval(basename($f, '.json'));
+    $info = json_decode(file_get_contents($f));
+    $pending[$v] = $info->job_id;
+}
+
+foreach ($pending as $v => $job_id) {
+    $result = asr_get($job_id);
+    error_log("pending {$v} ({$job_id}): {$result->status}" . ($result->stage ? " stage:{$result->stage}" : ''));
+    if ($result->status === 'done') {
+        save_transcript($v, $result);
+        unset($pending[$v]);
+    } elseif ($result->status === 'error') {
+        error_log("asr error {$v}: " . ($result->error ?? 'unknown'));
+        @unlink($ivod_dir . "/ivod-asr-jobs/{$v}.json");
+        unset($pending[$v]);
     }
 }
 
-$v = max(intval(file_get_contents(__DIR__ . '/current-full-id')), 15000);
-$error_name = [];
-for (; $v > 0; $v --) {
-    if ($c >= 1) {
-        break;
-    }
-    //error_log($v);
-    $url = sprintf("https://ivod.ly.gov.tw/Play/Full/1M/%d", $v);
-    $html_target = __DIR__ . "/html/{$v}.html";
-    if (!file_exists($html_target)) {
-        continue;
-    }
-    $transcript_target = __DIR__ . '/ivod-transcript/' . $v . '.json';
-    $error_retry = false;
-    if (file_exists($transcript_target)) {
-        $content = file_get_contents($transcript_target);
-        if (strpos($content, 'status: error') === false) {
-            continue;
-        }
-        $error_retry = true;
-        // 有 error 的話要再重試
-        if (time() - filemtime($transcript_target) < 5 * 60) { // 失敗的話五分鐘內不重試
-            continue;
-        }
-    }
-    $content = file_get_contents($html_target);
-    if (strpos($content, '"rettim":null') !== false) {
-        error_log("rettim not found {$url}");
-        continue;
-    }
-    $ivod = IVodParser::parseHTML($v, $content, 'Full');
-    if ($error_retry and strtotime($ivod->start_time) < time() - 86400 * 7) { // 如果是一週以上失敗的影片就不再重試
-        //continue;
-    }
-    if ($endtime and strtotime($ivod->start_time) < $endtime) {
-        break;
-    }
-    $init_prompt = sprintf("會議名稱：%s\n發言委員：%s", $ivod->會議名稱, $ivod->委員名稱);
-    error_log("{$v}: ({$ivod->start_time}-{$ivod->end_time}) {$ivod->會議名稱}");
+// ──────────────────────────────────────────────
+// Step 2：掃描 wav/ 目錄，送出新 job
+// ──────────────────────────────────────────────
 
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'pyannote',
-        'id' => "{$v}-pyannote",
-    ]);
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'whisperx',
-        'id' => "{$v}-whisperx",
-        'init_prompt' => '', //mb_substr($init_prompt, 0, 150, 'UTF-8'),
-    ]);
-    $add_job('/queue/add', [
-        'url' => $url,
-        'tool' => 'clean',
-        'id' => "{$v}-clean",
-    ]);
-    $c ++;
+$new_jobs = [];
+foreach (glob($ivod_dir . '/wav/*.wav') ?: [] as $wav_file) {
+    $v = intval(basename($wav_file, '.wav'));
+    if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
+    if (file_exists($ivod_dir . "/ivod-asr-jobs/{$v}.json")) continue; // 已送出
+
+    $wav_name = "ivod-{$v}.wav";
+    $asr_path = $asr_input_dir . '/' . $wav_name;
+
+    if (!copy($wav_file, $asr_path)) {
+        error_log("copy failed: {$wav_file}");
+        continue;
+    }
+
+    $job = asr_submit($wav_name);
+    if (empty($job->job_id)) {
+        error_log("submit failed for {$v}: " . json_encode($job));
+        @unlink($asr_path);
+        continue;
+    }
+
+    file_put_contents($ivod_dir . "/ivod-asr-jobs/{$v}.json", json_encode([
+        'job_id' => $job->job_id,
+        'v' => $v,
+        'submitted_at' => time(),
+    ]));
+    $new_jobs[$v] = $job->job_id;
+    error_log("submitted {$v}: {$job->job_id}");
 }
-$handle_jobs();
+
+// ──────────────────────────────────────────────
+// Step 3：等待新送出的 job 完成
+// ──────────────────────────────────────────────
+
+if (empty($new_jobs) && empty($pending)) {
+    error_log("no jobs, sleep 60 seconds");
+    sleep(60);
+}
+
+$wait_jobs = $new_jobs;
+$start_time = time();
+$timeout = 6000;
+
+while (!empty($wait_jobs)) {
+    if (time() - $start_time > $timeout) {
+        error_log("timeout waiting for jobs: " . implode(',', array_keys($wait_jobs)));
+        break;
+    }
+    sleep(5);
+
+    foreach ($wait_jobs as $v => $job_id) {
+        $result = asr_get($job_id);
+        error_log("{$v} ({$job_id}): {$result->status}" . ($result->stage ? " stage:{$result->stage}" : ''));
+
+        if ($result->status === 'done') {
+            save_transcript($v, $result);
+            unset($wait_jobs[$v]);
+        } elseif ($result->status === 'error') {
+            error_log("asr error {$v}: " . ($result->error ?? 'unknown'));
+            @unlink($ivod_dir . "/ivod-asr-jobs/{$v}.json");
+            unset($wait_jobs[$v]);
+        }
+    }
+}
