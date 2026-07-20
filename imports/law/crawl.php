@@ -291,6 +291,7 @@ class Crawler
 
                         if (in_array($name, ['異動條文及理由', '異動條文'])) {
                             $law_doc2 = new DOMDocument;
+                            error_log("file name: {$law_id}/{$versions[0]}-{$name}");
                             @$law_doc2->loadHTML($content);
                             foreach ($law_doc2->getElementsByTagName('img') as $img_dom) {
                                 if ($img_dom->getAttribute('src') == '/lglaw/images/yellow_btn05.png') {

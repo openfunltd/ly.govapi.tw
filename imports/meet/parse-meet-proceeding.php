@@ -43,7 +43,12 @@ while ($line = fgets($fp)) {
     try {
         $info = GazetteParser::parseAgendaWholeMeetingNote($txt_target, $meet_obj->id, $meet_obj);
     } catch (Exception $e) {
-        throw $e;
+        if (in_array(basename($txt_target), [
+            '委員會-11-5-26-15.txt',
+        ])) {
+        } else {
+            throw $e;
+        }
     }
     if (!property_exists($meet_data, '議事錄') or json_encode($info) != json_encode($meet_data->{'議事錄'})) {
         error_log("{$txt_target} {$meet_obj->id}");
