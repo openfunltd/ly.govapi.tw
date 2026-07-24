@@ -2,6 +2,33 @@
 
 class LYLib
 {
+    public static function callLYAPI($url)
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . getenv('OPENFUN_DATA_TOKEN'),
+                'Content-Type: application/json',
+            ],
+        ]);
+        $response = curl_exec($curl);
+        $info = curl_getinfo($curl);
+        if ($info['http_code'] != 200) {
+            throw new Exception("API request failed with status code {$info['http_code']}: {$response}");
+        }
+        $err = curl_error($curl);
+        curl_close($curl);
+        $response_obj = json_decode($response);
+        return $response_obj;
+    }
+
     protected static $_committeeIdMap = null;
     public static function getCommitteeIdMap()
     {
@@ -956,8 +983,7 @@ class LYLib
             $terms[] = 'limit=1000';
 
             $url = "https://v2.ly.govapi.tw/meets?" . implode('&', $terms);
-            $json = file_get_contents($url);
-            $data = json_decode($json);
+            $data = self::callLYAPI($url);
             foreach ($data->meets as $meet) {
                 $billNos = [];
                 foreach ($meet->議事網資料 ?? [] as $record) {

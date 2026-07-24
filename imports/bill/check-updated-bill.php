@@ -1,11 +1,11 @@
 <?php
 
-include(__DIR__ . '/../../BillParser.php');
+include(__DIR__ . '/../../init.inc.php');
 
 
 // 抓最近 100 則黨團協商會議的相關議案
 $url = "https://v2.ly.govapi.tw/meets?會議種類=黨團協商&output_fields=日期&output_fields=議事網資料&limit=1000";
-$obj = json_decode(file_get_contents($url));
+$obj = LYLib::callLYAPI($url);
 $bill_latest_meets = [];
 foreach ($obj->meets as $meet) {
     foreach ($meet->議事網資料 ?? [] as $record) {

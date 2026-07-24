@@ -66,7 +66,9 @@ foreach ($list_files as $file) {
     $lineno = 0;
     while ($rows = fgetcsv($fp)) {
         $lineno ++;
-        if (count($cols) != count($rows)) {
+        if (count($cols) < count($rows)) {
+            $rows = array_slice($rows, 0, count($cols));
+        } else if (count($cols) != count($rows)) {
             echo json_encode($cols, JSON_UNESCAPED_UNICODE) . "\n";
             echo json_encode($rows, JSON_UNESCAPED_UNICODE) . "\n";
             throw new Exception('cols not match rows: ' . $lineno);

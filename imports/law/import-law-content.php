@@ -442,7 +442,7 @@ class Exporter
             }
             $url = "https://v2.ly.govapi.tw/bills?字號=" . urlencode($word);
             error_log("query $word");
-            $obj = json_decode(file_get_contents($url));
+            $obj = LYLib::callLYAPI($url);
             $ret = [];
             foreach ($obj->bills as $bill) {
                 $ret[] = $bill->{'議案編號'};

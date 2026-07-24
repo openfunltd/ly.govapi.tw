@@ -1,5 +1,7 @@
 <?php
 
+include(__DIR__ . '/../../config.php');
+
 $progress_target = __DIR__ . '/../../cache/lis-progress.jsonl';
 $list_target = __DIR__ . '/../../cache/lis-cache.json';
 
@@ -31,7 +33,7 @@ foreach (array_chunk(array_keys($ids), 100) as $chunked_ids) {
         $terms[] = "提案編號=" . urlencode($id);
     }
     $url = "https://v2.ly.govapi.tw/bills?" . implode('&', $terms);
-    $obj = json_decode(file_get_contents($url));
+    $obj = LYLib::callLYAPI($url);
     foreach ($obj->bills as $bill) {
         $progress = $ids[$bill->提案編號];
         unset($ids[$bill->提案編號]);
@@ -64,7 +66,7 @@ foreach (array_keys($law_data) as $lawNo) {
     $law_params[] = "法律編號=" . urlencode($lawNo);
 }
 $url = "https://v2.ly.govapi.tw/laws?" . implode('&', $law_params);
-$obj = json_decode(file_get_contents($url));
+$obj = LYLib::callLYAPI($url);
 foreach ($obj->laws as $law) {
     $progress = $law_data[$law->法律編號]['progress'];
     if (strtotime($law->最新版本->日期) > strtotime($progress)) {
@@ -110,7 +112,7 @@ if ($reports) {
         $terms[] = "議案編號=" . urlencode($billNo);
     }
     $url = "https://v2.ly.govapi.tw/bills?" . implode('&', $terms);
-    $obj = json_decode(file_get_contents($url));
+    $obj = LYLib::callLYAPI($url);
     foreach ($obj->bills as $bill) {
         $progress = $reports[$bill->議案編號];
         unset($reports[$bill->議案編號]);
