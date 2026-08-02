@@ -370,7 +370,7 @@ class BillParser
             }
         }
 
-        if ($obj->proposalType == 2) { // 委員提案
+        if (in_array($obj->proposalType, [1, 2])) { // 政府提案 or 委員提案
             foreach ($doc->getElementsByTagName('p') as $p_dom) {
                 $text = ltrim($p_dom->nodeValue);
                 if (preg_match('#立法院第(\d+)屆第(\d+)會期第(\d+)次會議議案關係文書#', $text, $matches)) {
