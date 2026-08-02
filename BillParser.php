@@ -398,7 +398,7 @@ class BillParser
                         }
                     }
                     $record->{'說明'} = trim($record->{'說明'});
-                } elseif (strpos($text, '提案人：') === 0 or strpos($text, '連署人：') === 0) {
+                } elseif ($obj->proposalType == 2 and (strpos($text, '提案人：') === 0 or strpos($text, '連署人：') === 0)) {
                     $type = explode('：', $text)[0];
                     if ($record->term) {
                         $term = $record->term;
