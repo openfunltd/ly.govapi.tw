@@ -15,6 +15,12 @@ for ($p = 1; ; $p ++) {
         }
         $json = json_decode($content);
         if (!$json) {
+            // 有時 API 回傳兩個 JSON object 串接，只取第一個完整的
+            if (preg_match('/^\{.*?\}(?=\s*\{)/s', $content, $m)) {
+                $json = json_decode($m[0]);
+            }
+        }
+        if (!$json) {
             error_log("fetch $url failed, retry...");
             sleep(60);
             continue;
