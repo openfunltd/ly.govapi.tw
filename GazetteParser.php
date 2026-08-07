@@ -1271,8 +1271,13 @@ class GazetteParser
             }
 
             $txt_file = __DIR__ . '/imports/gazette/agenda-txt/' . $filename;
-            if (filesize($txt_file) < 1000 and strpos(file_get_contents($txt_file), '503 Service Unavailable') !== false) {
-                unlink($txt_file);
+            if (file_exists($txt_file) and filesize($txt_file) < 1000) {
+                $txt_content = file_get_contents($txt_file);
+                if (strpos($txt_content, '503 Service Unavailable') !== false or
+                    strpos($txt_content, 'upstream connect error') !== false or
+                    strpos($txt_content, 'Failed to convert') !== false) {
+                    unlink($txt_file);
+                }
             }
             if (!file_exists($txt_file) or filesize($txt_file) < 10) {
                 error_log("轉檔: " . $txt_file);

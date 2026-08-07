@@ -45,9 +45,16 @@ foreach ($obj->hits->hits as $hit) {
             unlink(__DIR__ . "/tmp.doc");
         }
 
-        if (!file_exists(__DIR__ . "/agenda-html/{$docfilename}.html") or filesize(__DIR__ . "/agenda-html/{$docfilename}.html") == 0){
+        $agenda_html_path = __DIR__ . "/agenda-html/{$docfilename}.html";
+        if (!file_exists($agenda_html_path) or filesize($agenda_html_path) == 0) {
             LYLib::getAgendaHTML($docUrl);
-            //exit;
+        } elseif (filesize($agenda_html_path) < 1000) {
+            $html_content = file_get_contents($agenda_html_path);
+            if (strpos($html_content, 'Failed to convert') !== false or
+                strpos($html_content, 'upstream connect error') !== false) {
+                unlink($agenda_html_path);
+                LYLib::getAgendaHTML($docUrl);
+            }
         }
         if (!file_exists(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") or filesize(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") < 1000){
             if (in_array($docfilename, [
