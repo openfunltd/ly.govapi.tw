@@ -705,10 +705,13 @@ class LYLib
 
         system($cmd, $ret);
         if ($ret) {
-            error_log("curl error: {$file}");
-            return;
+            throw new Exception("unoserver curl 失敗 (exit $ret): {$file}");
         }
         $content = file_get_contents('tmp.html');
+        if (strlen($content) < 100 || strpos($content, 'Failed to convert') !== false) {
+            @unlink('tmp.html');
+            throw new Exception("unoserver 轉換失敗: {$file}: " . substr($content, 0, 200));
+        }
 
         ini_set("pcre.backtrack_limit", "10000000");
         $content = preg_replace_callback('#<img ([^>]*?)src="data:([^"]+)"#', function($matches) use ($file, $basename, $dir) {
@@ -780,10 +783,9 @@ class LYLib
             system(sprintf("env https_proxy= curl --request POST --url https://unoserver.api.openfun.dev/request --compressed -H %s --header 'Content-Type: multipart/form-data'  --form file=@%s --form 'convert-to=docx' --output %s", escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')), escapeshellarg($agenda_docfile), escapeshellarg(__DIR__ . '/tmp.docx')), $ret);
             clearstatcache();
             if (filesize(__DIR__ . '/tmp.docx') < 1000) {
-                copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
-                touch($agenda_htmlfile);
-                error_log("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
-                //throw new Exception("to docx error: $agenda_docfile: " . file_get_contents(__DIR__ . '/tmp.docx'));
+                $err = file_get_contents(__DIR__ . '/tmp.docx');
+                unlink(__DIR__ . '/tmp.docx');
+                throw new Exception("unoserver doc→docx 失敗: $agenda_docfile: $err");
             }
             copy(__DIR__ . "/tmp.docx", $agenda_docxfile);
             unlink(__DIR__ . "/tmp.docx");

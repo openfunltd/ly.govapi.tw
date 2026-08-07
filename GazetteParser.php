@@ -1287,12 +1287,20 @@ class GazetteParser
                 if ($ret) {
                     throw new Exception("轉檔失敗: " . $doc_file);
                 }
-                if (filesize(__DIR__ . '/tmp.txt') < 10) {
+                $tmp_content = file_get_contents(__DIR__ . '/tmp.txt');
+                if (strlen($tmp_content) < 10) {
+                    unlink(__DIR__ . '/tmp.txt');
                     unlink($doc_file);
                     if ($retry > 3) {
-                        throw new Exception("轉檔失敗: " . $doc_file);
+                        throw new Exception("tika 轉檔失敗（空回應）: " . $doc_file);
                     }
                     return self::getAgendaDocHTMLs($agenda, $retry + 1);
+                }
+                if (strpos($tmp_content, 'upstream connect error') !== false ||
+                    strpos($tmp_content, 'Failed to convert') !== false ||
+                    strpos($tmp_content, '503 Service Unavailable') !== false) {
+                    unlink(__DIR__ . '/tmp.txt');
+                    throw new Exception("tika 轉檔失敗: $doc_file: " . substr($tmp_content, 0, 200));
                 }
                 copy(__DIR__ . '/tmp.txt', $txt_file);
                 unlink(__DIR__ . '/tmp.txt');
