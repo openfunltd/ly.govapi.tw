@@ -59,6 +59,8 @@ foreach ($obj->hits->hits as $hit) {
         if (!file_exists(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") or filesize(__DIR__ . "/agenda-tikahtml/{$docfilename}.html") < 1000){
             if (in_array($docfilename, [
                 'LCIDC01_1056401_00006.doc',
+                'LCIDC01_1150402_00002.doc', // 源頭 OLE2 損壞（Can't read SAT），tika HTTP 422
+                'LCIDC01_1151201_00004.doc', // 源頭 OLE2 損壞（Can't read SAT），tika HTTP 422
             ])) {
                 // 特例，這個檔案有問題，tika 會失敗
                 continue;

@@ -1257,6 +1257,14 @@ class GazetteParser
             }
             $filename = $matches[1];
 
+            // 源頭 doc 本身損壞（OLE2 Can't read SAT），tika HTTP 422，無法修復
+            if (in_array($filename, [
+                'LCIDC01_1150402_00002.doc',
+                'LCIDC01_1151201_00004.doc',
+            ])) {
+                continue;
+            }
+
             $doc_file = __DIR__ . '/imports/gazette/agenda-doc/' . $filename;
             if (file_exists($doc_file) and filesize($doc_file) < 1000) {
                 $doc_content = file_get_contents($doc_file);
