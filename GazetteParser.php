@@ -1258,13 +1258,31 @@ class GazetteParser
             $filename = $matches[1];
 
             $doc_file = __DIR__ . '/imports/gazette/agenda-doc/' . $filename;
-            if (!file_Exists($doc_file)) {
+            if (file_exists($doc_file) and filesize($doc_file) < 1000) {
+                $doc_content = file_get_contents($doc_file);
+                if (strpos($doc_content, 'upstream connect error') !== false or
+                    strpos($doc_content, 'Failed to convert') !== false or
+                    strpos($doc_content, '503 Service Unavailable') !== false or
+                    strpos($doc_content, '502 Bad Gateway') !== false) {
+                    unlink($doc_file);
+                }
+            }
+            if (!file_exists($doc_file)) {
                 system(sprintf("curl -4 --user-agent %s -o %s %s",
                     escapeshellarg('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'),
                     escapeshellarg(__DIR__ . '/tmp.doc'),
                     escapeshellarg($url)), $ret);
                 if ($ret) {
                     throw new Exception("下載失敗: " . $url);
+                }
+                $downloaded = file_get_contents(__DIR__ . '/tmp.doc');
+                if (strlen($downloaded) < 1000 and (
+                    strpos($downloaded, 'upstream connect error') !== false or
+                    strpos($downloaded, 'Failed to convert') !== false or
+                    strpos($downloaded, '503 Service Unavailable') !== false or
+                    strpos($downloaded, '502 Bad Gateway') !== false)) {
+                    unlink(__DIR__ . '/tmp.doc');
+                    throw new Exception("doc 下載失敗（連線錯誤）: " . $url . ": " . $downloaded);
                 }
                 copy(__DIR__ . '/tmp.doc', $doc_file);
                 unlink(__DIR__ . '/tmp.doc');
@@ -1281,26 +1299,37 @@ class GazetteParser
             }
             if (!file_exists($txt_file) or filesize($txt_file) < 10) {
                 error_log("轉檔: " . $txt_file);
-                $cmd = sprintf("env https_proxy= curl -T %s -H %s -H 'Accept: text/plain' https://tika.api.openfun.dev/tika > %s", escapeshellarg($doc_file), escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')), escapeshellarg(__DIR__ . '/tmp.txt'));
+                $tika_http_code_file = __DIR__ . '/tmp.tika_code';
+                $cmd = sprintf("env https_proxy= curl -s -o %s -w '%%{http_code}' -T %s -H %s -H 'Accept: text/plain' https://tika.api.openfun.dev/tika > %s",
+                    escapeshellarg(__DIR__ . '/tmp.txt'),
+                    escapeshellarg($doc_file),
+                    escapeshellarg('X-Api-Key: ' . getenv('OPENFUN_API_KEY')),
+                    escapeshellarg($tika_http_code_file));
                 system($cmd, $ret);
-                //system(sprintf("antiword %s > %s", escapeshellarg($doc_file), escapeshellarg(__DIR__ . '/tmp.txt')), $ret);
+                $tika_http_code = intval(@file_get_contents($tika_http_code_file));
+                @unlink($tika_http_code_file);
                 if ($ret) {
-                    throw new Exception("轉檔失敗: " . $doc_file);
+                    throw new Exception("tika curl 失敗 (exit $ret): " . $doc_file);
                 }
                 $tmp_content = file_get_contents(__DIR__ . '/tmp.txt');
-                if (strlen($tmp_content) < 10) {
+                $tika_is_transient = (
+                    strpos($tmp_content, 'upstream connect error') !== false ||
+                    strpos($tmp_content, '503 Service Unavailable') !== false ||
+                    strpos($tmp_content, '502 Bad Gateway') !== false
+                );
+                if ($tika_http_code == 422) {
+                    // doc 本身損壞（OLE2/format 無法解析），重試沒有意義
                     unlink(__DIR__ . '/tmp.txt');
-                    unlink($doc_file);
-                    if ($retry > 3) {
-                        throw new Exception("tika 轉檔失敗（空回應）: " . $doc_file);
-                    }
-                    return self::getAgendaDocHTMLs($agenda, $retry + 1);
+                    throw new Exception("tika 轉檔失敗（doc 損壞 HTTP 422）: " . $doc_file);
                 }
-                if (strpos($tmp_content, 'upstream connect error') !== false ||
-                    strpos($tmp_content, 'Failed to convert') !== false ||
-                    strpos($tmp_content, '503 Service Unavailable') !== false) {
+                if (strlen($tmp_content) < 10 || $tika_is_transient) {
+                    // tika server 暫時性故障，重試（不刪 doc）
                     unlink(__DIR__ . '/tmp.txt');
-                    throw new Exception("tika 轉檔失敗: $doc_file: " . substr($tmp_content, 0, 200));
+                    if ($retry > 2) {
+                        throw new Exception("tika 轉檔失敗（server 不穩，已重試 $retry 次）: " . $doc_file . ": " . substr($tmp_content, 0, 100));
+                    }
+                    sleep(10);
+                    return self::getAgendaDocHTMLs($agenda, $retry + 1);
                 }
                 copy(__DIR__ . '/tmp.txt', $txt_file);
                 unlink(__DIR__ . '/tmp.txt');
