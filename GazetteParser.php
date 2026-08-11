@@ -1259,8 +1259,6 @@ class GazetteParser
 
             // 源頭 doc 本身損壞（OLE2 Can't read SAT），tika HTTP 422，無法修復
             if (in_array($filename, [
-                'LCIDC01_1150402_00002.doc',
-                'LCIDC01_1151201_00004.doc',
             ])) {
                 continue;
             }
