@@ -241,10 +241,16 @@ def process(vid):
             'guessed': r['guessed'],
         })
 
+    # 存 ivod-gazette-align/{id}.json（供 import-ivod.php 使用）
+    align_dir = f'{IVOD_DIR}/ivod-gazette-align'
+    os.makedirs(align_dir, exist_ok=True)
+    with open(f'{align_dir}/{vid}.json', 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
+
+    # 同步寫回 ivod-data（供直接讀取 / reindex 使用）
     if 'transcript' not in d:
         d['transcript'] = {}
     d['transcript']['gazette'] = out
-
     with open(data_path, 'w', encoding='utf-8') as f:
         json.dump(d, f, ensure_ascii=False, separators=(',', ':'))
 

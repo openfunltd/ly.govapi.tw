@@ -65,6 +65,10 @@ foreach ([
                         ];
                     }
                 }
+                $gazette_align_file = __DIR__ . "/ivod-gazette-align/{$v}.json";
+                if (file_exists($gazette_align_file)) {
+                    $result['gazette'] = json_decode(file_get_contents($gazette_align_file));
+                }
                 $ivod->transcript = $result;
                 $ivod->features[] = 'ai-transcript';
             }
