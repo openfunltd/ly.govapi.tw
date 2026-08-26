@@ -11,6 +11,7 @@ $fp = fopen($gazette_list[0], 'r');
 $cols = fgetcsv($fp);
 $max_meeting_date = null;
 while ($rows = fgetcsv($fp)) {
+    if (count($rows) !== count($cols)) continue;
     $values = array_combine($cols, $rows);
     if (strlen($values['meetingDate']) == 14) {
         $values['meetingDate'] = substr($values['meetingDate'], 0, 7);
@@ -48,7 +49,12 @@ for (; $v > 0; $v --) {
         continue;
     }
     error_log("checking {$v}");
-    $gazette = LYLib::getIVODGazette($ivod);
+    try {
+        $gazette = LYLib::getIVODGazette($ivod);
+    } catch (Exception $e) {
+        error_log("exception {$v}: " . $e->getMessage());
+        continue;
+    }
     if ($gazette->error ?? false) {
         error_log("failed {$v}: " . $gazette->message);
         if ($gazette->message == '無公報發言紀錄') {

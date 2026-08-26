@@ -5,6 +5,7 @@ class GazetteTranscriptParser
     public static function parseVote($ret, $term)
     {
         $ret->votes = [];
+        $last_topic = null;
         foreach ($ret->blocks as $idx => $block) {
             $block_pos = 0;
             while ($line = array_shift($block)) {
@@ -141,6 +142,39 @@ class GazetteTranscriptParser
                             continue; // still no data, skip
                         }
                     }
+                    // 從議題句反推表決議題（舊格式公報未提供結構化 表決議題: 欄位）
+                    // 兩種句型：「贊成{議題}者請按」或「針對{議題}進行表決，贊成者請按」
+                    // 議題句可能在同一 block 或前幾個 block 中
+                    if (!isset($vote->{'表決議題'})) {
+                        for ($si = $idx; $si >= max(0, $idx - 5); $si--) {
+                            foreach (array_reverse($ret->blocks[$si]) as $prev_line) {
+                                if (preg_match('#贊成(.+?)(?:之提議)?者請按[「"]贊成#u', $prev_line, $m)) {
+                                    $vote->{'表決議題'} = trim($m[1]);
+                                    break 2;
+                                }
+                                if (preg_match('#針對(.+?)(?:進行|交付)表決#u', $prev_line, $m)) {
+                                    $vote->{'表決議題'} = trim($m[1]);
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                    // 重付表決：「贊成者請按」無嵌議題，沿用上一筆表決議題
+                    if (!isset($vote->{'表決議題'})) {
+                        $is_revote = false;
+                        for ($si = $idx; $si >= max(0, $idx - 3); $si--) {
+                            foreach ($ret->blocks[$si] as $prev_line) {
+                                if (strpos($prev_line, '重付表決') !== false) {
+                                    $is_revote = true;
+                                    break 2;
+                                }
+                            }
+                        }
+                        if ($is_revote && $last_topic !== null) {
+                            $vote->{'表決議題'} = $last_topic . '（重付表決）';
+                        }
+                    }
+                    $last_topic = $vote->{'表決議題'} ?? $last_topic;
                     $ret->votes[] = $vote;
                 }
             }
@@ -487,11 +521,11 @@ class GazetteTranscriptParser
                 $current_block[] = $line;
                 continue;
             } else {
-                if (strpos($line, '，')) {
+                $text = explode('：', $line)[0];
+                if (strpos($text, '，') !== false) {
                     $current_block[] = $line;
                     continue;
                 }
-                $text = explode('：', $line)[0];
                 if (in_array($text, [
                     '程序委員會意見', '表決結果名單', '會議名稱', '表決時間', '表決議題',
                     '表決結果', '贊成', '反對', '棄權', '說明',
