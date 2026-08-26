@@ -33,7 +33,7 @@ function asr_submit($wav_name) {
         CURLOPT_POSTFIELDS => json_encode([
             'tool' => 'pipeline',
             'input' => "local:{$wav_name}",
-            'params' => ['language' => 'zh', 'model_id' => 'medium'],
+            'params' => ['language' => 'zh', 'model_id' => 'medium', 'return_embeddings' => true],
         ]),
         CURLOPT_HTTPHEADER => [
             "X-Api-Key: {$api_key}",
@@ -81,10 +81,32 @@ function pipeline_to_transcript($v, $job_result) {
     return $data;
 }
 
+function save_pyannote($v, $job_result) {
+    global $ivod_dir;
+    $speakers = $job_result->result->speakers ?? [];
+    $has_embedding = false;
+    foreach ($speakers as $spk) {
+        if (isset($spk->embedding)) { $has_embedding = true; break; }
+    }
+    if (!$has_embedding) return;
+    $data = ['id' => (string)$v, 'speakers' => []];
+    foreach ($speakers as $spk) {
+        $data['speakers'][] = [
+            'id' => $spk->id,
+            'total_seconds' => $spk->total_seconds,
+            'embedding' => $spk->embedding,
+            'segments' => array_map(fn($s) => [$s->start, $s->end], $spk->segments),
+        ];
+    }
+    file_put_contents($ivod_dir . "/ivod-pyannote/{$v}.json", json_encode($data, JSON_UNESCAPED_UNICODE));
+    error_log("pyannote saved: {$v} (" . count($speakers) . " speakers)");
+}
+
 function save_transcript($v, $job_result) {
     global $ivod_dir, $asr_input_dir;
     $transcript = pipeline_to_transcript($v, $job_result);
     file_put_contents($ivod_dir . "/ivod-transcript/{$v}.json", json_encode($transcript, JSON_UNESCAPED_UNICODE));
+    save_pyannote($v, $job_result);
     @unlink($ivod_dir . "/wav/{$v}.wav");
     @unlink($ivod_dir . "/ivod-asr-jobs/{$v}.json");
     @unlink($asr_input_dir . "/ivod-{$v}.wav");
