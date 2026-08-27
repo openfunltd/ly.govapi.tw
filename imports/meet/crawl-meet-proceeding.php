@@ -38,7 +38,7 @@ while ($line = fgets($fp)) {
         curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         $json = curl_exec($curl);
         $obj = json_decode($json);
-        if (!property_exists($obj, 'doc') or !$obj->doc) {
+        if (!$obj or !property_exists($obj, 'doc') or !$obj->doc) {
             continue;
         }
         $url = $obj->doc;
