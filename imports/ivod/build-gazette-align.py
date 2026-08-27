@@ -46,49 +46,118 @@ def clean(s):
 
 _HEADER_TIME = re.compile(r'^(.{1,12})：（\d+時\d+分.*?）(.*)$', re.DOTALL)
 _HEADER_BARE = re.compile(r'^(.{1,12})：(.*)$', re.DOTALL)
+_SENT_SPLIT  = re.compile(r'(?<=[。！？])')
+MIN_SENT_CLEAN = 3  # 短於此（clean 後）的句子合入前一句
 
 def parse_blocks(raw_blocks):
     """
     raw_blocks: ivod-gazette blocks（list of str | list of list-of-str）
+    每行依 。！？ 切為獨立 entry，保留 speaker；過短片段合入前一句。
     returns: [{'speaker': str|None, 'text': str, 'clean': str}]
     """
     result = []
     for block in raw_blocks:
         lines = block if isinstance(block, list) else [block]
-        speaker, parts = None, []
+        speaker = None
+        line_texts = []
         for line in lines:
             m = _HEADER_TIME.match(line)
             if m:
                 if not speaker: speaker = m.group(1)
-                parts.append(m.group(2).strip())
+                line_texts.append(m.group(2).strip())
                 continue
             m2 = _HEADER_BARE.match(line)
             if m2:
                 if not speaker: speaker = m2.group(1)
-                parts.append(m2.group(2).strip())
+                line_texts.append(m2.group(2).strip())
             else:
-                parts.append(line.strip())
-        text  = ' '.join(p for p in parts if p)
-        c     = clean(text)
-        if c:
-            result.append({'speaker': speaker, 'text': text, 'clean': c})
+                line_texts.append(line.strip())
+        for text in line_texts:
+            if not text: continue
+            for sent in _SENT_SPLIT.split(text):
+                sent = sent.strip()
+                if not sent: continue
+                c = clean(sent)
+                if len(c) < MIN_SENT_CLEAN and result:
+                    result[-1]['text'] += sent
+                    result[-1]['clean'] += c
+                elif c:
+                    result.append({'speaker': speaker, 'text': sent, 'clean': c})
     return result
+
+
+# ─── whisper word 載入 ────────────────────────────────────────────────────────
+
+def load_whisper_words(vid):
+    """
+    從 ivod-transcript/{id}.json 讀 word-level 時間戳。
+    有 words 就用 word-level；沒有就用 segment-level fallback。
+    回傳 [{'word': str, 'start': float, 'end': float}] 或 None。
+    """
+    path = f'{IVOD_DIR}/ivod-transcript/{vid}.json'
+    if not os.path.exists(path):
+        return None
+    try:
+        obj = json.load(open(path))
+    except Exception:
+        return None
+
+    for key in ('pipeline', 'whisperx'):
+        entry = obj.get(key)
+        if not entry:
+            continue
+        result = entry.get('result') or {}
+        result_json_str = result.get('json') if isinstance(result, dict) else None
+        if not result_json_str:
+            continue
+        try:
+            data = json.loads(result_json_str)
+        except Exception:
+            continue
+        segs = data.get('segments', [])
+        if not segs:
+            continue
+
+        words = []
+        for seg in segs:
+            seg_start = float(seg.get('start', 0))
+            seg_end   = float(seg.get('end',   0))
+            seg_words = seg.get('words', [])
+            if seg_words:
+                prev_end = seg_start
+                for w in seg_words:
+                    wt = (w.get('word', '')
+                          .replace(',', '，')
+                          .replace('台', '臺'))
+                    w_start = float(w.get('start', prev_end))
+                    w_end   = float(w.get('end',   w_start))
+                    words.append({'word': wt, 'start': w_start, 'end': w_end})
+                    prev_end = w_end
+            else:
+                # 無 word-level：整段當一個 token
+                text = (seg.get('text', '')
+                        .replace(',', '，')
+                        .replace('台', '臺'))
+                words.append({'word': text, 'start': seg_start, 'end': seg_end})
+        return words or None
+    return None
 
 
 # ─── 時間軸對齊 ───────────────────────────────────────────────────────────────
 
-def align(gazette_blocks, whisper_segs):
+def align(gazette_blocks, whisper_words):
     """
     gazette_blocks: parse_blocks 輸出
-    whisper_segs:   [{start, end, text}, ...] （相對秒數）
+    whisper_words:  [{'word': str, 'start': float, 'end': float}]
+                    word-level（或 segment-level fallback）
     returns: [{speaker, text, start_rel, end_rel, quality, guessed}, ...]
     """
-    # 建立 whisper char → time 對應
+    # 建立 whisper char → time 對應（每個 word 的 clean 字元共享同一時間區間）
     w_buf, w_spans, pos = [], [], 0
-    for seg in whisper_segs:
-        c = clean(seg.get('text', ''))
+    for w in whisper_words:
+        c = clean(w['word'])
         if not c: continue
-        w_spans.append((pos, pos + len(c), float(seg['start']), float(seg['end'])))
+        w_spans.append((pos, pos + len(c), w['start'], w['end']))
         w_buf.append(c)
         pos += len(c)
     w_text = ''.join(w_buf)
@@ -215,20 +284,29 @@ def process(vid):
     g = json.load(open(gazette_path))
     d = json.load(open(data_path))
 
-    blocks      = g.get('blocks', [])
-    whisper_segs = d.get('transcript', {}).get('whisperx', [])
-    clip_start  = d.get('start_time')
+    blocks     = g.get('blocks', [])
+    clip_start = d.get('start_time')
 
     if not blocks:
         return False, 'no gazette blocks'
     if not clip_start:
         return False, 'no start_time'
 
+    # 優先用 word-level，沒有就 fallback 到 segment-level
+    whisper_words = load_whisper_words(vid)
+    word_level = bool(whisper_words)
+    if not whisper_words:
+        segs = d.get('transcript', {}).get('whisperx', [])
+        whisper_words = [{'word': s['text'], 'start': s['start'], 'end': s['end']}
+                         for s in segs if s.get('text')]
+    if not whisper_words:
+        return False, 'no whisper data'
+
     gazette_blocks = parse_blocks(blocks)
     if not gazette_blocks:
         return False, 'parse_blocks empty'
 
-    aligned = align(gazette_blocks, whisper_segs)
+    aligned = align(gazette_blocks, whisper_words)
 
     out = []
     for r in aligned:
@@ -258,7 +336,8 @@ def process(vid):
         json.dump(d, f, ensure_ascii=False, separators=(',', ':'))
 
     n_guessed = sum(1 for r in out if r['guessed'])
-    return True, f'{len(out)} blocks ({n_guessed} guessed)'
+    mode = 'word' if word_level else 'seg'
+    return True, f'{len(out)} blocks ({n_guessed} guessed) [{mode}-level]'
 
 
 # ─── 主程式 ───────────────────────────────────────────────────────────────────
