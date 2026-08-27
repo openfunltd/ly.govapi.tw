@@ -251,6 +251,9 @@ def process(vid):
     if 'transcript' not in d:
         d['transcript'] = {}
     d['transcript']['gazette'] = out
+    features = d.get('features', [])
+    if 'gazette' not in features:
+        d['features'] = features + ['gazette']
     with open(data_path, 'w', encoding='utf-8') as f:
         json.dump(d, f, ensure_ascii=False, separators=(',', ':'))
 
