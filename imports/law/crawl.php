@@ -525,6 +525,8 @@ class Crawler
         $this->curl = curl_init();
         curl_setopt($this->curl, CURLOPT_COOKIEFILE, '');
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->curl, CURLOPT_TIMEOUT, 120);        // 120s total timeout
+        curl_setopt($this->curl, CURLOPT_CONNECTTIMEOUT, 30);  // 30s connect timeout
 
         // 先抓分類列表
         $categories = $this->crawlCategory();

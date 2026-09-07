@@ -46,13 +46,29 @@ foreach ([
             if (strpos($content, 'status: error') === false) {
                 $obj = json_decode($content);
                 if ($obj->pyannote->result ?? false) {
+                    // 讀 speaker identity（若有）
+                    $identities = [];
+                    $pyann_file = __DIR__ . "/ivod-pyannote/{$v}.json";
+                    if (file_exists($pyann_file)) {
+                        $pyann = json_decode(file_get_contents($pyann_file));
+                        foreach ($pyann->speakers ?? [] as $spk) {
+                            if (isset($spk->identity)) {
+                                $identities[$spk->id] = $spk->identity;
+                            }
+                        }
+                    }
                     $result['pyannote'] = [];
                     foreach ($obj->pyannote->result->result as $r) {
-                        $result['pyannote'][] = [
+                        $entry = [
                             'speaker' => $r[2],
                             'start' => $r[0],
                             'end' => $r[1],
                         ];
+                        if (isset($identities[$r[2]])) {
+                            $entry['speaker_name']  = $identities[$r[2]]->label;
+                            $entry['speaker_score'] = $identities[$r[2]]->score;
+                        }
+                        $result['pyannote'][] = $entry;
                     }
                 }
                 if ($obj->whisperx->result ?? false) {

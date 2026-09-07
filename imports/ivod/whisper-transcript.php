@@ -81,6 +81,39 @@ function pipeline_to_transcript($v, $job_result) {
     return $data;
 }
 
+function identify_speaker($embedding_b64, $term = 11) {
+    // ES kNN 查詢，回傳最佳匹配的 {label, person_name, score} 或 null
+    $MIN_SCORE = 0.925; // 對應 cosine >= 0.85
+    try {
+        $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
+        if (max(array_map('abs', $vec)) < 1e-6) return null; // 全零向量
+        $body = json_encode([
+            'knn' => [
+                'field' => 'embedding',
+                'query_vector' => $vec,
+                'k' => 1,
+                'num_candidates' => 30,
+                'filter' => ['term' => ['term' => $term]],
+            ],
+            'size' => 1,
+            '_source' => ['label', 'person_name'],
+        ], JSON_UNESCAPED_UNICODE);
+        $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
+        $hits = $result->hits->hits ?? [];
+        if (empty($hits)) return null;
+        $hit = $hits[0];
+        if ($hit->_score < $MIN_SCORE) return null;
+        return [
+            'label'       => $hit->_source->label,
+            'person_name' => $hit->_source->person_name,
+            'score'       => round($hit->_score * 2 - 1, 3), // ES score → cosine
+        ];
+    } catch (Exception $e) {
+        error_log("identify_speaker error: " . $e->getMessage());
+        return null;
+    }
+}
+
 function save_pyannote($v, $job_result) {
     global $ivod_dir;
     $speakers = $job_result->result->speakers ?? [];
@@ -91,12 +124,17 @@ function save_pyannote($v, $job_result) {
     if (!$has_embedding) return;
     $data = ['id' => (string)$v, 'speakers' => []];
     foreach ($speakers as $spk) {
-        $data['speakers'][] = [
-            'id' => $spk->id,
+        $entry = [
+            'id'            => $spk->id,
             'total_seconds' => $spk->total_seconds,
-            'embedding' => $spk->embedding,
-            'segments' => array_map(fn($s) => [$s->start, $s->end], $spk->segments),
+            'embedding'     => $spk->embedding,
+            'segments'      => array_map(fn($s) => [$s->start, $s->end], $spk->segments),
         ];
+        $identity = identify_speaker($spk->embedding);
+        if ($identity) {
+            $entry['identity'] = $identity;
+        }
+        $data['speakers'][] = $entry;
     }
     file_put_contents($ivod_dir . "/ivod-pyannote/{$v}.json", json_encode($data, JSON_UNESCAPED_UNICODE));
     error_log("pyannote saved: {$v} (" . count($speakers) . " speakers)");

@@ -249,6 +249,9 @@ while (true) {
     $todo = [];
     foreach ($all_ids as $v) {
         if (count($todo) >= $batch) break;
+        // 第11屆（2024-02-01）以前不處理：Full < 15664，Clip < 149103
+        if ($v <= $max_full_id && $v < 15664) continue;
+        if ($v > $max_full_id  && $v < 149103) continue;
         if (file_exists($ivod_dir . "/ivod-pyannote/{$v}.json")) continue;
         if (!file_exists($ivod_dir . "/html/{$v}.html")) continue;
         $todo[] = $v;

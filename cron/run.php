@@ -16,6 +16,15 @@ if (file_exists($pid_file)) {
     if ($pid and posix_kill($pid, 0)) {
         $run_time = time() - filemtime($pid_file);
         if ($run_time > 3600) {
+            // Kill the stuck process group and remove the PID file so we can re-run.
+            posix_kill(-$pid, SIGTERM);   // send SIGTERM to process group
+            sleep(3);
+            if (posix_kill($pid, 0)) {
+                posix_kill(-$pid, SIGKILL); // force kill if still alive
+            }
+            unlink($pid_file);
+            error_log("run.php: killed stuck {$cmd_id} (pid={$pid}, run_time={$run_time}s)");
+
             $data = [
                 'id' => "{$cmd_id}-{$start}",
                 "cmd_id" => $cmd_id,
@@ -25,7 +34,7 @@ if (file_exists($pid_file)) {
                 "delta" => 0,
                 'output' => [
                     'stdout' => '',
-                    'stderr' => 'running over 1 hour',
+                    'stderr' => "killed after running over 1 hour ({$run_time}s)",
                 ],
                 'pid' => $pid,
                 'code' => 255,
@@ -33,8 +42,10 @@ if (file_exists($pid_file)) {
 
             Elastic::dbBulkInsert('logs-cron-' . date('Y'), null, $data);
             Elastic::dbBulkCommit();
+            // fall through — PID file is gone, will start fresh below
+        } else {
+            throw new Exception("Already running: $cmd");
         }
-        throw new Exception("Already running: $cmd");
     }
 }
 $pid = getmypid();
