@@ -74,6 +74,14 @@ def process_agenda(meta, dry_run=False, force=False):
         paragraphs = _dt._extract_paragraphs(html)
         mt = _dt.detect_meeting_type(paragraphs)
         if mt != 'dangtuan':
+            # Remove stale anchor file if it previously had meeting_type=dangtuan
+            if os.path.exists(out_path):
+                try:
+                    old = json.load(open(out_path))
+                    if old.get('meeting_type') == 'dangtuan':
+                        os.remove(out_path)
+                except Exception:
+                    pass
             return 'skip-not-questioning', 0
         anchors = _dt.parse_anchors(paragraphs)
         if not anchors:

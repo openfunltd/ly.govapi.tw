@@ -165,14 +165,17 @@ _SKIP_CLASSES = {
 def detect_meeting_type(paragraphs: list[dict]) -> str:
     """
     Return 'dangtuan' if the paragraphs look like a 黨團協商 transcript.
-    Uses CSS class presence as the primary signal.
+
+    Uses title text as the primary signal: real 黨團協商 docs have '黨團協商'
+    in the first few paragraphs (e.g. '黨團協商紀錄' or
+    '立法院第11屆第5會期黨團協商會議紀錄').
+
+    CSS classes ('朝野協商(次標題)', '朝野協商(內文)') are NOT reliable — they
+    appear in committee meetings and public hearings too, used as generic
+    sub-heading styles for time/location or attendance metadata.
     """
-    for p in paragraphs:
-        if '朝野協商' in p['cls']:
-            return 'dangtuan'
-    # Fallback: title text check for cases where class might differ
     for p in paragraphs[:10]:
-        if '黨團協商' in p['text'] and '會議紀錄' in p['text']:
+        if '黨團協商' in p['text']:
             return 'dangtuan'
     return 'unknown'
 
