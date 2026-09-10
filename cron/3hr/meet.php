@@ -18,6 +18,7 @@ foreach ([
     'meet/parse-meet-proceeding.php',
     'meet/crawl-meet-speechlist.php',
     'meet/parse-speech-from-gazette.php',
+    'meet/enrich-gazette-pdf-links.php',
     'meet/link-meet.php',
 ] as $script) {
     $cmd = sprintf("php %s",
