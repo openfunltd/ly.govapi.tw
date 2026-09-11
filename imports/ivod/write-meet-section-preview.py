@@ -386,7 +386,6 @@ def analyze_meet(meet_id):
     meet_d = json.load(open(meet_path))
 
     sessions_meta = []
-    seen_sessions = set()
     for rec in meet_d.get('公報發言紀錄', []):
         lids    = _to_list(rec.get('agenda_lcidc_ids', []))
         dates   = _to_list(rec.get('meetingDate', []))
@@ -397,16 +396,13 @@ def analyze_meet(meet_id):
         date = dates[0] if dates else None
         if not date or not lids:
             continue
-        key = (date, tuple(lids))
-        if key in seen_sessions:
-            continue
-        seen_sessions.add(key)
         sessions_meta.append({
             'date':       date,
             'lcidc_ids':  lids,
             'content':    content,
             'gazette_id': rec.get('gazette_id'),
             'meet_type':  mt,
+            'page_start': rec.get('page_start'),
         })
 
     if not sessions_meta:
@@ -458,6 +454,70 @@ def analyze_meet(meet_id):
         return gazette_info[0] if gazette_info else None
 
     # ── 4. 逐 session 處理 ────────────────────────────────────────────────────
+
+    # 當多個議題共用同一子文件時，以 content 標題定位各議題的段落範圍
+    def _content_search_key(content):
+        key = re.sub(r'^(討論事項|報告事項|審查)\s*', '', content)
+        key = re.sub(r'[─—\-].+$', '', key).strip()
+        return key if len(key) >= 3 else None
+
+    def _find_para_for_content(paras, content, para_sections=None):
+        key = _content_search_key(content)
+        if not key:
+            return None
+        # 先找關鍵字在哪個段落首次出現
+        key_pos = next((i for i, p in enumerate(paras) if key in p), None)
+        if key_pos is None:
+            short = key[:5]
+            if len(short) >= 3:
+                key_pos = next((i for i, p in enumerate(paras) if short in p), None)
+        if key_pos is None:
+            return None
+        # 往前回溯：找 key_pos 之前（含）最近的討論/報告事項案號段落作為邊界
+        _ITEM_RE  = re.compile(r'(?:進行|開始)?(?:討論事項|報告事項)第[^。\n]*案')
+        _NUM_RE   = re.compile(r'^[一二三四五六七八九十百]+[、．]')
+        _PREAMBLE = {None, '討論事項', '報告事項', '國是論壇'}
+        boundary_before = None
+        for i, p in enumerate(paras):
+            if i > key_pos:
+                break
+            if _ITEM_RE.search(p):
+                boundary_before = i
+            elif _NUM_RE.search(p):
+                # 法條內的小編號（逐條討論中）不算議案邊界
+                major = para_sections[i] if para_sections else None
+                if major in _PREAMBLE:
+                    boundary_before = i
+        return boundary_before if boundary_before is not None else key_pos
+
+    _lids_groups = defaultdict(list)
+    for i, sm in enumerate(sessions_meta):
+        _lids_groups[(sm['date'], tuple(sm['lcidc_ids']))].append(i)
+
+    for (date_k, lids_k), idxs in _lids_groups.items():
+        if len(idxs) == 1:
+            sessions_meta[idxs[0]]['_para_start'] = 0
+            sessions_meta[idxs[0]]['_para_end']   = None
+            continue
+        g = build_gazette(list(lids_k))
+        if not g:
+            for i in idxs:
+                sessions_meta[i]['_para_start'] = 0
+                sessions_meta[i]['_para_end']   = None
+            continue
+        paras_g  = g['paras']
+        psecs_g  = g['para_sections']
+        pos_list = [(i, _find_para_for_content(paras_g, sessions_meta[i]['content'], psecs_g)) for i in idxs]
+        pos_list.sort(key=lambda x: (x[1] is None, x[1] or 0))
+        for j, (i, pos) in enumerate(pos_list):
+            if pos is None:
+                sessions_meta[i]['_para_start'] = 0
+                sessions_meta[i]['_para_end']   = None
+            else:
+                next_pos = next((p for _, p in pos_list[j+1:] if p is not None), None)
+                sessions_meta[i]['_para_start'] = pos
+                sessions_meta[i]['_para_end']   = next_pos
+
     sessions          = []
     total_clips       = 0
     _written_dates_done = set()  # 每日書面質詢只加一次
@@ -494,10 +554,22 @@ def analyze_meet(meet_id):
                 name_clips_short[m.group(1)].append(iv)
 
         # ── 4b. 建立 sections ────────────────────────────────────────────────
+        _ps = sm.get('_para_start', 0)
+        _pe = sm.get('_para_end')   # None = 全文
         sections_out = []
         for item in section_items_from_sub_keys(gazette['sub_keys']):
-            sk       = item['sub_key']
-            p0, p1   = item['para_start'], item['para_end']
+            sk     = item['sub_key']
+            p0, p1 = item['para_start'], item['para_end']
+
+            # 套用段落範圍限制（多議題共用同一子文件時）
+            if _pe is not None and p0 >= _pe:
+                continue
+            if _ps > 0 and p1 < _ps:
+                continue
+            p0 = max(p0, _ps)
+            if _pe is not None:
+                p1 = min(p1, _pe - 1)
+
             type_, label, kind = sub_key_to_meta(sk)
             if type_ is None:
                 continue

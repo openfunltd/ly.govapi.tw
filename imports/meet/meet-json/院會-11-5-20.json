@@ -1,7 +1,7 @@
 {
   "meet_id": "院會-11-5-20",
   "meet_type": "院會",
-  "clip_count": 5,
+  "clip_count": 18,
   "sessions": [
     {
       "date": "2026-07-31",
@@ -5455,6 +5455,5503 @@
       ]
     },
     {
+      "date": "2026-07-31",
+      "lcidc_ids": [
+        "1156601_00002"
+      ],
+      "content": "本院民進黨黨團，針對第11屆第5會期第18次會議將台灣民眾黨黨團擬具「公民投票法第二十一\n條及第四十三條條文修正草案」自內政委員會抽出逕付二讀，與相關提案併案協商之決定提出復\n議。是否有當？請公決案─不通過─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00001.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00002.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 1,
+      "page_end": 38,
+      "pdf_page_offset": 0,
+      "clip_count": 2,
+      "anchors": [
+        {
+          "para": 25,
+          "section": "休息",
+          "text": "休息 （ 10 時 4 分）"
+        },
+        {
+          "para": 40,
+          "section": "報告事項",
+          "text": "主席： 報告院會，本次院會後續就依照黨團共識進行，先進行報告事項等部分，請議事人員宣讀各黨團提議內容。"
+        },
+        {
+          "para": 403,
+          "section": "報告事項",
+          "text": "現在進行報告事項。"
+        },
+        {
+          "para": 965,
+          "section": "休息",
+          "text": "休息 （ 11 時 23 分）"
+        }
+      ],
+      "sections": [
+        {
+          "type": "休息",
+          "label": null,
+          "kind": "meta",
+          "para_start": 38,
+          "para_end": 39,
+          "gazette_text": "四、今日院會進行至討論事項第 3 案處理完畢即休息；下週二（ 8 月 4 日）繼續處理後續討論事項。當次院會不處理臨時提案。\n傅崐萁　　林沛祥　　許宇甄　　蔡其昌　　莊瑞雄　　范　雲　　陳清龍　　王安祥　　邱慧洳",
+          "blocks": []
+        },
+        {
+          "type": "報告事項",
+          "label": "報告事項",
+          "kind": "ivod",
+          "para_start": 40,
+          "para_end": 872,
+          "blocks": [
+            {
+              "para": 40,
+              "speaker": "主席",
+              "time": null,
+              "text": "報告院會，本次院會後續就依照黨團共識進行，先進行報告事項等部分，請議事人員宣讀各黨團提議內容。"
+            },
+            {
+              "para": 42,
+              "speaker": "案由",
+              "time": null,
+              "text": "本院民進黨黨團針對立法院第 11 屆第 5 會期第 20 次會議議事日程報告事項、質詢事項，擬請增列報告事項 52 案（如附表）。是否有當，敬請公決。"
+            },
+            {
+              "para": 43,
+              "speaker": "提案人",
+              "time": null,
+              "text": "民主進步黨立法院黨團 范　雲"
+            },
+            {
+              "para": 44,
+              "speaker": null,
+              "time": null,
+              "text": "附表 第 11 屆第 5 會期第 20 次會議增列報告事項"
+            },
+            {
+              "para": 45,
+              "speaker": null,
+              "time": null,
+              "text": "序"
+            },
+            {
+              "para": 46,
+              "speaker": null,
+              "time": null,
+              "text": "議（法）案名稱"
+            },
+            {
+              "para": 47,
+              "speaker": null,
+              "time": null,
+              "text": "1"
+            },
+            {
+              "para": 48,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「所得稅法第十七條及第一百二十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 49,
+              "speaker": null,
+              "time": null,
+              "text": "2"
+            },
+            {
+              "para": 50,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「中華民國刑法第一百八十五條之三條文修正草案」，請審議案。"
+            },
+            {
+              "para": 51,
+              "speaker": null,
+              "time": null,
+              "text": "3"
+            },
+            {
+              "para": 52,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「性侵害犯罪防治法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 53,
+              "speaker": null,
+              "time": null,
+              "text": "4"
+            },
+            {
+              "para": 54,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「兒童及少年性剝削防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 55,
+              "speaker": null,
+              "time": null,
+              "text": "5"
+            },
+            {
+              "para": 56,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 16 人擬具「私立學校法增訂第八十一條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 57,
+              "speaker": null,
+              "time": null,
+              "text": "6"
+            },
+            {
+              "para": 58,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「毒品危害防制條例第三十三條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 59,
+              "speaker": null,
+              "time": null,
+              "text": "7"
+            },
+            {
+              "para": 60,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「陸海空軍刑法第五十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 61,
+              "speaker": null,
+              "time": null,
+              "text": "8"
+            },
+            {
+              "para": 62,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「市區道路條例第三十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 63,
+              "speaker": null,
+              "time": null,
+              "text": "9"
+            },
+            {
+              "para": 64,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「教保服務人員條例增訂第二十三條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 65,
+              "speaker": null,
+              "time": null,
+              "text": "10"
+            },
+            {
+              "para": 66,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「原住民族學校法草案」，請審議案。"
+            },
+            {
+              "para": 67,
+              "speaker": null,
+              "time": null,
+              "text": "11"
+            },
+            {
+              "para": 68,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 69,
+              "speaker": null,
+              "time": null,
+              "text": "12"
+            },
+            {
+              "para": 70,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林月琴等 24 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 71,
+              "speaker": null,
+              "time": null,
+              "text": "13"
+            },
+            {
+              "para": 72,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員黃秀芳等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 73,
+              "speaker": null,
+              "time": null,
+              "text": "14"
+            },
+            {
+              "para": 74,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林淑芬等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 75,
+              "speaker": null,
+              "time": null,
+              "text": "15"
+            },
+            {
+              "para": 76,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市危險及老舊建築物加速重建條例修正草案」，請審議案。"
+            },
+            {
+              "para": 77,
+              "speaker": null,
+              "time": null,
+              "text": "16"
+            },
+            {
+              "para": 78,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市更新條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 79,
+              "speaker": null,
+              "time": null,
+              "text": "17"
+            },
+            {
+              "para": 80,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 81,
+              "speaker": null,
+              "time": null,
+              "text": "18"
+            },
+            {
+              "para": 82,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官服役條例第二十九條及第六十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 83,
+              "speaker": null,
+              "time": null,
+              "text": "19"
+            },
+            {
+              "para": 84,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 85,
+              "speaker": null,
+              "time": null,
+              "text": "20"
+            },
+            {
+              "para": 86,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 87,
+              "speaker": null,
+              "time": null,
+              "text": "21"
+            },
+            {
+              "para": 88,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 19 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 89,
+              "speaker": null,
+              "time": null,
+              "text": "22"
+            },
+            {
+              "para": 90,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 18 人擬具「勞工退休金條例第十四條、第三十六條及第五十八條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 91,
+              "speaker": null,
+              "time": null,
+              "text": "23"
+            },
+            {
+              "para": 92,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林宜瑾等 19 人擬具「促進轉型正義條例第六條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 93,
+              "speaker": null,
+              "time": null,
+              "text": "24"
+            },
+            {
+              "para": 94,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 19 人擬具「社會秩序維護法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 95,
+              "speaker": null,
+              "time": null,
+              "text": "25"
+            },
+            {
+              "para": 96,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 21 人擬具「社會秩序維護法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 97,
+              "speaker": null,
+              "time": null,
+              "text": "26"
+            },
+            {
+              "para": 98,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員王美惠等 20 人擬具「社會秩序維護法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 99,
+              "speaker": null,
+              "time": null,
+              "text": "27"
+            },
+            {
+              "para": 100,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林宜瑾等 27 人擬具「立法委員行為法增訂第七條之一及第十條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 101,
+              "speaker": null,
+              "time": null,
+              "text": "28"
+            },
+            {
+              "para": 102,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員沈伯洋等 19 人擬具「香港澳門關係條例第十條、第十條之一及第四十七條之二條文修正草案」，請審議案。"
+            },
+            {
+              "para": 103,
+              "speaker": null,
+              "time": null,
+              "text": "29"
+            },
+            {
+              "para": 104,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李柏毅等 16 人擬具「立法院議事規則第三十五條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 105,
+              "speaker": null,
+              "time": null,
+              "text": "30"
+            },
+            {
+              "para": 106,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林岱樺等 17 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 107,
+              "speaker": null,
+              "time": null,
+              "text": "31"
+            },
+            {
+              "para": 108,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 19 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 109,
+              "speaker": null,
+              "time": null,
+              "text": "32"
+            },
+            {
+              "para": 110,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林楚茵等 16 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 111,
+              "speaker": null,
+              "time": null,
+              "text": "33"
+            },
+            {
+              "para": 112,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員郭昱晴等 16 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 113,
+              "speaker": null,
+              "time": null,
+              "text": "34"
+            },
+            {
+              "para": 114,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林月琴等 17 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 115,
+              "speaker": null,
+              "time": null,
+              "text": "35"
+            },
+            {
+              "para": 116,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 21 人擬具「臺灣地區與大陸地區人民關係條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 117,
+              "speaker": null,
+              "time": null,
+              "text": "36"
+            },
+            {
+              "para": 118,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員郭國文等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 119,
+              "speaker": null,
+              "time": null,
+              "text": "37"
+            },
+            {
+              "para": 120,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員沈伯洋等 19 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 121,
+              "speaker": null,
+              "time": null,
+              "text": "38"
+            },
+            {
+              "para": 122,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員沈伯洋等 18 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案"
+            },
+            {
+              "para": 123,
+              "speaker": null,
+              "time": null,
+              "text": "39"
+            },
+            {
+              "para": 124,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員黃捷等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 125,
+              "speaker": null,
+              "time": null,
+              "text": "40"
+            },
+            {
+              "para": 126,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員郭昱晴等 16 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 127,
+              "speaker": null,
+              "time": null,
+              "text": "41"
+            },
+            {
+              "para": 128,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張宏陸等 18 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 129,
+              "speaker": null,
+              "time": null,
+              "text": "42"
+            },
+            {
+              "para": 130,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 131,
+              "speaker": null,
+              "time": null,
+              "text": "43"
+            },
+            {
+              "para": 132,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林月琴等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 133,
+              "speaker": null,
+              "time": null,
+              "text": "44"
+            },
+            {
+              "para": 134,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李柏毅等 19 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 135,
+              "speaker": null,
+              "time": null,
+              "text": "45"
+            },
+            {
+              "para": 136,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員吳秉叡等 19 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 137,
+              "speaker": null,
+              "time": null,
+              "text": "46"
+            },
+            {
+              "para": 138,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳培瑜等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 139,
+              "speaker": null,
+              "time": null,
+              "text": "47"
+            },
+            {
+              "para": 140,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員蔡易餘等 17 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 141,
+              "speaker": null,
+              "time": null,
+              "text": "48"
+            },
+            {
+              "para": 142,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林宜瑾等 27 人擬具「臺灣地區與大陸地區人民關係條例第九條及第九十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 143,
+              "speaker": null,
+              "time": null,
+              "text": "49"
+            },
+            {
+              "para": 144,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函請審議「財政收支劃分法部分條文修正草案」案。"
+            },
+            {
+              "para": 145,
+              "speaker": null,
+              "time": null,
+              "text": "50"
+            },
+            {
+              "para": 146,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函請審議「社會秩序維護法部分條文修正草案」案。"
+            },
+            {
+              "para": 147,
+              "speaker": null,
+              "time": null,
+              "text": "51"
+            },
+            {
+              "para": 148,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函請審議「食品安全衛生管理法部分條文修正草案」案。"
+            },
+            {
+              "para": 149,
+              "speaker": null,
+              "time": null,
+              "text": "52"
+            },
+            {
+              "para": 150,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函送國家通訊傳播委員會委員提名名單，袁秀慧為委員並為主任委員，蕭蘋為委員並為副主任委員，王怡惠、游家牧、張春炎、張克豪及陳春木均為委員，請同意案。"
+            },
+            {
+              "para": 152,
+              "speaker": null,
+              "time": null,
+              "text": "院會提案"
+            },
+            {
+              "para": 153,
+              "speaker": "案由",
+              "time": null,
+              "text": "本院台灣民眾黨黨團，針對第 11 屆第 5 會期第 20 次會議議程報告事項及質詢事項，提議僅限列議程草案及下表所列 51 案。是否有當？敬請公決。"
+            },
+            {
+              "para": 154,
+              "speaker": "提案人",
+              "time": null,
+              "text": "台灣民眾黨立法院黨團 陳清龍"
+            },
+            {
+              "para": 155,
+              "speaker": null,
+              "time": null,
+              "text": "報告事項僅限列議程草案及下表所列 51 案"
+            },
+            {
+              "para": 156,
+              "speaker": null,
+              "time": null,
+              "text": "序 號"
+            },
+            {
+              "para": 157,
+              "speaker": null,
+              "time": null,
+              "text": "案名"
+            },
+            {
+              "para": 158,
+              "speaker": null,
+              "time": null,
+              "text": "1"
+            },
+            {
+              "para": 159,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員盧縣一等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 160,
+              "speaker": null,
+              "time": null,
+              "text": "2"
+            },
+            {
+              "para": 161,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「電子競技運動發展基本法草案」，請審議案。"
+            },
+            {
+              "para": 162,
+              "speaker": null,
+              "time": null,
+              "text": "3"
+            },
+            {
+              "para": 163,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「能源管理法第二條、第六條及第六條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 164,
+              "speaker": null,
+              "time": null,
+              "text": "4"
+            },
+            {
+              "para": 165,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「遺產及贈與稅法第十五條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 166,
+              "speaker": null,
+              "time": null,
+              "text": "5"
+            },
+            {
+              "para": 167,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 168,
+              "speaker": null,
+              "time": null,
+              "text": "6"
+            },
+            {
+              "para": 169,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員許宇甄等 20 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 170,
+              "speaker": null,
+              "time": null,
+              "text": "7"
+            },
+            {
+              "para": 171,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐巧芯等 16 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 172,
+              "speaker": null,
+              "time": null,
+              "text": "8"
+            },
+            {
+              "para": 173,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐巧芯等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 174,
+              "speaker": null,
+              "time": null,
+              "text": "9"
+            },
+            {
+              "para": 175,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員廖偉翔等 17 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 176,
+              "speaker": null,
+              "time": null,
+              "text": "10"
+            },
+            {
+              "para": 177,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員王育敏等 25 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 178,
+              "speaker": null,
+              "time": null,
+              "text": "11"
+            },
+            {
+              "para": 179,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 22 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 180,
+              "speaker": null,
+              "time": null,
+              "text": "12"
+            },
+            {
+              "para": 181,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 22 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 182,
+              "speaker": null,
+              "time": null,
+              "text": "13"
+            },
+            {
+              "para": 183,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 23 人擬具「勞工退休金條例第十四條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 184,
+              "speaker": null,
+              "time": null,
+              "text": "14"
+            },
+            {
+              "para": 185,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員鄭天財 Sra\n\t\t\t\t\tKacaw 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 186,
+              "speaker": null,
+              "time": null,
+              "text": "15"
+            },
+            {
+              "para": 187,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 19 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 188,
+              "speaker": null,
+              "time": null,
+              "text": "16"
+            },
+            {
+              "para": 189,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 16 人擬具「學校營養午餐法草案」，請審議案。"
+            },
+            {
+              "para": 190,
+              "speaker": null,
+              "time": null,
+              "text": "17"
+            },
+            {
+              "para": 191,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 21 人擬具「毒品危害防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 192,
+              "speaker": null,
+              "time": null,
+              "text": "18"
+            },
+            {
+              "para": 193,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員翁曉玲等 17 人擬具「公務人員考績法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 194,
+              "speaker": null,
+              "time": null,
+              "text": "19"
+            },
+            {
+              "para": 195,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 20 人擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 196,
+              "speaker": null,
+              "time": null,
+              "text": "20"
+            },
+            {
+              "para": 197,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 21 人擬具「老人法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 198,
+              "speaker": null,
+              "time": null,
+              "text": "21"
+            },
+            {
+              "para": 199,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 18 人擬具「高齡健康促進基本法草案」，請審議案。"
+            },
+            {
+              "para": 200,
+              "speaker": null,
+              "time": null,
+              "text": "22"
+            },
+            {
+              "para": 201,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳菁徽等 20 人擬具「兒童及少年福利與權益保障法增訂第二十六條之三條文草案」，請審議案。"
+            },
+            {
+              "para": 202,
+              "speaker": null,
+              "time": null,
+              "text": "23"
+            },
+            {
+              "para": 203,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳菁徽等 20 人擬具「兒童托育服務法第十條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 204,
+              "speaker": null,
+              "time": null,
+              "text": "24"
+            },
+            {
+              "para": 205,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅廷瑋等 17 人擬具「教保服務人員條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 206,
+              "speaker": null,
+              "time": null,
+              "text": "25"
+            },
+            {
+              "para": 207,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「所得稅法第十七條及第一百二十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 208,
+              "speaker": null,
+              "time": null,
+              "text": "26"
+            },
+            {
+              "para": 209,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「中華民國刑法第一百八十五條之三條文修正草案」，請審議案。"
+            },
+            {
+              "para": 210,
+              "speaker": null,
+              "time": null,
+              "text": "27"
+            },
+            {
+              "para": 211,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「性侵害犯罪防治法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 212,
+              "speaker": null,
+              "time": null,
+              "text": "28"
+            },
+            {
+              "para": 213,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「兒童及少年性剝削防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 214,
+              "speaker": null,
+              "time": null,
+              "text": "29"
+            },
+            {
+              "para": 215,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 16 人擬具「私立學校法增訂第八十一條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 216,
+              "speaker": null,
+              "time": null,
+              "text": "30"
+            },
+            {
+              "para": 217,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「毒品危害防制條例第三十三條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 218,
+              "speaker": null,
+              "time": null,
+              "text": "31"
+            },
+            {
+              "para": 219,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「陸海空軍刑法第五十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 220,
+              "speaker": null,
+              "time": null,
+              "text": "32"
+            },
+            {
+              "para": 221,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「市區道路條例第三十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 222,
+              "speaker": null,
+              "time": null,
+              "text": "33"
+            },
+            {
+              "para": 223,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「教保服務人員條例增訂第二十三條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 224,
+              "speaker": null,
+              "time": null,
+              "text": "34"
+            },
+            {
+              "para": 225,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「原住民族學校法草案」，請審議案。"
+            },
+            {
+              "para": 226,
+              "speaker": null,
+              "time": null,
+              "text": "35"
+            },
+            {
+              "para": 227,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 228,
+              "speaker": null,
+              "time": null,
+              "text": "36"
+            },
+            {
+              "para": 229,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林月琴等 24 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 230,
+              "speaker": null,
+              "time": null,
+              "text": "37"
+            },
+            {
+              "para": 231,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員黃秀芳等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 232,
+              "speaker": null,
+              "time": null,
+              "text": "38"
+            },
+            {
+              "para": 233,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林淑芬等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 234,
+              "speaker": null,
+              "time": null,
+              "text": "39"
+            },
+            {
+              "para": 235,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市危險及老舊建築物加速重建條例修正草案」，請審議案。"
+            },
+            {
+              "para": 236,
+              "speaker": null,
+              "time": null,
+              "text": "40"
+            },
+            {
+              "para": 237,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市更新條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 238,
+              "speaker": null,
+              "time": null,
+              "text": "41"
+            },
+            {
+              "para": 239,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 240,
+              "speaker": null,
+              "time": null,
+              "text": "42"
+            },
+            {
+              "para": 241,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官服役條例第二十九條及第六十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 242,
+              "speaker": null,
+              "time": null,
+              "text": "43"
+            },
+            {
+              "para": 243,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 244,
+              "speaker": null,
+              "time": null,
+              "text": "44"
+            },
+            {
+              "para": 245,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 246,
+              "speaker": null,
+              "time": null,
+              "text": "45"
+            },
+            {
+              "para": 247,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 19 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 248,
+              "speaker": null,
+              "time": null,
+              "text": "46"
+            },
+            {
+              "para": 249,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 18 人擬具「勞工退休金條例第十四條、第三十六條及第五十八條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 250,
+              "speaker": null,
+              "time": null,
+              "text": "47"
+            },
+            {
+              "para": 251,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 252,
+              "speaker": null,
+              "time": null,
+              "text": "48"
+            },
+            {
+              "para": 253,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「民用航空法第九十九條之十四條文修正草案」，請審議案。"
+            },
+            {
+              "para": 254,
+              "speaker": null,
+              "time": null,
+              "text": "49"
+            },
+            {
+              "para": 255,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「能源管理法第九條、第十條及第二十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 256,
+              "speaker": null,
+              "time": null,
+              "text": "50"
+            },
+            {
+              "para": 257,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函請審議「食品安全衛生管理法部分條文修正草案」案。"
+            },
+            {
+              "para": 258,
+              "speaker": null,
+              "time": null,
+              "text": "5 1"
+            },
+            {
+              "para": 259,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函送國家通訊傳播委員會委員提名名單，袁秀慧為委員並為主任委員，蕭蘋為委員並為副主任委員，王怡惠、游家牧、張春炎、張克豪及陳春木均為委員，請同意案。"
+            },
+            {
+              "para": 261,
+              "speaker": null,
+              "time": null,
+              "text": "報告事項提案"
+            },
+            {
+              "para": 262,
+              "speaker": "案由",
+              "time": null,
+              "text": "本院國民黨黨團，針對第 11 屆第 5 會期第 20 次會議議程報告事項及質詢事項，提議僅限列議程草案所列議案及下表所列 51 案。是否有當？敬請公決。"
+            },
+            {
+              "para": 263,
+              "speaker": "提案人",
+              "time": null,
+              "text": "中國國民黨立法院黨團 林沛祥"
+            },
+            {
+              "para": 264,
+              "speaker": null,
+              "time": null,
+              "text": "報告事項僅限列議程草案及下表所列 51 案"
+            },
+            {
+              "para": 265,
+              "speaker": null,
+              "time": null,
+              "text": "序 號"
+            },
+            {
+              "para": 266,
+              "speaker": null,
+              "time": null,
+              "text": "案名"
+            },
+            {
+              "para": 267,
+              "speaker": null,
+              "time": null,
+              "text": "1"
+            },
+            {
+              "para": 268,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員盧縣一等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 269,
+              "speaker": null,
+              "time": null,
+              "text": "2"
+            },
+            {
+              "para": 270,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「電子競技運動發展基本法草案」，請審議案。"
+            },
+            {
+              "para": 271,
+              "speaker": null,
+              "time": null,
+              "text": "3"
+            },
+            {
+              "para": 272,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「能源管理法第二條、第六條及第六條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 273,
+              "speaker": null,
+              "time": null,
+              "text": "4"
+            },
+            {
+              "para": 274,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「遺產及贈與稅法第十五條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 275,
+              "speaker": null,
+              "time": null,
+              "text": "5"
+            },
+            {
+              "para": 276,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅智強等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 277,
+              "speaker": null,
+              "time": null,
+              "text": "6"
+            },
+            {
+              "para": 278,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員許宇甄等 20 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 279,
+              "speaker": null,
+              "time": null,
+              "text": "7"
+            },
+            {
+              "para": 280,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐巧芯等 16 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 281,
+              "speaker": null,
+              "time": null,
+              "text": "8"
+            },
+            {
+              "para": 282,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐巧芯等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 283,
+              "speaker": null,
+              "time": null,
+              "text": "9"
+            },
+            {
+              "para": 284,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員廖偉翔等 17 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 285,
+              "speaker": null,
+              "time": null,
+              "text": "10"
+            },
+            {
+              "para": 286,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員王育敏等 25 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 287,
+              "speaker": null,
+              "time": null,
+              "text": "11"
+            },
+            {
+              "para": 288,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 22 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 289,
+              "speaker": null,
+              "time": null,
+              "text": "12"
+            },
+            {
+              "para": 290,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 22 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 291,
+              "speaker": null,
+              "time": null,
+              "text": "13"
+            },
+            {
+              "para": 292,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林倩綺等 23 人擬具「勞工退休金條例第十四條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 293,
+              "speaker": null,
+              "time": null,
+              "text": "14"
+            },
+            {
+              "para": 294,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員鄭天財 Sra\n\t\t\t\t\tKacaw 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 295,
+              "speaker": null,
+              "time": null,
+              "text": "15"
+            },
+            {
+              "para": 296,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 19 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 297,
+              "speaker": null,
+              "time": null,
+              "text": "16"
+            },
+            {
+              "para": 298,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 16 人擬具「學校營養午餐法草案」，請審議案。"
+            },
+            {
+              "para": 299,
+              "speaker": null,
+              "time": null,
+              "text": "17"
+            },
+            {
+              "para": 300,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林思銘等 21 人擬具「毒品危害防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 301,
+              "speaker": null,
+              "time": null,
+              "text": "18"
+            },
+            {
+              "para": 302,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員翁曉玲等 17 人擬具「公務人員考績法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 303,
+              "speaker": null,
+              "time": null,
+              "text": "19"
+            },
+            {
+              "para": 304,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 20 人擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 305,
+              "speaker": null,
+              "time": null,
+              "text": "20"
+            },
+            {
+              "para": 306,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 21 人擬具「老人福利法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 307,
+              "speaker": null,
+              "time": null,
+              "text": "21"
+            },
+            {
+              "para": 308,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員徐欣瑩等 18 人擬具「高齡健康促進基本法草案」，請審議案。"
+            },
+            {
+              "para": 309,
+              "speaker": null,
+              "time": null,
+              "text": "22"
+            },
+            {
+              "para": 310,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳菁徽等 20 人擬具「兒童及少年福利與權益保障法增訂第二十六條之三條文草案」，請審議案。"
+            },
+            {
+              "para": 311,
+              "speaker": null,
+              "time": null,
+              "text": "23"
+            },
+            {
+              "para": 312,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳菁徽等 20 人擬具「兒童托育服務法第十條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 313,
+              "speaker": null,
+              "time": null,
+              "text": "24"
+            },
+            {
+              "para": 314,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員羅廷瑋等 17 人擬具「教保服務人員條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 315,
+              "speaker": null,
+              "time": null,
+              "text": "25"
+            },
+            {
+              "para": 316,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「所得稅法第十七條及第一百二十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 317,
+              "speaker": null,
+              "time": null,
+              "text": "26"
+            },
+            {
+              "para": 318,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「中華民國刑法第一百八十五條之三條文修正草案」，請審議案。"
+            },
+            {
+              "para": 319,
+              "speaker": null,
+              "time": null,
+              "text": "27"
+            },
+            {
+              "para": 320,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「性侵害犯罪防治法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 321,
+              "speaker": null,
+              "time": null,
+              "text": "28"
+            },
+            {
+              "para": 322,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員張雅琳等 16 人擬具「兒童及少年性剝削防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 323,
+              "speaker": null,
+              "time": null,
+              "text": "29"
+            },
+            {
+              "para": 324,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 16 人擬具「私立學校法增訂第八十一條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 325,
+              "speaker": null,
+              "time": null,
+              "text": "30"
+            },
+            {
+              "para": 326,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「毒品危害防制條例第三十三條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 327,
+              "speaker": null,
+              "time": null,
+              "text": "31"
+            },
+            {
+              "para": 328,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員范雲等 17 人擬具「陸海空軍刑法第五十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 329,
+              "speaker": null,
+              "time": null,
+              "text": "32"
+            },
+            {
+              "para": 330,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「市區道路條例第三十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 331,
+              "speaker": null,
+              "time": null,
+              "text": "33"
+            },
+            {
+              "para": 332,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員陳冠廷等 16 人擬具「教保服務人員條例增訂第二十三條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 333,
+              "speaker": null,
+              "time": null,
+              "text": "34"
+            },
+            {
+              "para": 334,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「原住民族學校法草案」，請審議案。"
+            },
+            {
+              "para": 335,
+              "speaker": null,
+              "time": null,
+              "text": "35"
+            },
+            {
+              "para": 336,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員伍麗華 Saidhai\n\t\t\t\t\tTahovecahe 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 337,
+              "speaker": null,
+              "time": null,
+              "text": "36"
+            },
+            {
+              "para": 338,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林月琴等 24 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 339,
+              "speaker": null,
+              "time": null,
+              "text": "37"
+            },
+            {
+              "para": 340,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員黃秀芳等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 341,
+              "speaker": null,
+              "time": null,
+              "text": "38"
+            },
+            {
+              "para": 342,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員林淑芬等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 343,
+              "speaker": null,
+              "time": null,
+              "text": "39"
+            },
+            {
+              "para": 344,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市危險及老舊建築物加速重建條例修正草案」，請審議案。"
+            },
+            {
+              "para": 345,
+              "speaker": null,
+              "time": null,
+              "text": "40"
+            },
+            {
+              "para": 346,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「都市更新條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 347,
+              "speaker": null,
+              "time": null,
+              "text": "41"
+            },
+            {
+              "para": 348,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 349,
+              "speaker": null,
+              "time": null,
+              "text": "42"
+            },
+            {
+              "para": 350,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官服役條例第二十九條及第六十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 351,
+              "speaker": null,
+              "time": null,
+              "text": "43"
+            },
+            {
+              "para": 352,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 353,
+              "speaker": null,
+              "time": null,
+              "text": "44"
+            },
+            {
+              "para": 354,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員李坤城等 18 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 355,
+              "speaker": null,
+              "time": null,
+              "text": "45"
+            },
+            {
+              "para": 356,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 19 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 357,
+              "speaker": null,
+              "time": null,
+              "text": "46"
+            },
+            {
+              "para": 358,
+              "speaker": null,
+              "time": null,
+              "text": "本院委員劉建國等 18 人擬具「勞工退休金條例第十四條、第三十六條及第五十八條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 359,
+              "speaker": null,
+              "time": null,
+              "text": "47"
+            },
+            {
+              "para": 360,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 361,
+              "speaker": null,
+              "time": null,
+              "text": "48"
+            },
+            {
+              "para": 362,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「民用航空法第九十九條之十四條文修正草案」，請審議案。"
+            },
+            {
+              "para": 363,
+              "speaker": null,
+              "time": null,
+              "text": "49"
+            },
+            {
+              "para": 364,
+              "speaker": null,
+              "time": null,
+              "text": "本院台灣民眾黨黨團擬具「能源管理法第九條、第十條及第二十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 365,
+              "speaker": null,
+              "time": null,
+              "text": "50"
+            },
+            {
+              "para": 366,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函請審議「食品安全衛生管理法部分條文修正草案」案。"
+            },
+            {
+              "para": 367,
+              "speaker": null,
+              "time": null,
+              "text": "51"
+            },
+            {
+              "para": 368,
+              "speaker": null,
+              "time": null,
+              "text": "行政院函送國家通訊傳播委員會委員提名名單，袁秀慧為委員並為主任委員，蕭蘋為委員並為副主任委員，王怡惠、游家牧、張春炎、張克豪及陳春木均為委員，請同意案。"
+            },
+            {
+              "para": 369,
+              "speaker": "主 席",
+              "time": null,
+              "text": "報告院會，我們依照先後進行處理各黨團提議，現在開始按鈴 7 分鐘，請議事人員分發表決卡。"
+            },
+            {
+              "para": 370,
+              "speaker": null,
+              "time": null,
+              "text": "（按鈴）"
+            },
+            {
+              "para": 371,
+              "speaker": "主席",
+              "time": null,
+              "text": "報告院會，按鈴 7 分鐘時間已到，請問委員是否都有拿到表決卡？都有拿到，我們要進行表決。"
+            },
+            {
+              "para": 372,
+              "speaker": null,
+              "time": null,
+              "text": "現在針對民進黨黨團提議進行表決，現有民進黨黨團、台灣民眾黨黨團要求記名表決。我們開始進行記名表決，贊成民進黨黨團提議請按贊成，反對按反對，時間 1 分鐘，現在開始。"
+            },
+            {
+              "para": 373,
+              "speaker": null,
+              "time": null,
+              "text": "（進行表決）"
+            },
+            {
+              "para": 374,
+              "speaker": "主席： 報告院會，報告表決結果",
+              "time": null,
+              "text": "出席委員 104 位，贊成 47 位，反對 57 位，贊成者少數，民進黨黨團提議不通過。"
+            },
+            {
+              "para": 376,
+              "speaker": "會議名稱",
+              "time": null,
+              "text": "立法院第 11 屆第 5 會期第 20 次會議　　表決型態：記名表決"
+            },
+            {
+              "para": 377,
+              "speaker": "表決時間",
+              "time": null,
+              "text": "115 年 7 月 31 日\n\t上午 10 時 53 分 02 秒"
+            },
+            {
+              "para": 378,
+              "speaker": "表決議題",
+              "time": null,
+              "text": "議事日程草案報告事項及質詢事項"
+            },
+            {
+              "para": 379,
+              "speaker": null,
+              "time": null,
+              "text": "民進黨黨團提議"
+            },
+            {
+              "para": 380,
+              "speaker": "表決結果：出席人數： 104 贊成人數： 47 反對人數",
+              "time": null,
+              "text": "57 棄權人數： 0"
+            },
+            {
+              "para": 382,
+              "speaker": null,
+              "time": null,
+              "text": "黃　捷　　范　雲　　蔡其昌　　莊瑞雄　　伍麗華 Saidhai\n\tTahovecahe 郭昱晴　　吳思瑤　　沈伯洋　　陳培瑜　　邱志偉　　黃秀芳　　何欣純　　林俊憲　　李坤城　　王義川　　陳秀寳　　徐富癸　　王世堅　　羅美玲　　鍾佳濱　　郭國文　　陳俊宇　　張雅琳　　賴瑞隆　　陳素月　　李柏毅　　陳冠廷　　陳亭妃　　王美惠　　劉建國　　林岱樺　　賴惠員　　林月琴　　林淑芬　　王正旭　　林楚茵　　王"
+            },
+            {
+              "para": 384,
+              "speaker": null,
+              "time": null,
+              "text": "傅崐萁　　林沛祥　　許宇甄　　謝龍介　　涂權吉　　馬文君　　許忠信　　蔡春綢　　劉書彬　　洪毓祥　　陳昭姿　　陳清龍　　王安祥　　邱慧洳　　高金素梅　林思銘　　邱若華　　鄭天財 Sra\n\tKacaw 鄭正鈐　　謝衣鳯　　洪孟楷　　王鴻薇　　呂玉玲　　陳雪生　　黃建賓　　黃健豪　　葉元之　　陳永康　　賴士葆　　陳菁徽　　廖偉翔　　蘇清泉　　黃　仁　　魯明哲　　李彥秀　　吳宗憲　　邱鎮軍　　徐欣瑩　　"
+            },
+            {
+              "para": 386,
+              "speaker": "主席",
+              "time": null,
+              "text": "我們現在進行處理台灣民眾黨黨團僅限列之提議，因為國民黨黨團之提議與該黨團提議相同，一併進行處理。"
+            },
+            {
+              "para": 387,
+              "speaker": null,
+              "time": null,
+              "text": "現在針對台灣民眾黨黨團、國民黨黨團提議進行表決，現有民進黨黨團、台灣民 眾黨黨團 要求記名表決，贊成台灣民眾黨黨團、國民黨黨團提議請按贊成，反對按反對，時間 1 分鐘，現在開始。"
+            },
+            {
+              "para": 388,
+              "speaker": null,
+              "time": null,
+              "text": "（進行表決）"
+            },
+            {
+              "para": 389,
+              "speaker": "主席： 報告院會，報告表決結果",
+              "time": null,
+              "text": "出席 104 位委員，贊成 57 位，反對 47 位，贊成者多數，台灣民眾黨黨團、國民黨黨團提議照案通過。"
+            },
+            {
+              "para": 391,
+              "speaker": "會議名稱",
+              "time": null,
+              "text": "立法院第 11 屆第 5 會期第 20 次會議　　表決型態：記名表決"
+            },
+            {
+              "para": 392,
+              "speaker": "表決時間",
+              "time": null,
+              "text": "115 年 7 月 31 日\n\t上午 10 時 54 分 49 秒"
+            },
+            {
+              "para": 393,
+              "speaker": "表決議題",
+              "time": null,
+              "text": "議事日程草案報告事項及質詢事項"
+            },
+            {
+              "para": 394,
+              "speaker": null,
+              "time": null,
+              "text": "台灣民眾黨黨團、國民黨黨團提議"
+            },
+            {
+              "para": 395,
+              "speaker": "表決結果：出席人數： 104 贊成人數： 57 反對人數",
+              "time": null,
+              "text": "47 棄權人數： 0"
+            },
+            {
+              "para": 397,
+              "speaker": null,
+              "time": null,
+              "text": "傅崐萁　　林沛祥　　許宇甄　　謝龍介　　涂權吉　　馬文君　　許忠信　　蔡春綢　　劉書彬　　洪毓祥　　陳昭姿　　陳清龍　　王安祥　　邱慧洳　　高金素梅　林思銘　　邱若華　　鄭天財 Sra\n\tKacaw 鄭正鈐　　謝衣鳯　　洪孟楷　　王鴻薇　　呂玉玲　　陳雪生　　黃建賓　　黃健豪　　葉元之　　陳永康　　賴士葆　　陳菁徽　　廖偉翔　　蘇清泉　　黃　仁　　魯明哲　　李彥秀　　吳宗憲　　邱鎮軍　　徐欣瑩　　"
+            },
+            {
+              "para": 399,
+              "speaker": null,
+              "time": null,
+              "text": "黃　捷　　范　雲　　蔡其昌　　莊瑞雄　　伍麗華 Saidhai\n\tTahovecahe 郭昱晴　　吳思瑤　　沈伯洋　　陳培瑜　　邱志偉　　黃秀芳　　何欣純　　林俊憲　　李坤城　　王義川　　陳秀寳　　徐富癸　　王世堅　　羅美玲　　鍾佳濱　　郭國文　　陳俊宇　　張雅琳　　賴瑞隆　　陳素月　　李柏毅　　陳冠廷　　陳亭妃　　王美惠　　劉建國　　林岱樺　　賴惠員　　林月琴　　林淑芬　　王正旭　　林楚茵　　王"
+            },
+            {
+              "para": 401,
+              "speaker": "主席",
+              "time": null,
+              "text": "本次會議議事日程報告事項、質詢事項照台灣民眾黨黨團、國民黨黨團提議通過。"
+            },
+            {
+              "para": 402,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，本次會議議事日程討論事項依照黨團共識通過，本次會議議事日程確定。"
+            },
+            {
+              "para": 403,
+              "speaker": null,
+              "time": null,
+              "text": "現在進行報告事項。"
+            },
+            {
+              "para": 404,
+              "speaker": null,
+              "time": null,
+              "text": "報　告　事　項"
+            },
+            {
+              "para": 405,
+              "speaker": null,
+              "time": null,
+              "text": "一、宣讀本院第 11 屆第 5 會期第 19 次會議議事錄。（全文見本期議事錄）"
+            },
+            {
+              "para": 406,
+              "speaker": "主席",
+              "time": null,
+              "text": "報告院會，針對第 5 會期第 19 次會議議事錄，並沒有委員或黨團提出錯誤或遺漏之處。現在作以下決定：第 5 會期第 19 次會議議事錄確定。"
+            },
+            {
+              "para": 407,
+              "speaker": null,
+              "time": null,
+              "text": "現在處理增列部分，請宣讀第一案。"
+            },
+            {
+              "para": 408,
+              "speaker": null,
+              "time": null,
+              "text": "增列報告事項"
+            },
+            {
+              "para": 409,
+              "speaker": null,
+              "time": null,
+              "text": "一、本院委員盧縣一等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 410,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 411,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 412,
+              "speaker": null,
+              "time": null,
+              "text": "二、本院委員羅智強等 17 人擬具「電子競技運動發展基本法草案」，請審議案。"
+            },
+            {
+              "para": 413,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 414,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 415,
+              "speaker": null,
+              "time": null,
+              "text": "三、本院委員羅智強等 17 人擬具「能源管理法第二條、第六條及第六條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 416,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會審查。"
+            },
+            {
+              "para": 417,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 418,
+              "speaker": null,
+              "time": null,
+              "text": "四、本院委員羅智強等 17 人擬具「遺產及贈與稅法第十五條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 419,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會審查。"
+            },
+            {
+              "para": 420,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 421,
+              "speaker": null,
+              "time": null,
+              "text": "五、本院委員羅智強等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 422,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 423,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 424,
+              "speaker": null,
+              "time": null,
+              "text": "六、本院委員許宇甄等 20 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 425,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 426,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 427,
+              "speaker": null,
+              "time": null,
+              "text": "七、本院委員徐巧芯等 16 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 428,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 429,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 430,
+              "speaker": null,
+              "time": null,
+              "text": "八、本院委員徐巧芯等 17 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 431,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 432,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 433,
+              "speaker": null,
+              "time": null,
+              "text": "九、本院委員廖偉翔等 17 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 434,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 435,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 436,
+              "speaker": null,
+              "time": null,
+              "text": "十、本院委員王育敏等 25 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 437,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 438,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 439,
+              "speaker": null,
+              "time": null,
+              "text": "十一、本院委員林倩綺等 22 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 440,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 441,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 442,
+              "speaker": null,
+              "time": null,
+              "text": "十二、本院委員林倩綺等 22 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 443,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制、外交及國防兩委員會審查。"
+            },
+            {
+              "para": 444,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 445,
+              "speaker": null,
+              "time": null,
+              "text": "十三、本院委員林倩綺等 23 人擬具「勞工退休金條例第十四條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 446,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 447,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 448,
+              "speaker": null,
+              "time": null,
+              "text": "十四、本院委員鄭天財 Sra\n\tKacaw 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 449,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 450,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 451,
+              "speaker": null,
+              "time": null,
+              "text": "十五、本院委員林思銘等 19 人擬具「教育經費編列與管理法第三條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 452,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 453,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 454,
+              "speaker": null,
+              "time": null,
+              "text": "十六、本院委員林思銘等 16 人擬具「學校營養午餐法草案」，請審議案。"
+            },
+            {
+              "para": 455,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 456,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 457,
+              "speaker": null,
+              "time": null,
+              "text": "十七、本院委員林思銘等 21 人擬具「毒品危害防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 458,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 459,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 460,
+              "speaker": null,
+              "time": null,
+              "text": "十八、本院委員翁曉玲等 17 人擬具「公務人員考績法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 461,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 462,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 463,
+              "speaker": null,
+              "time": null,
+              "text": "十九、本院委員徐欣瑩等 20 人擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 464,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 465,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 466,
+              "speaker": null,
+              "time": null,
+              "text": "二十、本院委員徐欣瑩等 21 人擬具「老人福利法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 467,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 468,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 469,
+              "speaker": null,
+              "time": null,
+              "text": "二十一、本院委員徐欣瑩等 18 人擬具「高齡健康促進基本法草案」，請審議案。"
+            },
+            {
+              "para": 470,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 471,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 472,
+              "speaker": null,
+              "time": null,
+              "text": "二十二、本院委員陳菁徽等 20 人擬具「兒童及少年福利與權益保障法增訂第二十六條之三條文草案」，請審議案。"
+            },
+            {
+              "para": 473,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 474,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 475,
+              "speaker": null,
+              "time": null,
+              "text": "二十三、本院委員陳菁徽等 20 人擬具「兒童托育服務法第十條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 476,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 477,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 478,
+              "speaker": null,
+              "time": null,
+              "text": "二十四、本院委員羅廷瑋等 17 人擬具「教保服務人員條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 479,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 480,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 481,
+              "speaker": null,
+              "time": null,
+              "text": "二十五、本院委員張雅琳等 16 人擬具「所得稅法第十七條及第一百二十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 482,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會審查。"
+            },
+            {
+              "para": 483,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 484,
+              "speaker": null,
+              "time": null,
+              "text": "二十六、本院委員張雅琳等 16 人擬具「中華民國刑法第一百八十五條之三條文修正草案」，請審議案。"
+            },
+            {
+              "para": 485,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 486,
+              "speaker": "主席",
+              "time": null,
+              "text": "民進黨黨團提議本案逕付二讀，與相關提案併案協商，請問院會，有無異議？（無）無異議，本案逕付二讀，與相關提案併案協商。"
+            },
+            {
+              "para": 487,
+              "speaker": null,
+              "time": null,
+              "text": "二十七、本院委員張雅琳等 16 人擬具「性侵害犯罪防治法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 488,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境、司法及法制兩委員會審查。"
+            },
+            {
+              "para": 489,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 490,
+              "speaker": null,
+              "time": null,
+              "text": "二十八、本院委員張雅琳等 16 人擬具「兒童及少年性剝削防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 491,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境、司法及法制兩委員會審查。"
+            },
+            {
+              "para": 492,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 493,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，議場二樓旁聽席來自新北市三峽鶯歌社區大學的同學，我們掌聲歡迎各位同學。"
+            },
+            {
+              "para": 494,
+              "speaker": null,
+              "time": null,
+              "text": "二十九、本院委員范雲等 16 人擬具「私立學校法增訂第八十一條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 495,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 496,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 497,
+              "speaker": null,
+              "time": null,
+              "text": "三十、本院委員范雲等 17 人擬具「毒品危害防制條例第三十三條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 498,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 499,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 500,
+              "speaker": null,
+              "time": null,
+              "text": "三十一、本院委員范雲等 17 人擬具「陸海空軍刑法第五十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 501,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制、外交及國防兩委員會審查。"
+            },
+            {
+              "para": 502,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 503,
+              "speaker": null,
+              "time": null,
+              "text": "三十二、本院委員陳冠廷等 16 人擬具「市區道路條例第三十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 504,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 505,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 506,
+              "speaker": null,
+              "time": null,
+              "text": "三十三、本院委員陳冠廷等 16 人擬具「教保服務人員條例增訂第二十三條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 507,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 508,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 509,
+              "speaker": null,
+              "time": null,
+              "text": "三十四、本院委員伍麗華 Saidhai\n\tTahovecahe 等 16 人擬具「原住民族學校法草案」，請審議案。"
+            },
+            {
+              "para": 510,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化、內政兩委員會審查。"
+            },
+            {
+              "para": 511,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 512,
+              "speaker": null,
+              "time": null,
+              "text": "三十五、本院委員伍麗華 Saidhai\n\tTahovecahe 等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 513,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 514,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 515,
+              "speaker": null,
+              "time": null,
+              "text": "三十六、本院委員林月琴等 24 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 516,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 517,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 518,
+              "speaker": null,
+              "time": null,
+              "text": "三十七、本院委員黃秀芳等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 519,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 520,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 521,
+              "speaker": null,
+              "time": null,
+              "text": "三十八、本院委員林淑芬等 21 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 522,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 523,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 524,
+              "speaker": null,
+              "time": null,
+              "text": "三十九、本院委員李坤城等 18 人擬具「都市危險及老舊建築物加速重建條例修正草案」，請審議案。"
+            },
+            {
+              "para": 525,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 526,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 527,
+              "speaker": null,
+              "time": null,
+              "text": "四十、本院委員李坤城等 18 人擬具「都市更新條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 528,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 529,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 530,
+              "speaker": null,
+              "time": null,
+              "text": "四十一、本院委員李坤城等 18 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 531,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會審查。"
+            },
+            {
+              "para": 532,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 533,
+              "speaker": null,
+              "time": null,
+              "text": "四十二、本院委員李坤城等 18 人擬具「陸海空軍軍官士官服役條例第二十九條及第六十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 534,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會審查。"
+            },
+            {
+              "para": 535,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 536,
+              "speaker": null,
+              "time": null,
+              "text": "四十三、本院委員李坤城等 18 人擬具「陸海空軍軍官士官任職條例第九條之一及第二十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 537,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制、外交及國防兩委員會審查。"
+            },
+            {
+              "para": 538,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 539,
+              "speaker": null,
+              "time": null,
+              "text": "四十四、本院委員李坤城等 18 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 540,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 541,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 542,
+              "speaker": null,
+              "time": null,
+              "text": "四十五、本院委員劉建國等 19 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 543,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 544,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 545,
+              "speaker": null,
+              "time": null,
+              "text": "四十六、本院委員劉建國等 18 人擬具「勞工退休金條例第十四條、第三十六條及第五十八條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 546,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 547,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 548,
+              "speaker": null,
+              "time": null,
+              "text": "四十七、本院台灣民眾黨黨團擬具「戶籍法第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 549,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 550,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 551,
+              "speaker": null,
+              "time": null,
+              "text": "四十八、本院台灣民眾黨黨團擬具「民用航空法第九十九條之十四條文修正草案」，請審議案。"
+            },
+            {
+              "para": 552,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會審查。"
+            },
+            {
+              "para": 553,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 554,
+              "speaker": null,
+              "time": null,
+              "text": "四十九、本院台灣民眾黨黨團擬具「能源管理法第九條、第十條及第二十四條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 555,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會審查。"
+            },
+            {
+              "para": 556,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 557,
+              "speaker": null,
+              "time": null,
+              "text": "五十、行政院函請審議「食品安全衛生管理法部分條文修正草案」案。"
+            },
+            {
+              "para": 558,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 559,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 560,
+              "speaker": null,
+              "time": null,
+              "text": "五十一、行政院函送國家通訊傳播委員會委員提名名單，袁秀慧為委員並為主任委員，蕭蘋為委員並為副主任委員，王怡惠、游家牧、張春炎、張克豪及陳春木均為委員，請同意案。"
+            },
+            {
+              "para": 561,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通、教育及文化兩委員會審查。"
+            },
+            {
+              "para": 562,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 563,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，本次會議報告事項記載於議事錄順序，我們授權議事處進行調整。"
+            },
+            {
+              "para": 564,
+              "speaker": null,
+              "time": null,
+              "text": "現在繼續處理原列報告事項，請宣讀第二案。"
+            },
+            {
+              "para": 565,
+              "speaker": null,
+              "time": null,
+              "text": "二、本院委員羅智強等 18 人擬具「大學法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 566,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會審查。"
+            },
+            {
+              "para": 567,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 568,
+              "speaker": null,
+              "time": null,
+              "text": "三、本院委員羅智強等 18 人擬具「少年及家事法院組織法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 569,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 570,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 571,
+              "speaker": null,
+              "time": null,
+              "text": "四、本院委員羅智強等 18 人擬具「行政法院組織法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 572,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 573,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 574,
+              "speaker": null,
+              "time": null,
+              "text": "五、本院委員羅智強等 18 人擬具「懲戒法院組織法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 575,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 576,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 577,
+              "speaker": null,
+              "time": null,
+              "text": "六、本院委員葉元之等 18 人擬具「都市更新條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 578,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 579,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 580,
+              "speaker": null,
+              "time": null,
+              "text": "七、本院委員葉元之等 18 人擬具「性別平等工作法增訂第二十三條之一及第二十三條之二條文草案」，請審議案。"
+            },
+            {
+              "para": 581,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 582,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 583,
+              "speaker": null,
+              "time": null,
+              "text": "八、本院委員葉元之等 16 人擬具「菸害防制法第十五條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 584,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 585,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 586,
+              "speaker": null,
+              "time": null,
+              "text": "九、本院委員葉元之等 18 人擬具「菸害防制法第二十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 587,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 588,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 589,
+              "speaker": null,
+              "time": null,
+              "text": "十、本院委員傅崐萁等 19 人擬具「跟蹤騷擾防制法第十二條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 590,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政、社會福利及衛生環境兩委員會審查。"
+            },
+            {
+              "para": 591,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 592,
+              "speaker": null,
+              "time": null,
+              "text": "十一、本院委員傅崐萁等 19 人擬具「教師待遇條例第二條、第四條及第十八條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 593,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制、教育及文化兩委員會審查。"
+            },
+            {
+              "para": 594,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 595,
+              "speaker": null,
+              "time": null,
+              "text": "十二、本院委員王鴻薇等 24 人擬具「國家安全法第十九條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 596,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會審查。"
+            },
+            {
+              "para": 597,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 598,
+              "speaker": null,
+              "time": null,
+              "text": "十三、本院委員林岱樺等 16 人擬具「勞工退休金條例第十四條及第三十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 599,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 600,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 601,
+              "speaker": null,
+              "time": null,
+              "text": "十四、本院委員王育敏等 16 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 602,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會審查。"
+            },
+            {
+              "para": 603,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 604,
+              "speaker": null,
+              "time": null,
+              "text": "十五、本院委員王育敏等 16 人擬具「土地稅法第十七條之一及第十九條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 605,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會審查。"
+            },
+            {
+              "para": 606,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 607,
+              "speaker": null,
+              "time": null,
+              "text": "十六、本院委員王育敏等 16 人擬具「房屋稅條例第五條之一及第六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 608,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會審查。"
+            },
+            {
+              "para": 609,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 610,
+              "speaker": null,
+              "time": null,
+              "text": "十七、本院委員王育敏等 18 人擬具「律師法增訂第三十五條之一條文草案」，請審議案。"
+            },
+            {
+              "para": 611,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 612,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 613,
+              "speaker": null,
+              "time": null,
+              "text": "十八、本院委員王育敏等 16 人擬具「毒品危害防制條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 614,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 615,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 616,
+              "speaker": null,
+              "time": null,
+              "text": "十九、本院委員黃健豪等 16 人擬具「道路交通管理處罰條例第六十九條、第七十二條及第七十二條之三條文修正草案」，請審議案。"
+            },
+            {
+              "para": 617,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會審查。"
+            },
+            {
+              "para": 618,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 619,
+              "speaker": null,
+              "time": null,
+              "text": "二十、本院委員黃健豪等 16 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 620,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 621,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 622,
+              "speaker": null,
+              "time": null,
+              "text": "二十一、本院委員陳冠廷等 17 人擬具「發展觀光條例部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 623,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會審查。"
+            },
+            {
+              "para": 624,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 625,
+              "speaker": null,
+              "time": null,
+              "text": "二十二、本院委員許宇甄等 17 人擬具「監獄行刑法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 626,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 627,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 628,
+              "speaker": null,
+              "time": null,
+              "text": "二十三、本院委員廖偉翔等 19 人擬具「食品安全衛生管理法第七條及第四十七條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 629,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 630,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 631,
+              "speaker": null,
+              "time": null,
+              "text": "二十四、本院委員林月琴等 25 人擬具「志願士兵服役條例第六條之一及第十六條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 632,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會審查。"
+            },
+            {
+              "para": 633,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 634,
+              "speaker": null,
+              "time": null,
+              "text": "二十五、本院委員林月琴等 25 人擬具「陸海空軍軍官士官服役條例第二十九條及第六十一條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 635,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會審查。"
+            },
+            {
+              "para": 636,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 637,
+              "speaker": null,
+              "time": null,
+              "text": "二十六、本院委員李彥秀等 23 人擬具「食品安全衛生管理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 638,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 639,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 640,
+              "speaker": null,
+              "time": null,
+              "text": "二十七、本院委員范雲等 16 人擬具「公務人員考試法第四條、第五條及第二十八條條文修正草案」，請審議案。"
+            },
+            {
+              "para": 641,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 642,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 643,
+              "speaker": null,
+              "time": null,
+              "text": "二十八、本院委員范雲等 16 人擬具「犯罪被害人權益保障法第六十三條、第一百條及第一百條之一條文修正草案」，請審議案。"
+            },
+            {
+              "para": 644,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 645,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 646,
+              "speaker": null,
+              "time": null,
+              "text": "二十九、本院委員翁曉玲等 16 人擬具「少年事件處理法部分條文修正草案」，請審議案。"
+            },
+            {
+              "para": 647,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會審查。"
+            },
+            {
+              "para": 648,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 649,
+              "speaker": null,
+              "time": null,
+              "text": "三十、內政部函送「非都市土地海域用地區位許可案件審查費收費標準」，請查照案。"
+            },
+            {
+              "para": 650,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交內政委員會。"
+            },
+            {
+              "para": 651,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 652,
+              "speaker": null,
+              "time": null,
+              "text": "三十一、外交部函，為修正「外交部訂定財團法人法授權規定事項辦法」第四條及第十四條條文，請查照案。"
+            },
+            {
+              "para": 653,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交外交及國防委員會。"
+            },
+            {
+              "para": 654,
+              "speaker": "主席",
+              "time": null,
+              "text": "國民黨黨團提議本案改交外交及國防委員會審查，請問院會，有無異議？（無）無異議，本案改交外交及國防委員會審查。"
+            },
+            {
+              "para": 655,
+              "speaker": null,
+              "time": null,
+              "text": "三十二、行政院函送「 115 年 1 月至 6 月中央政府營業基金 3 億元以上及非營業特種基金 1 億元以上補辦預算數額表」，請查照案。"
+            },
+            {
+              "para": 656,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟、交通兩委員會。"
+            },
+            {
+              "para": 657,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 658,
+              "speaker": null,
+              "time": null,
+              "text": "三十三、經濟部函，為修正「瀕臨絕種動植物之物種」附表一、附表二及附表三，請查照案。"
+            },
+            {
+              "para": 659,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 660,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 661,
+              "speaker": null,
+              "time": null,
+              "text": "三十四、農業部函，為修正「農業部農田水利署北基管理處農田水利事業區域內灌溉制度」，請查照案。"
+            },
+            {
+              "para": 662,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 663,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 664,
+              "speaker": null,
+              "time": null,
+              "text": "三十五、農業部函，為修正「農業部農田水利署花蓮管理處農田水利事業區域內灌溉制度」，請查照案。"
+            },
+            {
+              "para": 665,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 666,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 667,
+              "speaker": null,
+              "time": null,
+              "text": "三十六、農業部函，為修正「農業部農田水利署彰化管理處農田水利事業區域內灌溉制度」，請查照案。"
+            },
+            {
+              "para": 668,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 669,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 670,
+              "speaker": null,
+              "time": null,
+              "text": "三十七、農業部函，為修正「農業部農田水利署桃園管理處農田水利事業區域內灌溉制度」，請查照案。"
+            },
+            {
+              "para": 671,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 672,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 673,
+              "speaker": null,
+              "time": null,
+              "text": "三十八、農業部函，為修正「農業部農田水利署瑠公管理處農田水利事業區域內灌溉制度」，請查照案。"
+            },
+            {
+              "para": 674,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交經濟委員會。"
+            },
+            {
+              "para": 675,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 676,
+              "speaker": null,
+              "time": null,
+              "text": "三十九、財政部函，為修正「國有非公用不動產出租管理辦法」部分條文，請查照案。"
+            },
+            {
+              "para": 677,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會。"
+            },
+            {
+              "para": 678,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 679,
+              "speaker": null,
+              "time": null,
+              "text": "四十、財政部函，為修正「納稅者權利保護法施行細則」第四條、第八條及第十一條條文，請查照案。"
+            },
+            {
+              "para": 680,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會。"
+            },
+            {
+              "para": 681,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 682,
+              "speaker": null,
+              "time": null,
+              "text": "四十一、金融監督管理委員會函，為修正「保險業內部控制及稽核制度實施辦法」第六條之一、第六條之二及第四十條條文，請查照案。"
+            },
+            {
+              "para": 683,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政委員會。"
+            },
+            {
+              "para": 684,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 685,
+              "speaker": null,
+              "time": null,
+              "text": "四十二、金融監督管理委員會、交通部函，為修正「強制汽車責任保險給付標準」部分條文，請查照案。"
+            },
+            {
+              "para": 686,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交財政、交通兩委員會。"
+            },
+            {
+              "para": 687,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 688,
+              "speaker": null,
+              "time": null,
+              "text": "四十三、教育部函，為本院制定青年基本法通過附帶決議，檢送「青年政策之跨部會溝通與實施協調機制」書面報告，請查照案。"
+            },
+            {
+              "para": 689,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 690,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 691,
+              "speaker": null,
+              "time": null,
+              "text": "四十四、教育部函，為本院制定青年基本法通過附帶決議，檢送「各縣市青年代表多元組成及民主運作」書面報告，請查照案。"
+            },
+            {
+              "para": 692,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 693,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 694,
+              "speaker": null,
+              "time": null,
+              "text": "四十五、教育部函，為本院制定青年基本法通過附帶決議，檢送「返國青年、少年銜轉生適應、語言能力及正常就學之協助機制」書面報告，請查照案。"
+            },
+            {
+              "para": 695,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 696,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 697,
+              "speaker": null,
+              "time": null,
+              "text": "四十六、教育部函，為本院制定青年基本法通過附帶決議，檢送「提升青年結社權益：青年團體運作優化」書面報告，請查照案。"
+            },
+            {
+              "para": 698,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 699,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 700,
+              "speaker": null,
+              "time": null,
+              "text": "四十七、教育部函，為本院制定青年基本法通過附帶決議，檢送「支援原住民青年國際交流需求規劃」書面報告，請查照案。"
+            },
+            {
+              "para": 701,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 702,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 703,
+              "speaker": null,
+              "time": null,
+              "text": "四十八、教育部函，為本院制定青年基本法通過附帶決議，檢送「提升青年女性校園學生自治及公共參與精進規劃」書面報告，請查照案。"
+            },
+            {
+              "para": 704,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 705,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 706,
+              "speaker": null,
+              "time": null,
+              "text": "四十九、教育部函，為修正「公立幼兒園教保服務人員請假辦法」第三條及第四條條文，請查照案。"
+            },
+            {
+              "para": 707,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 708,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 709,
+              "speaker": null,
+              "time": null,
+              "text": "五十、交通部、內政部函，為修正「道路交通安全規則」第五十二條之二、第六十一條之一及第七十六條條文，並自 115 年 5 月 31 日施行，請查照案。"
+            },
+            {
+              "para": 710,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通、內政兩委員會。"
+            },
+            {
+              "para": 711,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 712,
+              "speaker": null,
+              "time": null,
+              "text": "五十一、交通部、內政部函，為修正「道路交通安全講習辦法」第四條及第六條條文，並自 115 年 5 月 31 日施行，請查照案。"
+            },
+            {
+              "para": 713,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通、內政兩委員會。"
+            },
+            {
+              "para": 714,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 715,
+              "speaker": null,
+              "time": null,
+              "text": "五十二、交通部、內政部函，為修正「違反道路交通管理事件統一裁罰基準及處理細則」第十二條之二條文，並自 115 年 5 月 31 日施行，請查照案。"
+            },
+            {
+              "para": 716,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通、內政兩委員會。"
+            },
+            {
+              "para": 717,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 718,
+              "speaker": null,
+              "time": null,
+              "text": "五十三、交通部函，為中華民國 115 年 1 月 28 日修正發布之「遊艇管理規則」第二十八條、第二十九條條文及第三十條附件三，定自 115 年 9 月 1 日施行，請查照案。"
+            },
+            {
+              "para": 719,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 720,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 721,
+              "speaker": null,
+              "time": null,
+              "text": "五十四、交通部函，為中華民國 115 年 1 月 16 日修正發布之「小船檢查丈量規則」第四十一條條文，定自 115 年 9 月 1 日施行，請查照案。"
+            },
+            {
+              "para": 722,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 723,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 724,
+              "speaker": null,
+              "time": null,
+              "text": "五十五、交通部函，為修正「大眾捷運系統經營維護與安全監督實施辦法」部分條文，請查照案。"
+            },
+            {
+              "para": 725,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 726,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 727,
+              "speaker": null,
+              "time": null,
+              "text": "五十六、交通部函，為修正「公路證照及監理規費收費辦法」第二條條文及第三條附表，請查照案。"
+            },
+            {
+              "para": 728,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 729,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 730,
+              "speaker": null,
+              "time": null,
+              "text": "五十七、交通部函，為修正「馬太鞍溪堰塞湖災害受災戶車輛受損報廢登記慰助作業要點」第二點及第四點規定，並自 114 年 10 月 7 日生效，請查照案。"
+            },
+            {
+              "para": 731,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 732,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 733,
+              "speaker": null,
+              "time": null,
+              "text": "五十八、司法院函，為修正「行政訴訟裁判費以外必要費用徵收辦法」第八條、第十六條及第十九條之一條文，請查照案。"
+            },
+            {
+              "para": 734,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會。"
+            },
+            {
+              "para": 735,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 736,
+              "speaker": null,
+              "time": null,
+              "text": "五十九、司法院函，為修正「督促程序使用電腦或其他科技設備作業辦法」部分條文，請查照案。"
+            },
+            {
+              "para": 737,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交司法及法制委員會。"
+            },
+            {
+              "para": 738,
+              "speaker": "主席",
+              "time": null,
+              "text": "請問院會，對本案照議事處意見處理，有無異議？（無）無異議，通過。"
+            },
+            {
+              "para": 739,
+              "speaker": null,
+              "time": null,
+              "text": "六十、衛生福利部函，為修正「適用罕見疾病防治及藥物法之藥物品項」，請查照案。"
+            },
+            {
+              "para": 740,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 741,
+              "speaker": "主席",
+              "time": null,
+              "text": "國民黨黨團提議本案改交社會福利及衛生環境委員會審查，請問院會，有無異議？（無）無異議，本案改交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 742,
+              "speaker": null,
+              "time": null,
+              "text": "六十一、衛生福利部函，為修正「衛生福利部辦理老人福利機構評鑑及獎勵辦法」，請查照案。"
+            },
+            {
+              "para": 743,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 744,
+              "speaker": "主席",
+              "time": null,
+              "text": "國民黨黨團提議本案改交社會福利及衛生環境委員會審查，請問院會，有無異議？（無）無異議，本案改交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 745,
+              "speaker": null,
+              "time": null,
+              "text": "六十二、勞動部函送「外送服務定型化契約應記載及不得記載事項」，請查照案。"
+            },
+            {
+              "para": 746,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 747,
+              "speaker": "主席",
+              "time": null,
+              "text": "台灣民眾黨黨團、國民黨黨團提議本案改交社會福利及衛生環境委員會審查，請問院會，有無異議？（無）無異議，本案改交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 748,
+              "speaker": null,
+              "time": null,
+              "text": "六十三、勞動部函送「外送員權益保障及外送平臺管理法施行細則」，請查照案。"
+            },
+            {
+              "para": 749,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 750,
+              "speaker": "主席",
+              "time": null,
+              "text": "台灣民眾黨黨團、國民黨黨團提議本案改交社會福利及衛生環境委員會審查，請問院會，有無異議？（無）無異議，本案改交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 751,
+              "speaker": null,
+              "time": null,
+              "text": "六十四、勞動部函送「外送員終止外送服務契約經濟補償辦法」，請查照案。"
+            },
+            {
+              "para": 752,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 753,
+              "speaker": "主席",
+              "time": null,
+              "text": "國民黨黨團、台灣民眾黨黨團提議本案改交社會福利及衛生環境委員會審查，請問院會，有無異議？（無）無異議，本案改交社會福利及衛生環境委員會審查。"
+            },
+            {
+              "para": 754,
+              "speaker": null,
+              "time": null,
+              "text": "張嘉郡委員發表聲明，對剛才的表決與國民黨黨團意見一致，列入公報紀錄。"
+            },
+            {
+              "para": 755,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，第 65 案至第 99 案請依序宣讀，其中第 80 案，台灣民眾黨黨團提案改交審查；宣讀後，第 80 案改交交通委員會審查，其餘議案均照議事處意見通過。請問院會，有無異議？（無）無異議。宣讀後，通過。"
+            },
+            {
+              "para": 756,
+              "speaker": null,
+              "time": null,
+              "text": "請宣讀。"
+            },
+            {
+              "para": 757,
+              "speaker": null,
+              "time": null,
+              "text": "六十五、國家科學及技術委員會函，為 114 年度中央政府總預算附屬單位預算決議，檢送「鼓勵技專校院從事實務型研究計畫」書面報告，請查照案。"
+            },
+            {
+              "para": 758,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 759,
+              "speaker": null,
+              "time": null,
+              "text": "六十六、教育部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國立臺灣大學校務基金決議第 1 項書面報告，請查照案。"
+            },
+            {
+              "para": 760,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 761,
+              "speaker": null,
+              "time": null,
+              "text": "六十七、教育部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國立暨南國際大學校務基金決議第 1 項書面報告，請查照案。"
+            },
+            {
+              "para": 762,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 763,
+              "speaker": null,
+              "time": null,
+              "text": "六十八、教育部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國立臺灣師範大學校務基金決議第 1 項書面報告，請查照案。"
+            },
+            {
+              "para": 764,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 765,
+              "speaker": null,
+              "time": null,
+              "text": "六十九、教育部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國立成功大學附設醫院作業基金決議第 2 項書面報告，請查照案。"
+            },
+            {
+              "para": 766,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 767,
+              "speaker": null,
+              "time": null,
+              "text": "七十、教育部函，為 114 年度中央政府總預算附屬單位預算決議，檢送私立高級中等以上學校退場基金決議第 1 項書面報告，請查照案。"
+            },
+            {
+              "para": 768,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 769,
+              "speaker": null,
+              "time": null,
+              "text": "七十一、運動部函，為 114 年度中央政府總預算附屬單位預算決議，檢送新增通案決議 ( 二 ) 書面報告，請查照案。"
+            },
+            {
+              "para": 770,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 771,
+              "speaker": null,
+              "time": null,
+              "text": "七十二、運動部函，為 114 年度中央政府總預算附屬單位預算決議，檢送運動發展基金決議 ( 二 ) 書面報告，請查照案。"
+            },
+            {
+              "para": 772,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 773,
+              "speaker": null,
+              "time": null,
+              "text": "七十三、運動部函，為 114 年度中央政府總預算附屬單位預算決議，檢送運動發展基金決議 ( 三 ) 書面報告，請查照案。"
+            },
+            {
+              "para": 774,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 775,
+              "speaker": null,
+              "time": null,
+              "text": "七十四、文化部函，為 114 年度中央政府總預算附屬單位預算決議，檢送文化發展基金決議 ( 二 ) 及 ( 四 ) 書面報告，請查照案。"
+            },
+            {
+              "para": 776,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 777,
+              "speaker": null,
+              "time": null,
+              "text": "七十五、文化部函，為 114 年度中央政府總預算附屬單位預算決議，檢送文化發展基金決議 ( 五 ) 書面報告，請查照案。"
+            },
+            {
+              "para": 778,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交教育及文化委員會。"
+            },
+            {
+              "para": 779,
+              "speaker": null,
+              "time": null,
+              "text": "七十六、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司新增決議第 3 項公司化後人力資源規劃與留才成效書面報告，請查照案。"
+            },
+            {
+              "para": 780,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 781,
+              "speaker": null,
+              "time": null,
+              "text": "七十七、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 7 項違反勞動法規之改善及保障勞工權益書面報告，請查照案。"
+            },
+            {
+              "para": 782,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 783,
+              "speaker": null,
+              "time": null,
+              "text": "七十八、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 8 項研議站務人員及列車人員隨身配備防身器械及錄影設備書面報告，請查照案。"
+            },
+            {
+              "para": 784,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 785,
+              "speaker": null,
+              "time": null,
+              "text": "七十九、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 11 項班次調整程序書面報告，請查照案。"
+            },
+            {
+              "para": 786,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 787,
+              "speaker": null,
+              "time": null,
+              "text": "八十、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 14 項媒體宣傳採購案書面報告，請查照案。"
+            },
+            {
+              "para": 788,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 789,
+              "speaker": null,
+              "time": null,
+              "text": "八十一、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 16 項臺鐵公司「法律事務費」書面報告，請查照案。"
+            },
+            {
+              "para": 790,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 791,
+              "speaker": null,
+              "time": null,
+              "text": "八十二、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 22 項提升員工薪資待遇之具體規劃書面報告，請查照案。"
+            },
+            {
+              "para": 792,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 793,
+              "speaker": null,
+              "time": null,
+              "text": "八十三、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 23 項臺鐵公司舉辦鐵路便當節與地方政府合作並於異地辦理之書面報告，請查照案。"
+            },
+            {
+              "para": 794,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 795,
+              "speaker": null,
+              "time": null,
+              "text": "八十四、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 25 項平交道遮斷器及 EMU3000 型列車座椅採購程序改進書面報告，請查照案。"
+            },
+            {
+              "para": 796,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 797,
+              "speaker": null,
+              "time": null,
+              "text": "八十五、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 31 項「延長工時加班費」預算編列說明書面報告，請查照案。"
+            },
+            {
+              "para": 798,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 799,
+              "speaker": null,
+              "time": null,
+              "text": "八十六、交通部函，為 114 年度中央政府總預算附屬單位預算決議，檢送國營臺灣鐵路股份有限公司決議第 32 項「用人費用」預算編列說明書面報告，請查照案。"
+            },
+            {
+              "para": 800,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 801,
+              "speaker": null,
+              "time": null,
+              "text": "八十七、國家通訊傳播委員會函，為 114 年度中央政府總預算附屬單位預算決議，檢送通訊傳播監督管理基金新增決議第 23 項打詐措施及成果書面報告，請查照案。"
+            },
+            {
+              "para": 802,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交交通委員會。"
+            },
+            {
+              "para": 803,
+              "speaker": null,
+              "time": null,
+              "text": "八十八、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「強化偏鄉醫療資源分配及高風險追蹤機制」書面報告，請查照案。"
+            },
+            {
+              "para": 804,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 805,
+              "speaker": null,
+              "time": null,
+              "text": "八十九、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送社會福利基金之福利服務計畫用人費用增加之說明，請查照案。"
+            },
+            {
+              "para": 806,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 807,
+              "speaker": null,
+              "time": null,
+              "text": "九十、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送智慧醫療應用改善之書面報告，請查照案。"
+            },
+            {
+              "para": 808,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 809,
+              "speaker": null,
+              "time": null,
+              "text": "九十一、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「優化長照機構暨長照人員相關管理資訊系統」書面報告，請查照案。"
+            },
+            {
+              "para": 810,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 811,
+              "speaker": null,
+              "time": null,
+              "text": "九十二、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「水電費」預算編列說明書面報告，請查照案。"
+            },
+            {
+              "para": 812,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 813,
+              "speaker": null,
+              "time": null,
+              "text": "九十三、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送護理人力檢討書面報告，請查照案。"
+            },
+            {
+              "para": 814,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 815,
+              "speaker": null,
+              "time": null,
+              "text": "九十四、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送護理之家 112 年度收入較 108 年度下降原因之書面報告，請查照案。"
+            },
+            {
+              "para": 816,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 817,
+              "speaker": null,
+              "time": null,
+              "text": "九十五、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「編列購置醫療服務審查作業所需書籍預算之正當性」書面報告，請查照案。"
+            },
+            {
+              "para": 818,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 819,
+              "speaker": null,
+              "time": null,
+              "text": "九十六、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「醫療事故處理品質提升計畫」預算編列說明書面報告，請查照案。"
+            },
+            {
+              "para": 820,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 821,
+              "speaker": null,
+              "time": null,
+              "text": "九十七、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送「臺東縣孕產婦醫療資源分布不均之改善策略」書面報告，請查照案。"
+            },
+            {
+              "para": 822,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 823,
+              "speaker": null,
+              "time": null,
+              "text": "九十八、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送身心障礙者日照交通接送服務之相關規範書面報告，請查照案。"
+            },
+            {
+              "para": 824,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 825,
+              "speaker": null,
+              "time": null,
+              "text": "九十九、衛生福利部函，為 114 年度中央政府總預算附屬單位預算決議，檢送復康巴士搭載早療兒童應配置兒童安全座椅之書面報告，請查照案。"
+            },
+            {
+              "para": 826,
+              "speaker": "議事處意見",
+              "time": null,
+              "text": "擬請院會將本案交社會福利及衛生環境委員會。"
+            },
+            {
+              "para": 827,
+              "speaker": "主席",
+              "time": null,
+              "text": "請宣讀質詢事項。"
+            },
+            {
+              "para": 828,
+              "speaker": null,
+              "time": null,
+              "text": "質　詢　事　項"
+            },
+            {
+              "para": 829,
+              "speaker": null,
+              "time": null,
+              "text": "行政院答復部分"
+            },
+            {
+              "para": 830,
+              "speaker": null,
+              "time": null,
+              "text": "一、行政院函送廖委員先翔就因應未來廢二次鋰電池生命週期管理與追蹤、處理量能及建置循環體系問題所提質詢之書面答復，請查照案。"
+            },
+            {
+              "para": 831,
+              "speaker": null,
+              "time": null,
+              "text": "二、行政院函送廖委員先翔就「政府為因應臺美貿易協定所涉及有關防治強迫勞動之移工政策，規劃於三年內推動製造業及漁撈業移工『零付費』」問題所提質詢之書面答復，請查照案。"
+            },
+            {
+              "para": 832,
+              "speaker": null,
+              "time": null,
+              "text": "三、行政院函送廖委員先翔就數位訂閱服務之消費者權益保護問題所提質詢之書面答復，請查照案。"
+            },
+            {
+              "para": 833,
+              "speaker": null,
+              "time": null,
+              "text": "（以上質詢事項，詳見本期質詢事項全文）"
+            },
+            {
+              "para": 834,
+              "speaker": "主席",
+              "time": null,
+              "text": "報告事項已處理完畢。"
+            },
+            {
+              "para": 835,
+              "speaker": null,
+              "time": null,
+              "text": "現在進入討論事項，討論事項第一案。"
+            },
+            {
+              "para": 836,
+              "speaker": null,
+              "time": null,
+              "text": "討　論　事　項"
+            },
+            {
+              "para": 837,
+              "speaker": null,
+              "time": null,
+              "text": "一、本院民進黨黨團，針對第 11 屆第 5 會期第 18 次會議報告事項第 87 案國民黨黨團擬具「公民投票法第二十一條、第二十三條及第四十三條條文修正草案」院會所作之決定提出復議。是否有當？請公決案。 （本案經提本院第 11 屆第 5 會期第 19 次會議決議：另定期處理。爰於本次會議提出處理。）"
+            },
+            {
+              "para": 838,
+              "speaker": "主席",
+              "time": null,
+              "text": "本院民進黨黨團，針對第 11 屆第 5 會期第 18 次會議報告事項第 87 案院會所作之決定提出復議，請公決案。"
+            },
+            {
+              "para": 839,
+              "speaker": null,
+              "time": null,
+              "text": "本案經第 5 會期第 19 次會議決議，另定期處理，現在進行處理。"
+            },
+            {
+              "para": 840,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，依照黨團共識，本案不再發言。現在依照黨團共識，針對民進黨黨團所提復議案進行表決，現有民進黨黨團要求記名表決。贊成民進黨黨團所提復議案按贊成，反對按反對，時間 1 分鐘，現在開始。"
+            },
+            {
+              "para": 841,
+              "speaker": null,
+              "time": null,
+              "text": "（進行表決）"
+            },
+            {
+              "para": 842,
+              "speaker": "主席： 報告院會，報告表決結果",
+              "time": null,
+              "text": "在場委員 103 位，贊成 45 位，反對 58 位，贊成者少數，現在作以下決議：復議案不通過，本案報告事項照原作決定通過。"
+            },
+            {
+              "para": 844,
+              "speaker": "會議名稱",
+              "time": null,
+              "text": "立法院第 11 屆第 5 會期第 20 次會議　　表決型態：記名表決"
+            },
+            {
+              "para": 845,
+              "speaker": "表決時間",
+              "time": null,
+              "text": "中華民國 115 年 7 月 31 日\n\t上午 11 時 17 分 44 秒"
+            },
+            {
+              "para": 846,
+              "speaker": "表決議題",
+              "time": null,
+              "text": "討 1 民進黨黨團針對第 11 屆第 5 會期"
+            },
+            {
+              "para": 847,
+              "speaker": null,
+              "time": null,
+              "text": "第 18 次會議報告事項第 87 案所提復議案"
+            },
+            {
+              "para": 848,
+              "speaker": "表決結果：出席人數： 103 贊成人數： 45 反對人數",
+              "time": null,
+              "text": "58 棄權人數： 0"
+            },
+            {
+              "para": 850,
+              "speaker": null,
+              "time": null,
+              "text": "黃　捷　　范　雲　　蔡其昌　　莊瑞雄　　伍麗華 Saidhai\n\tTahovecahe 郭昱晴　　吳思瑤　　陳培瑜　　鄭天財 Sra\n\tKacaw 邱志偉　　黃秀芳　　何欣純　　林俊憲　　李坤城　　王義川　　陳秀寳　　徐富癸　　王世堅　　羅美玲　　鍾佳濱　　郭國文　　陳俊宇　　張雅琳　　賴瑞隆　　陳素月　　李柏毅　　陳冠廷　　王美惠　　劉建國　　林岱樺　　賴惠員　　林月琴　　林淑芬　　王正旭　　林"
+            },
+            {
+              "para": 852,
+              "speaker": null,
+              "time": null,
+              "text": "傅崐萁　　林沛祥　　許宇甄　　謝龍介　　涂權吉　　馬文君　　許忠信　　蔡春綢　　劉書彬　　洪毓祥　　陳昭姿　　陳清龍　　王安祥　　邱慧洳　　高金素梅　林思銘　　邱若華　　鄭正鈐　　謝衣鳯　　張嘉郡　　洪孟楷　　王鴻薇　　呂玉玲　　陳雪生　　黃建賓　　黃健豪　　葉元之　　陳永康　　賴士葆　　陳菁徽　　廖偉翔　　蘇清泉　　黃　仁　　吳琪銘　　魯明哲　　李彥秀　　吳宗憲　　邱鎮軍　　徐欣瑩　　盧縣一　　"
+            },
+            {
+              "para": 854,
+              "speaker": "主席",
+              "time": null,
+              "text": "我們進入討論事項第二案。"
+            },
+            {
+              "para": 855,
+              "speaker": null,
+              "time": null,
+              "text": "二、本院民進黨黨團，針對第 11 屆第 5 會期第 18 次會議將台灣民眾黨黨團擬具「公民投票法第二十一條及第四十三條條文修正草案」自內政委員會抽出逕付二讀，與相關提案併案協商之決定提出復議。是否有當？請公決案。 （本案經提本院第 11 屆第 5 會期第 19 次會議決議：另定期處理。爰於本次會議提出處理。）"
+            },
+            {
+              "para": 856,
+              "speaker": "主席",
+              "time": null,
+              "text": "本院民進黨黨團，針對第 11 屆第 5 會期第 18 次會議將台灣民眾黨黨團擬具「公民投票法第二十一條及第四十三條條文修正草案」自內政委員會抽出逕付二讀，與相關提案併案協商之決定提出復議，請公決案。"
+            },
+            {
+              "para": 857,
+              "speaker": null,
+              "time": null,
+              "text": "本案經第 5 會期第 19 次會議決議，另定期處理，現在進行處理。"
+            },
+            {
+              "para": 858,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，依照黨團共識，本案不再發言。現在針對民進黨黨團所提復議案進行表決，現有民進黨黨團、台灣民眾黨黨團共同要求記名表決。贊成民進黨黨團所提復議案按贊成，反對按反對，時間 1 分鐘，現在開始。"
+            },
+            {
+              "para": 859,
+              "speaker": null,
+              "time": null,
+              "text": "（進行表決）"
+            },
+            {
+              "para": 860,
+              "speaker": "主席： 報告院會，報告表決結果",
+              "time": null,
+              "text": "出席 103 位，贊成 45 位，反對 58 位，贊成者少數，作以下決議：復議案不通過，本案照原作決定通過。"
+            },
+            {
+              "para": 862,
+              "speaker": "會議名稱",
+              "time": null,
+              "text": "立法院第 11 屆第 5 會期第 20 次會議　　表決型態：記名表決"
+            },
+            {
+              "para": 863,
+              "speaker": "表決時間",
+              "time": null,
+              "text": "中華民國 115 年 7 月 31 日\n\t上午 11 時 19 分 54 秒"
+            },
+            {
+              "para": 864,
+              "speaker": "表決議題",
+              "time": null,
+              "text": "討 2 民進黨團對台灣民眾黨公民投票法"
+            },
+            {
+              "para": 865,
+              "speaker": null,
+              "time": null,
+              "text": "抽出逕付二讀之決定所提復議案"
+            },
+            {
+              "para": 866,
+              "speaker": "表決結果：出席人數： 103 贊成人數： 45 反對人數",
+              "time": null,
+              "text": "58 棄權人數： 0"
+            },
+            {
+              "para": 868,
+              "speaker": null,
+              "time": null,
+              "text": "黃　捷　　范　雲　　蔡其昌　　莊瑞雄　　伍麗華 Saidhai\n\tTahovecahe 郭昱晴　　吳思瑤　　陳培瑜　　邱志偉　　黃秀芳　　何欣純　　林俊憲　　李坤城　　王義川　　陳秀寳　　徐富癸　　王世堅　　羅美玲　　鍾佳濱　　郭國文　　陳俊宇　　張雅琳　　賴瑞隆　　陳素月　　李柏毅　　陳冠廷　　王美惠　　劉建國　　林岱樺　　賴惠員　　林月琴　　林淑芬　　王正旭　　林楚茵　　王定宇　　吳琪銘　　許"
+            },
+            {
+              "para": 870,
+              "speaker": null,
+              "time": null,
+              "text": "傅崐萁　　林沛祥　　許宇甄　　謝龍介　　涂權吉　　馬文君　　許忠信　　蔡春綢　　劉書彬　　洪毓祥　　陳昭姿　　陳清龍　　王安祥　　邱慧洳　　高金素梅　林思銘　　邱若華　　鄭天財 Sra\n\tKacaw 鄭正鈐　　謝衣鳯　　張嘉郡　　洪孟楷　　王鴻薇　　呂玉玲　　陳雪生　　黃建賓　　黃健豪　　葉元之　　陳永康　　賴士葆　　陳菁徽　　廖偉翔　　蘇清泉　　黃　仁　　魯明哲　　李彥秀　　吳宗憲　　邱鎮軍　　"
+            },
+            {
+              "para": 872,
+              "speaker": "主席",
+              "time": null,
+              "text": "我們進入討論事項第三案。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-07-31",
+      "lcidc_ids": [
+        "1156601_00002"
+      ],
+      "content": "教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法部分條文」及「公立高級中\n等以下學校教師成績考核辦法第五條、第六條之一條文」案─通知更正─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00001.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00002.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 1,
+      "page_end": 38,
+      "pdf_page_offset": 0,
+      "clip_count": 2,
+      "anchors": [
+        {
+          "para": 25,
+          "section": "休息",
+          "text": "休息 （ 10 時 4 分）"
+        },
+        {
+          "para": 40,
+          "section": "報告事項",
+          "text": "主席： 報告院會，本次院會後續就依照黨團共識進行，先進行報告事項等部分，請議事人員宣讀各黨團提議內容。"
+        },
+        {
+          "para": 403,
+          "section": "報告事項",
+          "text": "現在進行報告事項。"
+        },
+        {
+          "para": 965,
+          "section": "休息",
+          "text": "休息 （ 11 時 23 分）"
+        }
+      ],
+      "sections": [
+        {
+          "type": "報告事項",
+          "label": "報告事項",
+          "kind": "ivod",
+          "para_start": 873,
+          "para_end": 964,
+          "blocks": [
+            {
+              "para": 873,
+              "speaker": null,
+              "time": null,
+              "text": "三、本院教育及文化委員會報告審查教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法部分條文」及「公立高級中等以下學校教師成績考核辦法第五條、第六條之一條文」案。 （本案經提本院第 11 屆第 4 、 5 會期第 19 、 15 次會議報告決定：交教育及文化委員會審查。茲接報告，爰於本次會議提出討論。）"
+            },
+            {
+              "para": 874,
+              "speaker": "主席",
+              "time": null,
+              "text": "請宣讀審查報告。"
+            },
+            {
+              "para": 875,
+              "speaker": null,
+              "time": null,
+              "text": "立法院教育及文化委員會函"
+            },
+            {
+              "para": 876,
+              "speaker": "受文者",
+              "time": null,
+              "text": "議事處"
+            },
+            {
+              "para": 877,
+              "speaker": "發文日期",
+              "time": null,
+              "text": "中華民國 115 年 7 月 28 日"
+            },
+            {
+              "para": 878,
+              "speaker": "發文字號",
+              "time": null,
+              "text": "台立教字第 1152301251 號"
+            },
+            {
+              "para": 879,
+              "speaker": "速別",
+              "time": null,
+              "text": "普通件"
+            },
+            {
+              "para": 881,
+              "speaker": "附件",
+              "time": null,
+              "text": "如說明二"
+            },
+            {
+              "para": 882,
+              "speaker": "主旨",
+              "time": null,
+              "text": "院會交付審查教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法」部分條 文 及「公立高級中等以下學校教師成績考核辦法」第五條、第六條之一條文案，業經審查完 竣，不須黨團協商，復請查照，提報院會公決。"
+            },
+            {
+              "para": 884,
+              "speaker": null,
+              "time": null,
+              "text": "一、 復貴處 115 年 02 月 05 日台立議字第 1150700391 號、 115 年 07 月 07 日台立議字第 1150702312 號函。"
+            },
+            {
+              "para": 885,
+              "speaker": null,
+              "time": null,
+              "text": "二、附審查報告乙份。"
+            },
+            {
+              "para": 886,
+              "speaker": "正本",
+              "time": null,
+              "text": "議事處"
+            },
+            {
+              "para": 887,
+              "speaker": "副本",
+              "time": null,
+              "text": "教育及文化委員會"
+            },
+            {
+              "para": 888,
+              "speaker": null,
+              "time": null,
+              "text": "教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法」部分條文及「公立高級中等以下學校教師成績考核辦法」第五條、第六條之一條文審查報告"
+            },
+            {
+              "para": 889,
+              "speaker": null,
+              "time": null,
+              "text": "壹、教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法」部分條文及「公立高級 中等以下學校教師成績考核辦法」第五條、第六條之一條文案，經本院第 11 屆第 4 會期第 19 次 院會報告後決定：「交教育及文化委員會審查」。復經本院第 11 屆第 5 會期第 15 次院會報 告後決定：「展延審查期限」。"
+            },
+            {
+              "para": 890,
+              "speaker": null,
+              "time": null,
+              "text": "貳、 本院教育及文化委員會於 115 年 7 月 13 日及 115 年 7 月 27 日分別召開第 11 屆第 5 會期第 19 次及第 22 次全體委員會議進行審查，會中請教育部部長鄭英耀及相關人員列席說明並備質詢，會議由羅召集委員廷瑋擔任主席。"
+            },
+            {
+              "para": 892,
+              "speaker": null,
+              "time": null,
+              "text": "( 壹 ) 、前言"
+            },
+            {
+              "para": 893,
+              "speaker": null,
+              "time": null,
+              "text": "依據民國 108 年間修正公布「教師法」之修法意旨，其核心目標係為確保兒少 權益，並提升教師教學品質。又「高級中等以下學校教師解聘不續聘停聘或資遣辦法」 （以下簡稱解聘辦法）係教育部（以下簡稱本部）依據「教師法」第 29 條授權，於 109 年 6 月 28 日訂定發布，以作為確保兒少權益保障及提升教學品質之重要制度設計 。"
+            },
+            {
+              "para": 894,
+              "speaker": null,
+              "time": null,
+              "text": "「教師法」第 29 條就高級中等以下學校依該法所為之教師解聘程序及相關事項，授權由教育部訂定辦法，本部於授權範圍內，訂定高級中等以下學校教師解聘不續聘停聘或資遣辦法，對於教師解聘之調查處理程序為細節性、程序性事項之規範，並未增加法律所無之限制，符合法律保留原則。"
+            },
+            {
+              "para": 895,
+              "speaker": null,
+              "time": null,
+              "text": "解聘辦法 109 年訂定及 113 年修正時，均已依行政程序法完成相關法制作業及發布程序，並依中央法規標準法第 7 條規定，分別於 109 年 6 月 29 日及 113 年 4 月 17 日函送立法院備查，並無違反、抵觸教師法，或應以法律規定事項而以命令定之情形。"
+            },
+            {
+              "para": 896,
+              "speaker": null,
+              "time": null,
+              "text": "( 貳 ) 、修法沿革"
+            },
+            {
+              "para": 897,
+              "speaker": null,
+              "time": null,
+              "text": "為完善處理機制，解聘辦法於 113 年 4 月 17 日全文修正。惟因執行近 1 年來，外界迭有實務運作衍生校園爭議等意見，爰本部於 114 年 6 月 19 日函請各地方政府調查解聘辦法執行情形；復於 114 年 8 月 6 日及 12 日於全國高級中等學校及特殊教育學校校長會議進行問卷調查，以了解校長之觀察及回饋意見；另於 114 年 8 月 25 日、 9 月 12 日及 15 日召開 3 "
+            },
+            {
+              "para": 898,
+              "speaker": null,
+              "time": null,
+              "text": "嗣後本部再於 114 年 10 月 8 日及 15 日邀集各地方政府及高級中等以下學校校長、 教師、家長及關心兒少權益等 11 個團體組織，召開 2 場次研商會議，以蒐集地方政府 、 學校及團體意見；賡續於 114 年 11 月 21 日至 12 月 5 日完成解聘辦法及「公立高級中 等以下學校教師成績考核辦法」（以下簡稱考核辦法）修正草案之預告程序，其間 本部並參與立法院教育及文化委員會於 11"
+            },
+            {
+              "para": 899,
+              "speaker": null,
+              "time": null,
+              "text": "( 參 ) 、修正重點"
+            },
+            {
+              "para": 900,
+              "speaker": null,
+              "time": null,
+              "text": "解聘及考核二辦法之修正重點，摘要說明如下。"
+            },
+            {
+              "para": 901,
+              "speaker": null,
+              "time": null,
+              "text": "一、建立親師生溝通預防機制"
+            },
+            {
+              "para": 902,
+              "speaker": null,
+              "time": null,
+              "text": "明定學校得透過巡堂、觀課、親師生溝通及行政晤談等方式，及早掌握教學與互動情形，發揮事前預防功能，避免問題惡化後才進入檢舉與調查程序（參照解聘辦法第 1 條之 1 ）。"
+            },
+            {
+              "para": 903,
+              "speaker": null,
+              "time": null,
+              "text": "二、健全檢舉案件受理程序"
+            },
+            {
+              "para": 904,
+              "speaker": null,
+              "time": null,
+              "text": "( 一 ) 修正檢舉案件受理機制，改由校長邀集外聘調查人才庫專業人員、校事會議 之 教師代表及家長代表共 4 人召開會議，認定是否受理，採無記名投票方式， 校長不參與表決（參照解聘辦法第 9 條）。"
+            },
+            {
+              "para": 905,
+              "speaker": null,
+              "time": null,
+              "text": "( 二 ) 主管機關接獲檢舉事件或知悉之事件，如認有不予受理情形，應通知檢舉人不予受理，且不通知學校處理；如屬應通知學校處理者，其相關資訊應提供 學校參考，且不予去識別化，使學校獲得充分資訊，利於後續案件進行（ 參 照解聘辦法第 9 條之 2 ）。"
+            },
+            {
+              "para": 906,
+              "speaker": null,
+              "time": null,
+              "text": "三、刪除匿名檢舉，明定保密義務與洩密責任"
+            },
+            {
+              "para": 907,
+              "speaker": null,
+              "time": null,
+              "text": "( 一 ) 刪除受理匿名檢舉規定，提升案件處理嚴謹性與公正性（參照解聘辦法第 9 條）。"
+            },
+            {
+              "para": 908,
+              "speaker": null,
+              "time": null,
+              "text": "( 二 ) 明定參與案件處理所有人員，均負保密義務與責任，違反者負行政責任外， 依法追究責任，以確保檢舉及調查資訊不外洩（參照解聘辦法第 5 條、第 9 條之 2 ）。"
+            },
+            {
+              "para": 909,
+              "speaker": null,
+              "time": null,
+              "text": "四、建立案件分流機制"
+            },
+            {
+              "para": 910,
+              "speaker": null,
+              "time": null,
+              "text": "明確規範校事會議僅處理教師法所定不適任案件；如案件屬考核辦法所定懲 處情形，則回歸考核辦法處理，使不同情節及性質之案件得以落實分流，回歸應有機制處理（參照解聘辦法第 9 條之 1 、考核辦法第 6 條之 1 ）。"
+            },
+            {
+              "para": 911,
+              "speaker": null,
+              "time": null,
+              "text": "五、新增輔佐人參與機制"
+            },
+            {
+              "para": 912,
+              "speaker": null,
+              "time": null,
+              "text": "明定行為人、被害人接受訪談時，得依法由輔佐人偕同到場參與，以協助其理解程序及表達意見，並保障其權益（參照解聘辦法第 16 條）。"
+            },
+            {
+              "para": 913,
+              "speaker": null,
+              "time": null,
+              "text": "六、完備資訊提供之義務"
+            },
+            {
+              "para": 914,
+              "speaker": null,
+              "time": null,
+              "text": "明定行為人於教師評審委員會陳述意見時，學校應主動提供調查報告及輔導 報告，俾利其充分陳述意見；學校依解聘辦法第 25 條第 1 項第 5 款規定移送考核 會審議者，亦同（參照解聘辦法第 43 條）。"
+            },
+            {
+              "para": 915,
+              "speaker": null,
+              "time": null,
+              "text": "七、健全主管機關監督機制"
+            },
+            {
+              "para": 916,
+              "speaker": null,
+              "time": null,
+              "text": "明定主管機關審議委員會就學校依考核辦法第 6 條之 1 所定報請備查事件，進行事後監督；如認學校處理結果有違法之虞，得敘明理由退回學校，命學校於 一定期間內繼續調查、另組調查小組進行調查，以確保考核程序合法、妥適，並 維護教師及學生之權益（參照解聘辦法第 52 條、解聘辦法第 54 條）。"
+            },
+            {
+              "para": 917,
+              "speaker": null,
+              "time": null,
+              "text": "八、配套機制"
+            },
+            {
+              "para": 919,
+              "speaker": null,
+              "time": null,
+              "text": "辦理相關人員增能訓練（例如針對各地方政府及學校承辦人辦理法規宣導研 習、校事會議人才庫訓練），以期新制落實執行。"
+            },
+            {
+              "para": 920,
+              "speaker": null,
+              "time": null,
+              "text": "製作受理流程圖、 QA 懶人包（本部 115 年 2 月 5 日通函周知），提供實務現場參考運用。"
+            },
+            {
+              "para": 921,
+              "speaker": null,
+              "time": null,
+              "text": "另外， 115 年 5 月 13 日修正公布之「教師法」第 25 條，明定教師暫時停聘接受 調查後，如最終未受解聘或終局停聘並回復聘任者，補發停聘期間本薪（年功薪 ）及學術研究加給，以充分維持教師基本生活所需，進一步強化教師權益保障。"
+            },
+            {
+              "para": 922,
+              "speaker": null,
+              "time": null,
+              "text": "九、新制實施後執行情形"
+            },
+            {
+              "para": 923,
+              "speaker": null,
+              "time": null,
+              "text": "解聘及考核二辦法修正後之新制，經實施約 5 個月時間，截至 115 年 5 月 31 日止資料顯示，投訴案件 313 案，其中進入校事會議調查 70 案，占投訴案件 22% 。對照修法前同期間 114 年 1 月至 5 月資料，投訴案件 586 案，其中進入校事會議調查 484 案，占投訴案件 82% 。新制實施後，檢舉案件數較修法前同期間減少， 且新制透過「受理判斷」及「案件分流」機制，進入校事"
+            },
+            {
+              "para": 924,
+              "speaker": null,
+              "time": null,
+              "text": "十、本部相關因應作為"
+            },
+            {
+              "para": 926,
+              "speaker": null,
+              "time": null,
+              "text": "1 . 為維護教師健康權，本部前於 110 年 3 月 18 日函請各地方政府應建立教師於非上班時間出勤或例假日奉派出差之處理規範及補償機制。"
+            },
+            {
+              "para": 927,
+              "speaker": null,
+              "time": null,
+              "text": "2 . 考量溝通的時效性及必要性，於 115 年 6 月 17 日函請各地方政府持續向所轄學校加強宣導，除涉及校園安全、重大突發事件、緊急災害應變或其他具急迫性事項外，儘量利用上班時間進行教學業務處理與親師溝通，並明定 適當聯繫時段及緊急事件處理機制，以提升教學品質，營造友善校園職場 環境 。"
+            },
+            {
+              "para": 929,
+              "speaker": null,
+              "time": null,
+              "text": "1 . 本部依教師法第 33 條規定，訂定「高級中等以下學校教師諮商輔導支持體系設立辦法」，設置教師諮商輔導支持中心，提供所屬高級中等以下學校教師專業諮詢、心理諮商輔導等服務。"
+            },
+            {
+              "para": 930,
+              "speaker": null,
+              "time": null,
+              "text": "2 . 各主管機關亦依教師法第 33 條規定，建立教師諮商輔導支持體系，提供多樣化之支持服務，積極協助教師諮商輔導，提供教師心理支持。本部自 113 年起提高補助地方政府教師諮商輔導支持服務經費至 6,000 萬元，並規 劃提高補助經費，協助擴大服務資源量能。"
+            },
+            {
+              "para": 932,
+              "speaker": null,
+              "time": null,
+              "text": "1 . 為維護教師合理管教權，支持教師專業判斷，並兼顧學生受教權益及校園 安全，本部於 113 年 2 月 5 日修正發布「學校訂定教師輔導與管教學生辦 法注意事項」修正重點，摘要說明如下："
+            },
+            {
+              "para": 933,
+              "speaker": "( 1 ) 維護教師管教權",
+              "time": null,
+              "text": "增列「阻卻違法事由」，明定教師為維持教學秩序、執行教育活動，或因避免自己或他人生命、身體遭受急迫危難所採取之必要措施，不予處罰；並明確區分「管教」、「處罰」及「違法處罰」之界線，提供教師執行職務之明確依循。"
+            },
+            {
+              "para": 934,
+              "speaker": "( 2 ) 強化校園安全檢查機制",
+              "time": null,
+              "text": "明定學校對有危害他人生命、身體之虞的特定 身分學生，或經通報、發現有危害校園安全之情形時，得依規定進行必 要安全檢查，並建立相關程序規範，以兼顧校園安全與學生權益。"
+            },
+            {
+              "para": 935,
+              "speaker": "( 3 ) 具體化教師管教措施及支持機制",
+              "time": null,
+              "text": "明列教師得採行之一般管教措施及 標準，並強化學務、輔導等行政支持系統，當一般管教措施無法改善 學生行為時，得透過跨處室合作及專業介入，共同協助學生輔導與管教工作。"
+            },
+            {
+              "para": 936,
+              "speaker": "( 4 ) 鏈結學校、家庭及社政資源",
+              "time": null,
+              "text": "針對脆弱家庭或家庭功能較難發揮之個案學生，增訂連結社政單位、家庭教育、諮商輔導及福利服務等相關資源之規範，強化跨系統合作機制。"
+            },
+            {
+              "para": 937,
+              "speaker": null,
+              "time": null,
+              "text": "2 . 為了解教學現場需求，本部持續蒐集並參考地方政府及學校現場意見，相 關精進優化方向如下："
+            },
+            {
+              "para": 938,
+              "speaker": "( 1 ) 持續保障教師依法管教權",
+              "time": null,
+              "text": "加強法規宣導，使學校及社會大眾充分理解教師於維護教學秩序及校園安全時，依法採取必要措施之正當性，符合 解聘辦法第 4 條及輔導管教辦法注意事項第 24 條，教師業務上之正當行為，及為維持教學秩序和教育活動正常進行之必要管教行為，不予 處罰，避免教師因執行職務承受不必要之行政責任或考核壓力。"
+            },
+            {
+              "para": 939,
+              "speaker": "( 2 ) 建立防濫訴及合理審查機制",
+              "time": null,
+              "text": "針對部分申訴、檢舉案件耗費大量行政資 源情形，建立合理過濾、分流及審查機制，避免教師因頻繁應對檢舉而影響教學與班級經營。"
+            },
+            {
+              "para": 940,
+              "speaker": "( 3 ) 尊重教師專業判斷",
+              "time": null,
+              "text": "不當管教之認定回歸教育專業，綜合考量管教目的 、實施手段、當時情境、學生身心狀況及比例原則等因素進行判斷，避免僅以學生主觀感受作為唯一依據。"
+            },
+            {
+              "para": 941,
+              "speaker": "( 4 ) 強化融合教育及專業支持",
+              "time": null,
+              "text": "持續充實特殊教育及輔導相關資源，提升教 師處理情緒行為問題學生之專業知能，減輕第一線教師壓力。"
+            },
+            {
+              "para": 942,
+              "speaker": "( 5 ) 落實家長共同管教責任",
+              "time": null,
+              "text": "強化親師合作機制，本部將持續透過親職教育推廣、專業輔導資源連結及跨系統合作機制，強化家長參與及家庭支持功能，促進家庭與學校共同承擔學生教育責任，建立支持教師合理管教之合作環境。"
+            },
+            {
+              "para": 943,
+              "speaker": null,
+              "time": null,
+              "text": "( 肆 ) 、結語"
+            },
+            {
+              "para": 944,
+              "speaker": null,
+              "time": null,
+              "text": "目前解聘及考核二辦法修正後之執行情形及各界反映意見等相關資料，本部仍持 續蒐集中；本部將持續關注各項制度執行情形及相關數據，適時精進配套措施，並持續研議法律協助支持機制，在兼顧學生受教權益與教師工作權保障下，營造友善、安心且具支持性的校園教育環境。"
+            },
+            {
+              "para": 945,
+              "speaker": null,
+              "time": null,
+              "text": "未來亦將持續作為教師合理管教之堅實後盾，透過完善法制保障、強化專業支持 網絡及促進親師合作，維護教師專業尊嚴與教育權責，使教師得於合理範圍內安心 管教、有效教學，共同維護校園安全與學生最佳利益，落實友善且有秩序之教育環境。"
+            },
+            {
+              "para": 946,
+              "speaker": null,
+              "time": null,
+              "text": "肆、審查結果"
+            },
+            {
+              "para": 947,
+              "speaker": null,
+              "time": null,
+              "text": "一、 教育部函為修正「高級中等以下學校教師解聘不續聘停聘或資遣辦法」部分條文案，本 案 審查完竣，擬具審查報告，連同通過之決議 1 項，提報院會討論，通知教育部更正； 不須交由黨團協商；院會討論時，由羅召集委員廷瑋補充說明。"
+            },
+            {
+              "para": 949,
+              "speaker": null,
+              "time": null,
+              "text": "( 一 ) 教育部於 115 年 1 月 12 日完成「高級中等以下學校教師解聘不續聘停聘或資遣辦法」 部分條文修正案，經第 5 會期教育及文化委員會第 17 次全體委員會議仍認為有待修 正之處，請教育部修正後，再送立法院備查，依《立法院職權行使法》第 62 條規定，提報立法院院會議決後，通知教育部更正該辦法。"
+            },
+            {
+              "para": 950,
+              "speaker": "提案人",
+              "time": null,
+              "text": "羅廷瑋"
+            },
+            {
+              "para": 951,
+              "speaker": "連署人",
+              "time": null,
+              "text": "葉元之　　蔡春綢　　羅智強"
+            },
+            {
+              "para": 952,
+              "speaker": null,
+              "time": null,
+              "text": "二、 教育部函為修正「公立高級中等以下學校教師成績考核辦法」第五條、第六條之一條文案 ，本案審查完竣，擬具審查報告，連同通過之決議 1 項，提報院會討論，通知教育部更正；不須交由黨團協商；院會討論時，由羅召集委員廷瑋補充說明。"
+            },
+            {
+              "para": 954,
+              "speaker": null,
+              "time": null,
+              "text": "( 一 ) 教育部於 115 年 1 月 12 日完成「公立高級中等以下學校教師成績考核辦法」第五條、第六條之一條文修正案，經第 5 會期教育及文化委員會第 17 次全體委員會議仍認為 有待修正之處，請教育部修正後，再送立法院備查，依《立法院職權行使法》第 62 條規定，提報立法院院會議決後，通知教育部更正該辦法。"
+            },
+            {
+              "para": 955,
+              "speaker": "提案人",
+              "time": null,
+              "text": "羅廷瑋"
+            },
+            {
+              "para": 956,
+              "speaker": "連署人",
+              "time": null,
+              "text": "葉元之　　蔡春綢　　羅智強"
+            },
+            {
+              "para": 957,
+              "speaker": "主席",
+              "time": null,
+              "text": "現在請召集委員羅廷瑋委員補充說明。"
+            },
+            {
+              "para": 958,
+              "speaker": null,
+              "time": null,
+              "text": "沒有補充說明。"
+            },
+            {
+              "para": 959,
+              "speaker": null,
+              "time": null,
+              "text": "本案經審查會決議，不須再交由黨團協商，請問院會，有無異議？（無）沒有異議，本案逕依審查會意見進行處理。"
+            },
+            {
+              "para": 960,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，依立法院職權行使法第六十二條第一項規定，本案作如下決議：一、高級中等以下學校教師解聘不續聘停聘或資遣辦法修正部分條文案，通知教育部更正；教育及文化委員會通過決議 1 項一併送教育部。二、公立高級中等以下學校教師成績考核辦法修正第五條、第六條之一條文案，通知教育部更正；教育及文化委員會通過決議 1 項一併送教育部。"
+            },
+            {
+              "para": 961,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，陳亭妃委員發表聲明，剛才的表決與民進黨黨團意見一致，列入公報紀錄。"
+            },
+            {
+              "para": 962,
+              "speaker": null,
+              "time": null,
+              "text": "報告院會，依照黨團共識，今天院會進行到此為止， 8 月 4 號（星期二）上午 9 點繼續開會，進行後續討論事項。"
+            },
+            {
+              "para": 963,
+              "speaker": null,
+              "time": null,
+              "text": "另外，請各黨團幹部下午 2 點 30 分至 302 會議室，我們繼續協商 115 年度中央政府總預算。"
+            },
+            {
+              "para": 964,
+              "speaker": null,
+              "time": null,
+              "text": "現在休息。"
+            }
+          ]
+        },
+        {
+          "type": "休息",
+          "label": null,
+          "kind": "meta",
+          "para_start": 965,
+          "para_end": 965,
+          "gazette_text": "休息 （ 11 時 23 分）",
+          "blocks": [],
+          "time_start": "11:23"
+        }
+      ]
+    },
+    {
       "date": "2026-08-04",
       "lcidc_ids": [
         "1156601_00003"
@@ -5500,351 +10997,9 @@
           "type": "討論事項",
           "label": "討論事項",
           "kind": "ivod",
-          "para_start": 24,
+          "para_start": 96,
           "para_end": 100,
           "blocks": [
-            {
-              "para": 24,
-              "speaker": null,
-              "time": null,
-              "text": "現在進行討論事項第四案。"
-            },
-            {
-              "para": 25,
-              "speaker": null,
-              "time": null,
-              "text": "四、本院內政委員會報告併案審查委員林宜瑾等 20 人及委員翁曉玲等 16 人分別擬具「總統副總統選舉罷免法第二十六條條文修正草案」案。 （本案經提本院第 11 屆第 1 、 5 會期第 7 、 4 次會議報告決定：交內政委員會審查。茲接報告，爰於本次會議提出討論。）"
-            },
-            {
-              "para": 26,
-              "speaker": "主席",
-              "time": null,
-              "text": "請宣讀審查報告。"
-            },
-            {
-              "para": 27,
-              "speaker": null,
-              "time": null,
-              "text": "立法院內政委員會函"
-            },
-            {
-              "para": 28,
-              "speaker": "受文者",
-              "time": null,
-              "text": "議事處"
-            },
-            {
-              "para": 29,
-              "speaker": "發文日期",
-              "time": null,
-              "text": "中華民國 115 年 4 月 29 日"
-            },
-            {
-              "para": 30,
-              "speaker": "發文字號",
-              "time": null,
-              "text": "台立內字第 1154000551 號"
-            },
-            {
-              "para": 31,
-              "speaker": "速別",
-              "time": null,
-              "text": "普通件"
-            },
-            {
-              "para": 33,
-              "speaker": "附件",
-              "time": null,
-              "text": "如說明二"
-            },
-            {
-              "para": 34,
-              "speaker": "主旨",
-              "time": null,
-              "text": "院會交付審查委員林宜瑾等 20 人及委員翁曉玲等 16 人分別擬具「總統副總統選舉罷免法第二十六條條文修正草案」案，業經併案審查完竣復請查照，提報院會公決。"
-            },
-            {
-              "para": 36,
-              "speaker": null,
-              "time": null,
-              "text": "一、復貴處 113 年 4 月 12 日台立議字第 1130700885 號及 115 年 4 月 7 日台立議字第 1150700789 號函。"
-            },
-            {
-              "para": 37,
-              "speaker": null,
-              "time": null,
-              "text": "二、附審查報告乙份（含條文對照表）。"
-            },
-            {
-              "para": 38,
-              "speaker": "正本",
-              "time": null,
-              "text": "議事處"
-            },
-            {
-              "para": 40,
-              "speaker": null,
-              "time": null,
-              "text": "併 案審查委員林宜瑾等 20 人及委員翁曉玲等 16 人分別擬具「總 統副總統選舉罷免法第二十六條條文修正草案」等 2 案審查報告"
-            },
-            {
-              "para": 41,
-              "speaker": null,
-              "time": null,
-              "text": "壹、審查依據"
-            },
-            {
-              "para": 42,
-              "speaker": null,
-              "time": null,
-              "text": "委員林宜瑾等 20 人提案，經本院 113 年 3 月 29 日第 11 屆第 1 會期第 7 次會議報告；委員翁曉玲等 16 人提案，經本院 115 年 3 月 20 日第 11 屆第 5 會期第 4 次會議報告；均決定：「交內政委員會審查。」"
-            },
-            {
-              "para": 43,
-              "speaker": null,
-              "time": null,
-              "text": "貳、審查過程"
-            },
-            {
-              "para": 44,
-              "speaker": null,
-              "time": null,
-              "text": "本院內政委員會於 115 年 4 月 8 日（星期三）及 4 月 23 日（星期四）分別召開第 11 屆第 5 會期第 5 次及第 8 次全體委員會議，審查上開草案；由內政委員會廖召集委員先翔擔任主席，除邀請提案委員說明提案要旨，並邀請相關機關列席報告並備質詢。 115 年 4 月 8 日有委員林宜瑾說明提案要旨；由內政部部長劉世芳及中央選舉委員會法政處蔡金誥處長報告；內政部、中央選舉委員會、法務"
-            },
-            {
-              "para": 45,
-              "speaker": null,
-              "time": null,
-              "text": "叁、提案要旨（參閱議案關係文書）"
-            },
-            {
-              "para": 47,
-              "speaker": null,
-              "time": null,
-              "text": "鑒於賄選預備犯、既遂犯或未遂犯，本質上皆同屬行賄罪，僅係行為階段不同。賄選行徑非但損害選舉公正性，且斲喪民主政治精神，終將反噬全民權益。為達端正選風及選任公職之重大公益，爰擬具「總統副總統選舉罷免法第二十六條條文修正草案」。"
-            },
-            {
-              "para": 49,
-              "speaker": null,
-              "time": null,
-              "text": "鑑於總統為國家元首，地位崇隆，肩負國家大政與人民付託，其人格廉潔與誠信標準，自應較一般人民為高，對其候選人亦應為相同之要求。若曾犯重大詐欺犯罪經判決確定，若仍允其參選國家最高公職，顯不符民主政治對公職人員誠信與廉潔之要求。又現行《總統副總統選舉罷免法》第二十六條第九款規定，「犯第一款至第六款以外之罪，判處有期徒刑以上之刑確定者尚未執行、執行未畢、於緩刑期間或行刑權因罹於時效消滅」，不得登記為候選人"
-            },
-            {
-              "para": 50,
-              "speaker": null,
-              "time": null,
-              "text": "肆、機關報告"
-            },
-            {
-              "para": 52,
-              "speaker": null,
-              "time": null,
-              "text": "一、針對排除受緩刑宣告、行刑權罹於時效消滅及受易刑處分者不得參選之限制，是否與貫徹清廉參選之立法意旨相符，宜審慎考量："
-            },
-            {
-              "para": 53,
-              "speaker": null,
-              "time": null,
-              "text": "有關陳委員玉珍、民眾黨黨團、林委員淑芬及翁委員曉玲等人分別提案修正總統選罷法及公職選罷法第 26 條第 9 款增列排除受緩刑宣告者不得登記為候選人之限制 1 節，按原條文係考量受緩刑宣告者僅係暫緩執行其刑，於緩刑期間，所宣告之罪刑仍存在，僅於緩刑期滿而緩刑之宣告未經撤銷時，其刑之宣告始失其效力。故為端正罪刑觀念，避免受罪刑宣告者於緩刑期間仍得參選，爰明定於緩刑期間不得參選，如再將經有罪判決確定並受"
-            },
-            {
-              "para": 54,
-              "speaker": null,
-              "time": null,
-              "text": "至林委員淑芬及翁委員曉玲提案刪除行刑權罹於時效消滅為候選人消極資格部分，於 112 年修法當時是基於維護選舉公平性，避免候選人利用行刑權罹於時效規避法律限制參選，爰予增列，是否刪除亦建請再酌。"
-            },
-            {
-              "para": 55,
-              "speaker": null,
-              "time": null,
-              "text": "另有關民眾黨黨團提案增列排除受易刑處分者不得登記為候選人之限制 1 節，因易刑處分（如易科罰金或易服社會勞動）僅為有期徒刑執行方式之替代手段，如未執行完畢，自應視為有期徒刑執行未畢，將其列入但書允許渠等登記為候選人之合理性，有待商榷。"
-            },
-            {
-              "para": 56,
-              "speaker": null,
-              "time": null,
-              "text": "二、有關兩項選罷法所定預備賄選罪均屬 1 年以下有期徒刑，是否限制終身不得參選建議審慎考量："
-            },
-            {
-              "para": 57,
-              "speaker": null,
-              "time": null,
-              "text": "有關林委員宜瑾提案修正總統選罷法及公職選罷法第 26 條第 3 款，增列曾犯預備賄選罪經有罪判決確定者，不得登記為候選人 1 節，查總統選罷法第 84 條、第 86 條、第 87 條、第 89 條及公職選罷法第 97 條、第 99 條、第 100 條、第 101 條、第 102 條涉及賄選預備犯部分，其刑責均為 1 年以下有期徒刑。犯賄選以外之罪，如判處有期徒刑以上之刑確定，執行完畢或緩刑期滿，仍"
-            },
-            {
-              "para": 58,
-              "speaker": null,
-              "time": null,
-              "text": "三、增列曾犯詐欺犯罪危害防制條例之罪，經有罪判決確定者，不得參選之規定，大院如具修法共識，本部原則尊重："
-            },
-            {
-              "para": 59,
-              "speaker": null,
-              "time": null,
-              "text": "有關翁委員曉玲提案修正總統選罷法及公職選罷法第 26 條第 5 款，增列曾犯詐欺犯罪危害防制條例之罪，經有罪判決確定者，不得參選之規定 1 節，查 112 年 6 月 9 日修正公布之總統選罷法及公職選罷法第 26 條第 6 款定明曾犯刑法第 339 條之 4 加重詐欺罪者為候選人消極資格，而詐欺犯罪危害防制條例係於 113 年 7 月 31 日公布施行，該條例並將犯刑法第 339 條之 4 之罪"
-            },
-            {
-              "para": 62,
-              "speaker": null,
-              "time": null,
-              "text": "現行條文規定判處有期徒刑以上之刑確定，於受緩刑期間或行刑權罹於時效消滅者，不得登記為候選人，固有其立法目的，惟依地方制度法第 79 條第 1 項第 4 款規定，犯同條項第 2 款及第 3 款以外之罪，受有期徒刑以上刑之判決確定，受緩刑之宣告者，該民選公職人員不予解除其職權或職務。從而，於緩刑期間是否限制其登記為候選人，似仍有審慎斟酌餘地。至行刑權罹於時效部分，行刑權時效制度定於刑法第 84 條，行"
-            },
-            {
-              "para": 64,
-              "speaker": null,
-              "time": null,
-              "text": "受有期徒刑以上刑之判決確定，果有未執行易科罰金或不得易服社會勞動者，其情節與同條款「判處有期徒刑以上之刑確定，尚未執行、執行未畢」相同，如得登記為候選人，似有未宜。"
-            },
-            {
-              "para": 66,
-              "speaker": null,
-              "time": null,
-              "text": "兩項選罷法第 26 條第 6 款規定，已列有曾犯刑法第 339 條之 4 之罪，經有罪判決確定者，不得登記為候選人。草案第 26 條第 5 款增列曾犯「詐欺犯罪危害防制條例」之罪，不得登記為候選人，上開「詐欺犯罪危害防制條例」之罪，係就犯刑法第 339 條之 4 之罪者，特別規定加重法定刑之樣態，及代表人、代理人、受僱人或其他從業人員，因執行業務犯詐欺犯罪者之併罰規定。為避免適用爭議，以明文規定之"
-            },
-            {
-              "para": 68,
-              "speaker": null,
-              "time": null,
-              "text": "增訂曾犯總統選罷法第 84 條第 3 項及公職選罷法第 97 條第 3 項等罪之「預備犯」為消極資格條件，本會尊重大院之立法權，惟因事涉人民參政權，允宜就是否過度限制人民參政權審慎考量。"
-            },
-            {
-              "para": 70,
-              "speaker": null,
-              "time": null,
-              "text": "一、委員翁曉玲等 16 人提案修正總統副總統選罷法第 26 條第 5 款，「曾犯詐欺犯罪危害防制條例之罪」亦不得登記。委員林宜瑾等 22 人提案係修正同條第 3 款，將總統副總統選罷法第 84 條第 3 項、第 86 條第 2 項、第 87 條第 2 項、第 89 條第 2 項等賄選罪之「預備犯」，亦列為消極資格。"
-            },
-            {
-              "para": 71,
-              "speaker": null,
-              "time": null,
-              "text": "二、是否將受緩刑宣告者或受易刑處分者排除於消極資格之外，以及是否將犯詐欺犯罪危害防制條例之罪或賄選之預備犯列入消極資格，均涉及對於人民被選舉權之限制，須衡酌基本權之保障與限制參選之公益性，兼顧被選舉權與公共利益之維護，在符合比例原則之前提下，應屬立法機關對於選舉制度之立法形成空間，爰尊重主管機關之意見及大院委員之職權行使。"
-            },
-            {
-              "para": 73,
-              "speaker": null,
-              "time": null,
-              "text": "委員陳玉珍等 17 人擬具「公職人員選舉罷免法第二十六條條文修正草案」案、台灣民眾黨黨團擬具「公職人員選舉罷免法第二十六條條文修正草案」案、委員林淑芬等 23 人擬具「公職人員選舉罷免法第二十六條條文修正草案」案、委員翁曉玲等 16 人擬具「公職人員選舉罷免法第二十六條條文修正草案」案、委員林宜瑾等 22 人擬具「公職人員選舉罷免法第二十六條條文修正草案」案等 5 案："
-            },
-            {
-              "para": 74,
-              "speaker": null,
-              "time": null,
-              "text": "有關登記為公職人員選舉候選人之消極資格變更（修正），事涉選舉政策決定，本院尊重主責機關及貴院之職權。"
-            },
-            {
-              "para": 75,
-              "speaker": null,
-              "time": null,
-              "text": "伍、審查結果"
-            },
-            {
-              "para": 76,
-              "speaker": null,
-              "time": null,
-              "text": "一、 115 年 4 月 8 日報告及詢答完畢， 115 年 4 月 23 日進行逐條審查。與會委員聽取說明並經縝密討論後，完成全案之審查，審查結果如下："
-            },
-            {
-              "para": 77,
-              "speaker": null,
-              "time": null,
-              "text": "( 一 ) 照委員李柏毅等 7 人所提修正動議通過。"
-            },
-            {
-              "para": 80,
-              "speaker": null,
-              "time": null,
-              "text": "一、動員戡亂時期終止後，曾犯內亂、外患罪，經有罪判決確定。"
-            },
-            {
-              "para": 81,
-              "speaker": null,
-              "time": null,
-              "text": "二、曾犯貪污罪，經有罪判決確定。"
-            },
-            {
-              "para": 82,
-              "speaker": null,
-              "time": null,
-              "text": "三、曾犯第八十四條第一項、第二項、第八十五條、第八十六條第一項、第八十七條第一項、第八十八條、第八十九條第一項、第六項、第七項、公職人員選舉罷免法第九十七條第一項、第二項、第九十八條、第九十九條第一項、第一百條第一項、第二項、第一百零一條第一項、第六項、第七項、第一百零二條第一項、第一百零三條、刑法第一百四十二條、第一百四十四條之罪，或為直轄市、縣（市）議會議長、副議長、鄉（鎮、市）民代表會、原住"
-            },
-            {
-              "para": 83,
-              "speaker": null,
-              "time": null,
-              "text": "四、曾犯國家安全法第七條第一項至第四項、第八條第一項至第三項、第十二條第一項、第二項、國家機密保護法第三十二條第一項、第二項、第四項、第三十三條第一項、第二項、第四項、第三十四條第一項至第四項、國家情報工作法第三十條第一項至第四項、第三十條之一、第三十一條、反滲透法第三條、第四條、第五條第三項、第六條或第七條之罪，經有罪判決確定。"
-            },
-            {
-              "para": 84,
-              "speaker": null,
-              "time": null,
-              "text": "五、曾犯組織犯罪防制條例之罪，經有罪判決確定。"
-            },
-            {
-              "para": 85,
-              "speaker": null,
-              "time": null,
-              "text": "六、曾犯毒品危害防制條例第四條至第九條、第十二條第一項、第二項、該二項之未遂犯、第十三條、第十四條第一項、第二項、第十五條、槍砲彈藥刀械管制條例第七條、第八條第一項至第五項、第十二條、第十三條、洗錢防制法第十四條、第十五條、刑法第三百零二條之一 、 第三百三十九條之四 或詐欺犯罪危害防制條例 之罪，經有罪判決確定。但原住民單純僅犯未經許可，製造、轉讓、運輸、出借或持有自製獵槍、其主要組成零件或彈藥"
-            },
-            {
-              "para": 86,
-              "speaker": null,
-              "time": null,
-              "text": "七、曾犯前六款之罪，經有罪判決確定並受緩刑之宣告者，亦同。"
-            },
-            {
-              "para": 87,
-              "speaker": null,
-              "time": null,
-              "text": "八、曾犯第一款至第六款以外之罪，其最輕本刑為七年以上有期徒刑之刑，並經判處十年以上有期徒刑之刑確定。"
-            },
-            {
-              "para": 88,
-              "speaker": null,
-              "time": null,
-              "text": "九、犯第一款至第六款以外之罪，判處有期徒刑以上之刑確定，尚未執行、執行未畢、於緩刑期間或行刑權因罹於時效消滅。"
-            },
-            {
-              "para": 89,
-              "speaker": null,
-              "time": null,
-              "text": "十、受死刑、無期徒刑或十年以上有期徒刑之判決尚未確定。"
-            },
-            {
-              "para": 90,
-              "speaker": null,
-              "time": null,
-              "text": "十一、受保安處分之裁判確定，尚未執行或執行未畢。"
-            },
-            {
-              "para": 91,
-              "speaker": null,
-              "time": null,
-              "text": "十二、受破產宣告或經裁定開始清算程序確定，尚未復權。"
-            },
-            {
-              "para": 92,
-              "speaker": null,
-              "time": null,
-              "text": "十三、曾受免除職務之懲戒處分。"
-            },
-            {
-              "para": 93,
-              "speaker": null,
-              "time": null,
-              "text": "十四、依法停止任用或受休職處分，尚未期滿。"
-            },
-            {
-              "para": 94,
-              "speaker": null,
-              "time": null,
-              "text": "十五、褫奪公權，尚未復權。"
-            },
-            {
-              "para": 95,
-              "speaker": null,
-              "time": null,
-              "text": "十六、受監護或輔助宣告，尚未撤銷。」"
-            },
             {
               "para": 96,
               "speaker": null,
@@ -5909,7 +11064,7 @@
           "label": "第二十六條",
           "kind": "ivod",
           "para_start": 104,
-          "para_end": 247,
+          "para_end": 126,
           "blocks": [
             {
               "para": 105,
@@ -6042,7 +11197,60 @@
               "speaker": "決議",
               "time": null,
               "text": "總統副總統選舉罷免法第二十六條條文修正通過。"
-            },
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "lcidc_ids": [
+        "1156601_00003"
+      ],
+      "content": "廣播電視法修正第五條之一及第四十四條之二條文─完成三讀─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00006.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00003.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 39,
+      "page_end": 94,
+      "pdf_page_offset": 38,
+      "clip_count": 1,
+      "anchors": [
+        {
+          "para": 24,
+          "section": "討論事項",
+          "text": "現在進行討論事項第四案。"
+        },
+        {
+          "para": 101,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 197,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 248,
+          "section": "討論事項",
+          "text": "現在進行討論事項第六案。"
+        },
+        {
+          "para": 600,
+          "section": "討論事項",
+          "text": "現在進行討論事項第八案。"
+        }
+      ],
+      "sections": [
+        {
+          "type": "逐條討論",
+          "label": "第二十六條",
+          "kind": "ivod",
+          "para_start": 127,
+          "para_end": 247,
+          "blocks": [
             {
               "para": 127,
               "speaker": null,
@@ -6717,14 +11925,67 @@
           "label": "討論事項",
           "kind": "ivod",
           "para_start": 248,
-          "para_end": 742,
+          "para_end": 248,
           "blocks": [
             {
               "para": 248,
               "speaker": null,
               "time": null,
               "text": "現在進行討論事項第六案。"
-            },
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "lcidc_ids": [
+        "1156601_00003"
+      ],
+      "content": "財團法人客家公共傳播基金會115年度預算書案─完成三讀─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00006.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00003.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 39,
+      "page_end": 94,
+      "pdf_page_offset": 38,
+      "clip_count": 1,
+      "anchors": [
+        {
+          "para": 24,
+          "section": "討論事項",
+          "text": "現在進行討論事項第四案。"
+        },
+        {
+          "para": 101,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 197,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 248,
+          "section": "討論事項",
+          "text": "現在進行討論事項第六案。"
+        },
+        {
+          "para": 600,
+          "section": "討論事項",
+          "text": "現在進行討論事項第八案。"
+        }
+      ],
+      "sections": [
+        {
+          "type": "討論事項",
+          "label": "討論事項",
+          "kind": "ivod",
+          "para_start": 249,
+          "para_end": 304,
+          "blocks": [
             {
               "para": 249,
               "speaker": null,
@@ -6994,7 +12255,60 @@
               "speaker": null,
               "time": null,
               "text": "進行討論事項第七案。"
-            },
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "lcidc_ids": [
+        "1156601_00003"
+      ],
+      "content": "財團法人二二八事件紀念基金會、財團法人中央營建技術顧問研究社、財團法人台灣建築中心、\n財團法人義勇人員安全濟助基金會、財團法人威權統治時期國家不法行為被害者權利回復基金\n會、財團法人警察學術研究基金會、財團法人義勇消防人員安全濟助基金會及財團法人臺灣營建\n研究院等8家財團法人115年度預算書案─完成三讀─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00006.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00003.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 39,
+      "page_end": 94,
+      "pdf_page_offset": 38,
+      "clip_count": 1,
+      "anchors": [
+        {
+          "para": 24,
+          "section": "討論事項",
+          "text": "現在進行討論事項第四案。"
+        },
+        {
+          "para": 101,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 197,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 248,
+          "section": "討論事項",
+          "text": "現在進行討論事項第六案。"
+        },
+        {
+          "para": 600,
+          "section": "討論事項",
+          "text": "現在進行討論事項第八案。"
+        }
+      ],
+      "sections": [
+        {
+          "type": "討論事項",
+          "label": "討論事項",
+          "kind": "ivod",
+          "para_start": 305,
+          "para_end": 600,
+          "blocks": [
             {
               "para": 305,
               "speaker": null,
@@ -8422,7 +13736,60 @@
               "speaker": null,
               "time": null,
               "text": "現在進行討論事項第八案。"
-            },
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "lcidc_ids": [
+        "1156601_00003"
+      ],
+      "content": "財團法人原住民族文化事業基金會及財團法人原住民族語言研究發展基金會115年度預算書案─\n完成三讀─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00006.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00003.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 39,
+      "page_end": 94,
+      "pdf_page_offset": 38,
+      "clip_count": 1,
+      "anchors": [
+        {
+          "para": 24,
+          "section": "討論事項",
+          "text": "現在進行討論事項第四案。"
+        },
+        {
+          "para": 101,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 197,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 248,
+          "section": "討論事項",
+          "text": "現在進行討論事項第六案。"
+        },
+        {
+          "para": 600,
+          "section": "討論事項",
+          "text": "現在進行討論事項第八案。"
+        }
+      ],
+      "sections": [
+        {
+          "type": "討論事項",
+          "label": "討論事項",
+          "kind": "ivod",
+          "para_start": 601,
+          "para_end": 708,
+          "blocks": [
             {
               "para": 601,
               "speaker": null,
@@ -8992,7 +14359,60 @@
               "speaker": "提案人",
               "time": null,
               "text": "張智倫　王鴻薇　廖先翔"
-            },
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-08-04",
+      "lcidc_ids": [
+        "1156601_00003"
+      ],
+      "content": "本院民進黨黨團針對立法院第11屆第5會期第19次會議，院會所作委員賴士葆等25人擬具「公民\n投票法第二十一條條文修正草案」案自內政委員會抽出逕付二讀與相關提案併案協商之決定，提\n出復議─另定期處理─",
+      "gazette_id": "1156601",
+      "pdf_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/final/pdf/115/66/LCIDC01_1156601_00006.pdf",
+      "doc_url": "https://ppg.ly.gov.tw/ppg/PublicationBulletinDetail/download/communique1/work/115/66/LCIDC01_1156601_00003.doc",
+      "agendarec_url": "https://ppg.ly.gov.tw/ppg/SittingYuanInfo/download/agendarec1/02/pdf/11/05/20LCEWC03_110520.pdf",
+      "page_start": 39,
+      "page_end": 94,
+      "pdf_page_offset": 38,
+      "clip_count": 1,
+      "anchors": [
+        {
+          "para": 24,
+          "section": "討論事項",
+          "text": "現在進行討論事項第四案。"
+        },
+        {
+          "para": 101,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 197,
+          "section": "逐條討論",
+          "text": "現在進行逐條討論。"
+        },
+        {
+          "para": 248,
+          "section": "討論事項",
+          "text": "現在進行討論事項第六案。"
+        },
+        {
+          "para": 600,
+          "section": "討論事項",
+          "text": "現在進行討論事項第八案。"
+        }
+      ],
+      "sections": [
+        {
+          "type": "討論事項",
+          "label": "討論事項",
+          "kind": "ivod",
+          "para_start": 709,
+          "para_end": 742,
+          "blocks": [
             {
               "para": 709,
               "speaker": null,
