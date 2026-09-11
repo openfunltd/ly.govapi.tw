@@ -36,6 +36,7 @@ imports/ivod/ivod-gazette
 imports/ivod/ivod-data
 imports/ivod/ivod-transcript
 imports/meet/meet-proceeding-*
+imports/meet/meet-json
 imports/law/law.pdf
 imports/law/law.pdf.txt
 imports/law/law-data
