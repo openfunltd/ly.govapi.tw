@@ -263,30 +263,27 @@
         },
         {
           "type": "書面質詢",
-          "label": null,
+          "label": "林岱樺",
           "kind": "written",
           "para_start": null,
           "para_end": null,
-          "blocks": [
-            {
-              "para": null,
-              "speaker": "林岱樺",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "邱志偉",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "高金素梅",
-              "time": null,
-              "text": ""
-            }
-          ]
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "邱志偉",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "高金素梅",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
         }
       ]
     },
@@ -6427,90 +6424,107 @@
         },
         {
           "type": "書面質詢",
-          "label": null,
+          "label": "吳思瑤",
           "kind": "written",
           "para_start": null,
           "para_end": null,
-          "blocks": [
-            {
-              "para": null,
-              "speaker": "吳思瑤",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "張雅琳",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "李坤城",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "李柏毅",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "林楚茵",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "范雲",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "賴惠員",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "賴瑞隆",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "郭昱晴",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "陳亭妃",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "陳俊宇",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "麥玉珍",
-              "time": null,
-              "text": ""
-            },
-            {
-              "para": null,
-              "speaker": "黃捷",
-              "time": null,
-              "text": ""
-            }
-          ]
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "張雅琳",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "李坤城",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "李柏毅",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "林楚茵",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "范雲",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "賴惠員",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "賴瑞隆",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "郭昱晴",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "陳亭妃",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "陳俊宇",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "麥玉珍",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
+        },
+        {
+          "type": "書面質詢",
+          "label": "黃捷",
+          "kind": "written",
+          "para_start": null,
+          "para_end": null,
+          "blocks": []
         }
       ]
     }

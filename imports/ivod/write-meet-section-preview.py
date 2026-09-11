@@ -615,7 +615,7 @@ def analyze_meet(meet_id):
         # 只在有公報內容的 session 加一次（避免同一天多個 session 重複加）
         n_blocks_gazette = sum(len(s['blocks']) for s in sections_out)
         if n_blocks_gazette > 0 and date not in _written_dates_done:
-            written_blocks = []
+            added = False
             for rec in meet_d.get('發言紀錄', []):
                 if rec.get('speechType') != '書面質詢':
                     continue
@@ -625,16 +625,16 @@ def analyze_meet(meet_id):
                 if rec_date and rec_date != date:
                     continue
                 for name in rec.get('legislatorNameList', []):
-                    written_blocks.append({'para': None, 'speaker': name, 'time': None, 'text': ''})
-            if written_blocks:
-                sections_out.append({
-                    'type':       '書面質詢',
-                    'label':      None,
-                    'kind':       'written',
-                    'para_start': None,
-                    'para_end':   None,
-                    'blocks':     written_blocks,
-                })
+                    sections_out.append({
+                        'type':       '書面質詢',
+                        'label':      name,
+                        'kind':       'written',
+                        'para_start': None,
+                        'para_end':   None,
+                        'blocks':     [],
+                    })
+                    added = True
+            if added:
                 _written_dates_done.add(date)
 
         # ── 4g. 統計 ──────────────────────────────────────────────────────────
