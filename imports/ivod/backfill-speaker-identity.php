@@ -11,7 +11,7 @@ include(__DIR__ . '/../../init.inc.php');
 
 $ivod_dir  = __DIR__;
 $limit     = intval(getenv('limit') ?: 0);
-$MIN_SCORE = 0.925; // ES score 對應 cosine ≥ 0.85
+$MIN_SCORE = 0.85;  // ES score 對應 cosine ≥ 0.70
 $done = $skipped = $updated = 0;
 
 function identify_speaker_es($embedding_b64, $term = 11) {

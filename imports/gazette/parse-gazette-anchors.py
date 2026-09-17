@@ -19,8 +19,9 @@ import argparse
 # ─────────────────────────────────────────────────────────────────────────────
 
 # 發言者行：姓名：（H時M分）內容  或  姓名：（H時）內容
+# 上限放寬至 35 字，以容納原住民委員族名格式，如「鄭天財Sra Kacaw委員」
 _SPEAKER_TIME_RE = re.compile(
-    r'^(?P<speaker>[^\n：]{1,20})：（(?P<h>\d+)時(?P<m>\d+)?分?）(?P<rest>.*)',
+    r'^(?P<speaker>[^\n：]{1,35})：（(?P<h>\d+)時(?P<m>\d+)?分?）(?P<rest>.*)',
     re.MULTILINE,
 )
 
@@ -30,6 +31,9 @@ _TITLE_RE = re.compile(
     r'^(?P<sur>.{1,2})(?:委員|部長|院長|主委|署長|局長|次長|主任|秘書長|總裁|副主委|主計長|司長|政務委員)'
     r'(?P<given>.{1,4})$'
 )
+
+# 原住民委員格式：中文名+族名+委員，如「鄭天財Sra Kacaw委員」→ person_name=鄭天財
+_INDIGENOUS_RE = re.compile(r'^(?P<chinese>[一-鿿]{2,4})[A-Za-z\s·．·]+委員$')
 
 # 書面質詢：（沒有時間）
 _WRITTEN_RE = re.compile(r'^(?P<speaker>[^\n：]{2,20})書面質詢：', re.MULTILINE)
@@ -53,12 +57,15 @@ def parse_time(h_str, m_str):
 
 
 def extract_person_name(speaker_label):
-    """'王委員鴻薇' → '王鴻薇', '主席' → None"""
+    """'王委員鴻薇' → '王鴻薇', '鄭天財Sra Kacaw委員' → '鄭天財', '主席' → None"""
     if speaker_label == '主席':
         return None
     m = _TITLE_RE.match(speaker_label)
     if m:
         return m.group('sur') + m.group('given')
+    m = _INDIGENOUS_RE.match(speaker_label)
+    if m:
+        return m.group('chinese')
     return None
 
 

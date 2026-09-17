@@ -18,11 +18,11 @@ build-dangtuan-align.py
 """
 
 import json, re, sys, glob, os, importlib.util
+from datetime import datetime, timedelta
 
 IVOD_DIR    = os.path.dirname(os.path.abspath(__file__))
 GAZETTE_DIR = os.path.normpath(os.path.join(IVOD_DIR, '../gazette'))
-ANCHOR_DIR  = os.path.join(GAZETTE_DIR, 'agenda-anchor')
-TIKA_DIR    = os.path.join(GAZETTE_DIR, 'agenda-tikahtml')
+ANCHOR_DIR  = os.path.join(GAZETTE_DIR, 'dangtuan-anchor')
 
 # ─── 從 build-gazette-align.py 載入共用函式 ──────────────────────────────────
 
@@ -39,53 +39,64 @@ align              = _bga.align
 rel_to_abs         = _bga.rel_to_abs
 
 
-# ─── tikahtml 日期抽取 ────────────────────────────────────────────────────────
+# ─── 日期+時間索引 ────────────────────────────────────────────────────────────
 
-_ROC_DATE_RE = re.compile(r'中華民國(\d+)年(\d+)月(\d+)日')
-
-
-def tikahtml_date(agenda_id: str) -> str | None:
+def build_date_index() -> dict[str, list[dict]]:
     """
-    從 agenda-tikahtml/LCIDC01_{agenda_id}.doc.html 的標頭抽取實際會議日期。
-    回傳 'YYYY-MM-DD' 或 None。
-    （比 gazette-agenda-data 的 meetingDate 更可靠，因為後者來自 ppg meet page，
-      有時 SittingCappInfo 連結指向錯誤文件。）
+    掃描 dangtuan-anchor/ 裡所有檔案，讀 date + start_time 建立索引。
+    回傳 {'YYYY-MM-DD': [{'meeting_no': str, 'start_time': 'HH:MM'|None}, ...]}
     """
-    tika_path = os.path.join(TIKA_DIR, f'LCIDC01_{agenda_id}.doc.html')
-    if not os.path.exists(tika_path):
-        return None
-    try:
-        head = open(tika_path, encoding='utf-8', errors='replace').read(4096)
-    except Exception:
-        return None
-    m = _ROC_DATE_RE.search(head)
-    if not m:
-        return None
-    y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
-    return f'{y + 1911}-{mo:02d}-{d:02d}'
-
-
-# ─── 日期索引：建立 date → [agenda_id, ...] 的對應表 ─────────────────────────
-
-def build_date_index() -> dict[str, list[str]]:
-    """
-    掃描所有 meeting_type=dangtuan 的 agenda-anchor 檔，
-    用 tikahtml 日期（非 gazette-agenda-data 的 meetingDate）建立索引。
-    回傳 {'YYYY-MM-DD': ['agenda_id', ...]}
-    """
-    index: dict[str, list[str]] = {}
+    index: dict[str, list[dict]] = {}
     for anchor_f in glob.glob(os.path.join(ANCHOR_DIR, '*.json')):
         try:
             meta = json.load(open(anchor_f))
         except Exception:
             continue
-        if meta.get('meeting_type') != 'dangtuan':
-            continue
-        agenda_id = meta.get('agenda_id') or os.path.basename(anchor_f).replace('.json', '')
-        date = tikahtml_date(agenda_id)
-        if date:
-            index.setdefault(date, []).append(agenda_id)
+        date       = meta.get('date')
+        meeting_no = meta.get('meeting_no') or os.path.basename(anchor_f).replace('.json', '')
+        if date and meta.get('meeting_type') == 'dangtuan':
+            index.setdefault(date, []).append({
+                'meeting_no': meeting_no,
+                'start_time': meta.get('start_time'),
+            })
     return index
+
+
+def _best_meeting(ivod_start: str, meetings: list[dict], max_diff_hours: float = 2.5) -> str | None:
+    """
+    找與 IVOD start_time 最接近的 meeting。
+    ivod_start: ISO datetime string (e.g. '2026-07-24T08:33:45+08:00')
+    meetings: [{'meeting_no': ..., 'start_time': 'HH:MM' or None}, ...]
+    回傳 meeting_no 或 None（無法配對）。
+    """
+    try:
+        ivod_dt = datetime.fromisoformat(ivod_start)
+    except Exception:
+        return None
+    ivod_hhmm = ivod_dt.hour * 60 + ivod_dt.minute
+
+    best_no   = None
+    best_diff = float('inf')
+    for m in meetings:
+        st = m.get('start_time')
+        if st is None:
+            continue
+        h, mi = map(int, st.split(':'))
+        diff = abs(ivod_hhmm - (h * 60 + mi))
+        if diff < best_diff:
+            best_diff = diff
+            best_no   = m['meeting_no']
+
+    if best_no is None:
+        # 沒有任何 meeting 有 start_time → 若只有一個會議直接用
+        if len(meetings) == 1:
+            return meetings[0]['meeting_no']
+        return None
+
+    if best_diff >= max_diff_hours * 60:
+        return None   # 時間差太大，不配對
+
+    return best_no
 
 
 # ─── 單筆處理 ─────────────────────────────────────────────────────────────────
@@ -107,8 +118,6 @@ def process(vid: int, date_index: dict[str, list[str]]) -> tuple[bool, str]:
     if meet.get('type') != '黨團協商':
         return False, 'not 黨團協商 meet'
 
-    # Only 11th-term IVODs: older ppg_meet_page_json SittingCappInfo links are
-    # unreliable and point to wrong LCIDC01 IDs (e.g. committee meetings / 公聽會).
     if meet.get('term') != 11:
         return False, f'skipping pre-11th term (term={meet.get("term")})'
 
@@ -116,30 +125,28 @@ def process(vid: int, date_index: dict[str, list[str]]) -> tuple[bool, str]:
     if not ivod_date:
         return False, 'no date'
 
-    agenda_ids = date_index.get(ivod_date, [])
-    if not agenda_ids:
-        return False, f'no dangtuan anchor for date={ivod_date}'
-
-    # 收集全場 anchors（同一天可能有多份文件，依 agenda_id 排序）
-    all_anchors = []
-    used_ids    = []
-    for agenda_id in sorted(agenda_ids):
-        try:
-            a_data = json.load(open(os.path.join(ANCHOR_DIR, f'{agenda_id}.json')))
-        except Exception:
-            continue
-        anchors = a_data.get('anchors', [])
-        if not anchors:
-            continue
-        all_anchors.extend(anchors)
-        used_ids.append(agenda_id)
-
-    if not all_anchors:
-        return False, f'no anchors in {agenda_ids}'
-
     clip_start = d.get('start_time')
     if not clip_start:
         return False, 'no start_time'
+
+    meetings = date_index.get(ivod_date, [])
+    if not meetings:
+        return False, f'no dangtuan anchor for date={ivod_date}'
+
+    # 時間配對：找最接近 IVOD start_time 的 meeting
+    meeting_no = _best_meeting(clip_start, meetings)
+    if meeting_no is None:
+        return False, f'no time match for {ivod_date} start={clip_start} meetings={[m["meeting_no"] for m in meetings]}'
+
+    try:
+        a_data = json.load(open(os.path.join(ANCHOR_DIR, f'{meeting_no}.json')))
+    except Exception:
+        return False, f'cannot read anchor {meeting_no}'
+    all_anchors = a_data.get('anchors', [])
+    used_ids    = [meeting_no]
+
+    if not all_anchors:
+        return False, f'no anchors in {meeting_no}'
 
     whisper_words = load_whisper_words(vid)
     word_level    = bool(whisper_words)

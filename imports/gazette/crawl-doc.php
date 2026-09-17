@@ -37,6 +37,7 @@ foreach ($obj->hits->hits as $hit) {
             'LCIDC01_1056401_00006.doc',
             'LCIDC01_1150402_00002.doc', // OLE2 Can't read SAT
             'LCIDC01_1151201_00004.doc', // OLE2 Can't read SAT
+            'LCIDC01_1156904_00001.doc', // 404：communique1/work 不存在此黨團協商文件
         ];
         if (in_array($docfilename, $broken_docs)) {
             continue;

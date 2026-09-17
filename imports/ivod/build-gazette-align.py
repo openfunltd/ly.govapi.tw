@@ -44,8 +44,8 @@ def clean(s):
 
 # ─── 公報 block 解析 ──────────────────────────────────────────────────────────
 
-_HEADER_TIME = re.compile(r'^(.{1,12})：（\d+時\d+分.*?）(.*)$', re.DOTALL)
-_HEADER_BARE = re.compile(r'^(.{1,12})：(.*)$', re.DOTALL)
+_HEADER_TIME = re.compile(r'^(.{1,28})：（\d+時\d+分.*?）(.*)$', re.DOTALL)
+_HEADER_BARE = re.compile(r'^(.{1,28})：(.*)$', re.DOTALL)
 _SENT_SPLIT  = re.compile(r'(?<=[。！？])')
 MIN_SENT_CLEAN = 3  # 短於此（clean 後）的句子合入前一句
 

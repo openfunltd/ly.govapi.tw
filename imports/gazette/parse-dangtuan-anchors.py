@@ -2,11 +2,9 @@
 """
 Parse 黨團協商 gazette tikahtml files and extract speaker-turn anchors.
 
-Unlike 質詢型 (parse-gazette-anchors.py):
-  - No timestamp per speaker turn (time_str/time_minutes are null)
-  - Input is tikahtml (from agenda-tikahtml/), not plain txt
-  - Speaker labels appear as <b>姓名職稱：</b> inside <p class="內文">
-  - Detection: presence of CSS class '朝野協商(次標題)' or '朝野協商(內文)'
+Two input formats:
+  doc (.doc.html):  tika from unoserver→docx; has <p class="內文"> + <b>NAME：</b>
+  pdf (.pdf.html):  tika from PDF; plain <p> tags, speaker label embedded in text
 
 Usage:
     python3 parse-dangtuan-anchors.py <tikahtml_file>
@@ -135,6 +133,60 @@ class _ParagraphExtractor(HTMLParser):
 
 def _extract_paragraphs(html_text: str) -> list[dict]:
     p = _ParagraphExtractor()
+    p.feed(html_text)
+    return p.paragraphs
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PDF paragraph extractor (plain <p> tags, no CSS classes)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _detect_pdf_speaker(text: str) -> str | None:
+    """Return speaker label if paragraph starts with NAME：, else None."""
+    if '：' not in text:
+        return None
+    label = text.split('：', 1)[0].strip()
+    if len(label) > 20:
+        return None
+    if label == '主席':
+        return label
+    if not re.search('[一-鿿]', label):
+        return None
+    if any(t in label for t in _TITLE_LIST):
+        return label
+    # Short CJK-only name (2–3 chars) without explicit title
+    if re.match(r'^[一-鿿]{2,3}$', label):
+        return label
+    return None
+
+
+class _PdfParagraphExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.paragraphs = []
+        self._in_p = False
+        self._buf: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'p':
+            self._in_p = True
+            self._buf = []
+
+    def handle_endtag(self, tag):
+        if tag == 'p' and self._in_p:
+            text = ''.join(self._buf).strip()
+            if text:
+                speaker = _detect_pdf_speaker(text)
+                self.paragraphs.append({'cls': '', 'speaker': speaker, 'text': text})
+            self._in_p = False
+
+    def handle_data(self, data):
+        if self._in_p:
+            self._buf.append(data)
+
+
+def _extract_paragraphs_pdf(html_text: str) -> list[dict]:
+    p = _PdfParagraphExtractor()
     p.feed(html_text)
     return p.paragraphs
 
@@ -292,6 +344,65 @@ def parse_anchors(paragraphs: list[dict]) -> list[dict]:
     return result
 
 
+def parse_anchors_pdf(paragraphs: list[dict]) -> list[dict]:
+    """
+    Parse speaker-turn anchors from PDF 黨團協商 paragraphs.
+    Simpler than parse_anchors(): no CSS class filtering, speaker from text prefix.
+    """
+    anchors: list[dict] = []
+    seq = 0
+    current_speaker: str | None = None
+    current_lines: list[str] = []
+
+    def flush():
+        nonlocal seq, current_speaker, current_lines
+        if current_speaker is None:
+            current_lines = []
+            return
+        text_block = '\n'.join(current_lines).strip()
+        if text_block:
+            seq += 1
+            anchors.append({
+                'seq':          seq,
+                'speaker':      current_speaker,
+                'person_name':  extract_person_name(current_speaker),
+                'time_str':     None,
+                'time_minutes': None,
+                'text':         text_block,
+                'is_chair':     current_speaker == '主席',
+            })
+        current_speaker = None
+        current_lines = []
+
+    for para in paragraphs:
+        text    = para['text'].strip()
+        speaker = para['speaker']
+
+        if speaker:
+            flush()
+            current_speaker = speaker
+            current_lines   = [text]
+        elif current_speaker is not None:
+            current_lines.append(text)
+        # else: before first speaker (header lines) — skip
+
+    flush()
+
+    # Remove short chair announcements (noise)
+    result = []
+    for a in anchors:
+        if a['is_chair']:
+            clean = re.sub(r'^主席：', '', a['text']).strip()
+            if len(clean) < 15:
+                continue
+        result.append(a)
+
+    for i, a in enumerate(result):
+        a['seq'] = i + 1
+
+    return result
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # File-level entry point
 # ─────────────────────────────────────────────────────────────────────────────
@@ -299,9 +410,12 @@ def parse_anchors(paragraphs: list[dict]) -> list[dict]:
 def parse_file(path: str) -> dict:
     with open(path, encoding='utf-8', errors='replace') as f:
         html = f.read()
-    paragraphs = _extract_paragraphs(html)
+    is_pdf = path.endswith('.pdf.html')
+    paragraphs = _extract_paragraphs_pdf(html) if is_pdf else _extract_paragraphs(html)
     meeting_type = detect_meeting_type(paragraphs)
-    anchors = parse_anchors(paragraphs) if meeting_type == 'dangtuan' else []
+    anchors = []
+    if meeting_type == 'dangtuan':
+        anchors = parse_anchors_pdf(paragraphs) if is_pdf else parse_anchors(paragraphs)
     return {
         'path':         os.path.basename(path),
         'meeting_type': meeting_type,
