@@ -47,6 +47,7 @@ imports/ivod/ivod-transcript
 imports/ivod/__pycache__
 imports/ivod/ivod-gazette-align
 imports/ivod/wav
+imports/ivod/ivod-pyannote
 imports/meet/meet-proceeding-*
 imports/meet/meet-json
 imports/law/law.pdf
