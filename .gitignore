@@ -17,6 +17,14 @@ imports/gazette/gazette-html
 imports/gazette/gazette-pdf
 imports/gazette/gazette-txt
 imports/gazette/gazette-detail-html
+imports/gazette/__pycache__
+imports/gazette/agenda-anchor
+imports/gazette/dangtuan-anchor
+imports/gazette/dangtuan-data
+imports/gazette/dangtuan-pdf
+imports/gazette/dangtuan-tikahtml
+imports/gazette/error.log
+imports/gazette/vote-processed.json
 imports/meet/ppg_meet_page
 imports/meet/ppg_meet_page_json
 imports/meet/meet-data
@@ -27,6 +35,7 @@ imports/bill/bill-html
 imports/bill/bill-data
 imports/bill/tmp.doc
 imports/bill/tmp.html
+imports/bill/missing_law.txt
 imports/interpellation/files
 imports/interpellation/interpellation-data
 imports/ivod/current-id
@@ -35,6 +44,9 @@ imports/ivod/html
 imports/ivod/ivod-gazette
 imports/ivod/ivod-data
 imports/ivod/ivod-transcript
+imports/ivod/__pycache__
+imports/ivod/ivod-gazette-align
+imports/ivod/wav
 imports/meet/meet-proceeding-*
 imports/meet/meet-json
 imports/law/law.pdf
