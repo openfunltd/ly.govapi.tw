@@ -157,8 +157,31 @@ function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
 }
 
 // ──────────────────────────────────────────────
-// 主流程
+// 指定 id 模式：only_ids=17717,17734 php ivod-wav.php
+// 不管 ivod-transcript 是否已存在，直接下載 wav（給 reprocess-batch.php 重跑舊結果用），
+// 下載完即結束，不進入下方的常態掃描流程。
 // ──────────────────────────────────────────────
+
+if (getenv('only_ids')) {
+    foreach (explode(',', getenv('only_ids')) as $v) {
+        $v = intval(trim($v));
+        if (!$v) continue;
+        $wav_path = $ivod_dir . "/wav/{$v}.wav";
+        if (file_exists($wav_path)) { error_log("{$v}: wav 已存在，略過"); continue; }
+        $html = $ivod_dir . "/html/{$v}.html";
+        if (!file_exists($html)) { error_log("{$v}: html 不存在，略過"); continue; }
+        $max_full_id = intval(file_get_contents($ivod_dir . '/current-full-id'));
+        $type = $v <= $max_full_id ? 'Full' : 'Clip';
+        error_log("{$type} {$v}: 開始下載");
+        try {
+            download_ivod_to_wav($v, $type, $wav_path, $proxy_urls);
+            error_log("{$type} {$v} done: " . round(filesize($wav_path) / 1024 / 1024, 1) . ' MB');
+        } catch (Exception $e) {
+            error_log("{$type} {$v} error: " . $e->getMessage());
+        }
+    }
+    exit;
+}
 
 $endtime = time() - 6 * 30 * 86400; // 只處理 6 個月內的影片
 $max_clip = 3;
