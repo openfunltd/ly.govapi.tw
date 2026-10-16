@@ -9,6 +9,7 @@
 //   only_ids=17688,17695 php backfill-speaker-identity.php   # 只處理指定 ID（例如新增聲紋後想重查的幾支）
 
 include(__DIR__ . '/../../init.inc.php');
+include(__DIR__ . '/IVodParser.php');
 
 // 同 whisper-transcript.php：這支只打 ES，清掉 config.php 給 ivod.ly.gov.tw
 // 下載用的 https_proxy，避免不相關的 proxy 拖慢／搞壞 Elastic 連線。
@@ -17,40 +18,11 @@ putenv('https_proxy');
 $ivod_dir  = __DIR__;
 $limit     = intval(getenv('limit') ?: 0);
 $only_ids  = getenv('only_ids') ? array_flip(explode(',', getenv('only_ids'))) : null;
-$MIN_SCORE = 0.85;  // ES score 對應 cosine ≥ 0.70
 $done = $skipped = $updated = 0;
 
 function identify_speaker_es($embedding_b64, $term = 11) {
-    global $MIN_SCORE;
-    $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
-    // 跳過全零向量
-    if (max(array_map('abs', $vec)) < 1e-6) return null;
-    try {
-    $body = json_encode([
-        'knn' => [
-            'field' => 'embedding',
-            'query_vector' => $vec,
-            'k' => 1,
-            'num_candidates' => 30,
-            'filter' => ['term' => ['term' => $term]],
-        ],
-        'size' => 1,
-        '_source' => ['label', 'person_name'],
-    ], JSON_UNESCAPED_UNICODE);
-    $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
-    $hits = $result->hits->hits ?? [];
-    if (empty($hits)) return null;
-    $hit = $hits[0];
-    if ($hit->_score < $MIN_SCORE) return null;
-    return [
-        'label'       => $hit->_source->label,
-        'person_name' => $hit->_source->person_name,
-        'score'       => round($hit->_score * 2 - 1, 3),
-    ];
-    } catch (Exception $e) {
-        error_log("identify_speaker_es error: " . $e->getMessage());
-        return null;
-    }
+    // 門檻與比對規則統一在 IVodParser::identifySpeaker（含宣讀人員 role=reader 的處理）
+    return IVodParser::identifySpeaker($embedding_b64, $term);
 }
 
 $files = glob($ivod_dir . '/ivod-pyannote/*.json');

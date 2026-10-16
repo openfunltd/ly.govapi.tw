@@ -14,14 +14,27 @@ upsert-reader-embed.py
   3. 時間重疊把這個 transcript SPEAKER_XX 對應回 ivod-pyannote 的
      embedding speaker（見 IVodParser::alignPyannoteIdentities 說明）
   4. 收集所有場次、所有區間對應到的 embedding，依 cosine 相似度做簡單
-     貪婪分群──同一群視為同一人（人數未知，印象中約 3 位，實際分群
-     結果可能不同）
+     貪婪分群──同一群視為同一人（人數未知；院會與各委員會的議事人員
+     不同，所以掃全部 Full 影片，不只院會）
   5. 分群結果 upsert 進 speaker_identity（跟委員共用 index，但
      role='reader'、label 用占位名「宣讀人員1」這種，不是真實姓名）
 
+品質控制（「請宣讀→完畢」只是弱標籤，收集時要嚴一點）：
+  - 視窗長度 >= MIN_WINDOW_SEC，且 dominant speaker 要佔視窗 >= MIN_DOMINANCE
+    （避免抓到主席說「請宣讀」那一句或委員插話）
+  - 一個新群要在 >= MIN_SUPPORT_VIDEOS 場不同影片出現過才 upsert，
+    避免一次性的雜訊變成永久 cluster
+  - 重跑時先把 ES 既有 role=reader 的 doc 當群心載入，新樣本往既有群靠，
+    編號（宣讀人員N / doc_id）才會跨次執行穩定，不會把兩個人的 clips 混進
+    同一個 doc
+
+這裡只負責「收集聲紋」；影片裡的 speaker 要不要標成宣讀人員，跟委員、
+官員一樣統一走 kNN（IVodParser::identifySpeaker），內容規則只在 kNN
+完全沒比對到時當 fallback。
+
 使用：
   python3 upsert-reader-embed.py 17688 --dry-run   # 先測單支，只印偵測結果
-  python3 upsert-reader-embed.py --dry-run         # 全部院會 Full，只印分群結果
+  python3 upsert-reader-embed.py --dry-run         # 全部 Full（院會+委員會），只印分群結果
   python3 upsert-reader-embed.py                   # 正式 upsert
 """
 import argparse, base64, glob, json, os, re, sys
@@ -36,6 +49,9 @@ IVOD_DIR   = os.path.dirname(os.path.abspath(__file__))
 TERM       = 11
 MAX_RECENT = 20
 CLUSTER_THRESHOLD = 0.70  # cosine 相似度門檻，同 speaker_identity 既有的 MIN_SCORE 換算
+MIN_WINDOW_SEC     = 60    # 宣讀視窗至少要這麼長才採樣
+MIN_DOMINANCE      = 0.8   # dominant speaker 至少佔視窗這個比例
+MIN_SUPPORT_VIDEOS = 2     # 新群至少要出現在幾場不同影片才 upsert
 
 
 def load_config():
@@ -104,7 +120,7 @@ def find_reading_windows(segs):
 
 
 def process_ivod(vid):
-    """回傳這支影片裡每個偵測到的宣讀區間：[{embed_id, embedding, seconds, window}, ...]"""
+    """回傳這支影片裡每個偵測到且通過品質過濾的宣讀區間：[{eid, embedding, seconds, window, dominance}, ...]"""
     data_path  = f'{IVOD_DIR}/ivod-data/{vid}.json'
     trans_path = f'{IVOD_DIR}/ivod-transcript/{vid}.json'
     pyann_path = f'{IVOD_DIR}/ivod-pyannote/{vid}.json'
@@ -114,9 +130,6 @@ def process_ivod(vid):
 
     d = json.load(open(data_path))
     if d.get('type') != 'Full':
-        return []
-    meet = d.get('meet') or {}
-    if meet.get('type') != '院會':
         return []
 
     t = json.load(open(trans_path))
@@ -136,9 +149,11 @@ def process_ivod(vid):
     pyann = json.load(open(pyann_path))
     speakers = pyann.get('speakers', [])
 
-    # 每個區間找 dominant transcript label，再對齊回 embed speaker
     results = []
     for w0, w1 in windows:
+        wlen = w1 - w0
+        if wlen < MIN_WINDOW_SEC:
+            continue
         ov = defaultdict(float)
         for r in pr:
             o = max(0, min(w1, r[1]) - max(w0, r[0]))
@@ -146,7 +161,10 @@ def process_ivod(vid):
                 ov[r[2]] += o
         if not ov:
             continue
-        transcript_label = max(ov.items(), key=lambda x: x[1])[0]
+        transcript_label, dom_secs = max(ov.items(), key=lambda x: x[1])
+        dominance = dom_secs / wlen
+        if dominance < MIN_DOMINANCE:
+            continue
         eid = align_label(pr, speakers, transcript_label)
         if not eid:
             continue
@@ -156,16 +174,36 @@ def process_ivod(vid):
         results.append({
             'ivod_id': vid, 'window': (w0, w1), 'eid': eid,
             'embedding': decode_emb(emb_speaker['embedding']),
-            'seconds': w1 - w0,
+            'seconds': wlen, 'dominance': dominance,
         })
     return results
 
 
-def cluster_samples(samples):
+def load_existing_readers(cfg):
+    """ES 裡既有的 role=reader doc，當分群的初始群心：[{doc_id, label, num, centroid}]"""
+    index = f"{cfg['prefix']}speaker_identity"
+    auth  = HTTPBasicAuth(cfg['user'], cfg['password'])
+    r = requests.post(f"{cfg['url']}/{index}/_search", auth=auth, timeout=30, json={
+        'size': 200, 'query': {'match': {'role': 'reader'}},
+        '_source': ['label', 'embedding'],
+    })
+    out = []
+    for h in r.json().get('hits', {}).get('hits', []):
+        m = re.search(r'(\d+)$', h['_id'])
+        out.append({
+            'doc_id': h['_id'], 'label': h['_source']['label'],
+            'num': int(m.group(1)) if m else 0,
+            'centroid': l2norm(np.array(h['_source']['embedding'], dtype=np.float32)),
+        })
+    return out
+
+
+def cluster_samples(samples, seeds=()):
     """
     以 (video, eid) 為單位先合併（同一支影片同一個 embed speaker 的多個區間
     取加權平均），再跨影片用 cosine 相似度做貪婪分群。
-    回傳 [{embedding, members: [{ivod_id, seconds}, ...]}, ...]
+    seeds 是 ES 既有 reader doc 的群心，先放進 clusters，讓新樣本優先往既有群靠。
+    回傳 [{centroid, members: [{ivod_id, eid, embedding, seconds}], seed: {...}|None}, ...]
     """
     by_video_eid = defaultdict(list)
     for s in samples:
@@ -179,7 +217,7 @@ def cluster_samples(samples):
 
     merged.sort(key=lambda m: -m['seconds'])  # 時長長的先當群心，較穩定
 
-    clusters = []  # [{'centroid':..., 'members':[...]}]
+    clusters = [{'centroid': sd['centroid'], 'members': [], 'seed': sd} for sd in seeds]
     for m in merged:
         best, best_sim = None, 0.0
         for c in clusters:
@@ -188,11 +226,13 @@ def cluster_samples(samples):
                 best_sim, best = sim, c
         if best and best_sim >= CLUSTER_THRESHOLD:
             best['members'].append(m)
-            arrs = [mm['embedding'] * mm['seconds'] for mm in best['members']]
-            w = sum(mm['seconds'] for mm in best['members'])
-            best['centroid'] = l2norm(sum(arrs) / w)
+            # 既有 doc 的群心不隨新樣本漂移（它已經是 ES 裡 recent clips 的平均）
+            if not best['seed']:
+                arrs = [mm['embedding'] * mm['seconds'] for mm in best['members']]
+                w = sum(mm['seconds'] for mm in best['members'])
+                best['centroid'] = l2norm(sum(arrs) / w)
         else:
-            clusters.append({'centroid': m['embedding'], 'members': [m]})
+            clusters.append({'centroid': m['embedding'], 'members': [m], 'seed': None})
     return clusters
 
 
@@ -216,7 +256,7 @@ def upsert_to_es(cfg, doc_id, label, new_clips, dry_run):
         recent.append(clip)
         existing_ids.add(clip['ivod_id'])
         added += 1
-    count += len(new_clips)
+    count += added
 
     recent.sort(key=lambda c: c['date'], reverse=True)
     recent = recent[:MAX_RECENT]
@@ -248,11 +288,11 @@ def main():
     if args.vid:
         results = process_ivod(args.vid)
         if not results:
-            print('找不到宣讀區間')
+            print('找不到通過過濾的宣讀區間')
             return
         for r in results:
             w0, w1 = r['window']
-            print(f"{args.vid}  {w0:.1f}-{w1:.1f} ({r['seconds']:.1f}s)  embed={r['eid']}")
+            print(f"{args.vid}  {w0:.1f}-{w1:.1f} ({r['seconds']:.1f}s, dom={r['dominance']:.2f})  embed={r['eid']}")
         by_eid = defaultdict(float)
         for r in results:
             by_eid[r['eid']] += r['seconds']
@@ -260,6 +300,10 @@ def main():
         for eid, secs in sorted(by_eid.items(), key=lambda x: -x[1]):
             print(f'  {eid}: {secs:.1f}s')
         return
+
+    cfg = load_config()
+    seeds = load_existing_readers(cfg)
+    print(f'ES 既有 reader doc: {len(seeds)} 個 ({[s["label"] for s in seeds]})')
 
     ids = []
     for f in glob.glob(f'{IVOD_DIR}/ivod-pyannote/*.json'):
@@ -269,29 +313,46 @@ def main():
     ids.sort()
 
     all_samples = []
+    n_videos = 0
     for i, vid in enumerate(ids):
         r = process_ivod(vid)
+        if r:
+            n_videos += 1
         all_samples.extend(r)
-        if (i + 1) % 50 == 0:
+        if (i + 1) % 100 == 0:
             print(f'  ...{i + 1}/{len(ids)} scanned', file=sys.stderr)
 
-    print(f'\n共 {len(all_samples)} 個宣讀區間樣本，開始分群...')
-    clusters = cluster_samples(all_samples)
-    clusters.sort(key=lambda c: -sum(m['seconds'] for m in c['members']))
+    print(f'\n掃描 {len(ids)} 支 Full，{n_videos} 支有合格宣讀區間，共 {len(all_samples)} 個樣本，開始分群...')
+    clusters = cluster_samples(all_samples, seeds)
+    clusters.sort(key=lambda c: (c['seed'] is None, -sum(m['seconds'] for m in c['members'])))
 
-    print(f'分群結果：共 {len(clusters)} 位宣讀人員\n')
-    for i, c in enumerate(clusters, 1):
-        total = sum(m['seconds'] for m in c['members'])
+    next_num = max([s['num'] for s in seeds] + [0]) + 1
+    plan = []  # (doc_id, label, cluster)
+    skipped = []
+    for c in clusters:
         vids = sorted(set(m['ivod_id'] for m in c['members']))
-        print(f'宣讀人員{i}: {len(vids)} 場, 共 {total:.0f}s, videos={vids}')
+        total = sum(m['seconds'] for m in c['members'])
+        if c['seed']:
+            doc_id, label = c['seed']['doc_id'], c['seed']['label']
+            tag = '既有'
+        elif len(vids) >= MIN_SUPPORT_VIDEOS:
+            doc_id, label = f'{TERM}:reader:{next_num}', f'宣讀人員{next_num}'
+            next_num += 1
+            tag = '新增'
+        else:
+            skipped.append((vids, total))
+            continue
+        plan.append((doc_id, label, c))
+        print(f'{label} [{tag} {doc_id}]: {len(vids)} 場, 共 {total:.0f}s, videos={vids}')
+    if skipped:
+        print(f'\n未達 {MIN_SUPPORT_VIDEOS} 場、不建群的單一樣本 {len(skipped)} 個：')
+        for vids, total in skipped:
+            print(f'  videos={vids} {total:.0f}s')
 
     if args.dry_run:
         return
 
-    cfg = load_config()
-    for i, c in enumerate(clusters, 1):
-        label = f'宣讀人員{i}'
-        doc_id = f'{TERM}:reader:{i}'
+    for doc_id, label, c in plan:
         clips = []
         for m in c['members']:
             dp = f'{IVOD_DIR}/ivod-data/{m["ivod_id"]}.json'

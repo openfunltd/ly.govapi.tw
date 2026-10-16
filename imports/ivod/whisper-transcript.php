@@ -90,36 +90,8 @@ function pipeline_to_transcript($v, $job_result) {
 }
 
 function identify_speaker($embedding_b64, $term = 11) {
-    // ES kNN 查詢，回傳最佳匹配的 {label, person_name, score} 或 null
-    $MIN_SCORE = 0.85; // 對應 cosine >= 0.70
-    try {
-        $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
-        if (max(array_map('abs', $vec)) < 1e-6) return null; // 全零向量
-        $body = json_encode([
-            'knn' => [
-                'field' => 'embedding',
-                'query_vector' => $vec,
-                'k' => 1,
-                'num_candidates' => 30,
-                'filter' => ['term' => ['term' => $term]],
-            ],
-            'size' => 1,
-            '_source' => ['label', 'person_name'],
-        ], JSON_UNESCAPED_UNICODE);
-        $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
-        $hits = $result->hits->hits ?? [];
-        if (empty($hits)) return null;
-        $hit = $hits[0];
-        if ($hit->_score < $MIN_SCORE) return null;
-        return [
-            'label'       => $hit->_source->label,
-            'person_name' => $hit->_source->person_name,
-            'score'       => round($hit->_score * 2 - 1, 3), // ES score → cosine
-        ];
-    } catch (Exception $e) {
-        error_log("identify_speaker error: " . $e->getMessage());
-        return null;
-    }
+    // 門檻與比對規則統一在 IVodParser::identifySpeaker（含宣讀人員 role=reader 的處理）
+    return IVodParser::identifySpeaker($embedding_b64, $term);
 }
 
 function save_pyannote($v, $job_result) {

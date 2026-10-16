@@ -9,6 +9,7 @@
 //   preloaded=17742:/path/to/result.json only_ids=... php reprocess-batch.php   # 17742 已經有現成結果，直接套用不重送
 
 include(__DIR__ . '/../../init.inc.php');
+include(__DIR__ . '/IVodParser.php');
 
 // 這支只打 asr-tool/ES，不碰 ivod.ly.gov.tw，清掉 config.php 給 CDN 下載用的
 // https_proxy（process-wide putenv 會被 curl 自動套用到所有 https 請求，
@@ -65,35 +66,8 @@ function asr_submit($wav_name) {
 }
 
 function identify_speaker($embedding_b64, $term = 11) {
-    $MIN_SCORE = 0.85; // 對應 cosine >= 0.70
-    try {
-        $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
-        if (max(array_map('abs', $vec)) < 1e-6) return null;
-        $body = json_encode([
-            'knn' => [
-                'field' => 'embedding',
-                'query_vector' => $vec,
-                'k' => 1,
-                'num_candidates' => 30,
-                'filter' => ['term' => ['term' => $term]],
-            ],
-            'size' => 1,
-            '_source' => ['label', 'person_name'],
-        ], JSON_UNESCAPED_UNICODE);
-        $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
-        $hits = $result->hits->hits ?? [];
-        if (empty($hits)) return null;
-        $hit = $hits[0];
-        if ($hit->_score < $MIN_SCORE) return null;
-        return [
-            'label'       => $hit->_source->label,
-            'person_name' => $hit->_source->person_name,
-            'score'       => round($hit->_score * 2 - 1, 3),
-        ];
-    } catch (Exception $e) {
-        error_log("identify_speaker error: " . $e->getMessage());
-        return null;
-    }
+    // 門檻與比對規則統一在 IVodParser::identifySpeaker（含宣讀人員 role=reader 的處理）
+    return IVodParser::identifySpeaker($embedding_b64, $term);
 }
 
 function pipeline_to_transcript($v, $job_result) {

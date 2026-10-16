@@ -193,7 +193,8 @@ ly.govapi.tw/
 |------|------|
 | `build-gazette-align.py` | 把公報逐字發言段落對齊 whisper 逐字稿時間軸（給 quality 分數、guessed 標記），寫入 `ivod-gazette-align/{id}.json` 與 `ivod-data/{id}.json` 的 `transcript.gazette`，是語者身分比對的 ground truth 來源 |
 | `upsert-speaker-embed.py`（cron 3am `speaker-embed.php`） | 掃描近 N 天有 gazette-align + pyannote 的 Clip，依公報標註的委員身分把對應 pyannote embedding 平均進 ES speaker_identity index（每人最多保留近 20 筆 `recent_clips`） |
-| `whisper-transcript.php` 內 `identify_speaker()` | 處理新影片時即時用 kNN 比對 speaker_identity，cosine 達門檻才寫入 identity |
+| `upsert-reader-embed.py` | 收集「宣讀人員」（唸議案內容的議事人員，公報不會寫名字、不只一人）的聲紋：在 whisper 逐字稿找「請宣讀→完畢」視窗，取視窗內 dominant speaker 的 embedding，跨場次貪婪分群後以占位名「宣讀人員N」、`role=reader` upsert 進 speaker_identity。品質過濾：視窗 ≥60s、dominant ≥80%、新群至少出現在 2 場；重跑時以 ES 既有 reader doc 為群心，編號跨次穩定。院會與各委員會的議事人員不同，所以掃全部 Full |
+| `IVodParser::identifySpeaker()` | 全系統唯一的 kNN 比對入口（whisper-transcript / reprocess-batch / backfill / recompute 都呼叫它）。委員、官員、宣讀人員統一走 kNN；門檻常數在 IVodParser：具名 cosine ≥0.70、宣讀人員 ≥0.75，兩者分數差在 0.02 內時具名優先（誤把具名的人標成宣讀人員代價較大）。「請宣讀→完畢」內容規則只在 kNN 完全沒比對到時當 fallback（標成不帶編號的「宣讀人員」） |
 | `backfill-speaker-identity.php` | 批次或指定 id（`only_ids=`）補跑既有 `ivod-pyannote/{id}.json` 裡還沒 identity 的 speaker，常用於門檻調整後重新驗證效果 |
 | `reindex-speaker-identity.php` | 把 `ivod-pyannote/` 裡的結果用時間重疊（`IVodParser::alignPyannoteIdentities`）對齊回 `ivod-data` 的 `transcript.pyannote`（speaker_name/score/is_chair），同時把每個 speaker cluster 的 embedding 存進 `transcript.speakers`，再重新 index 進 ES |
 | `recompute-speaker-identity.php` | 只讀 ES `transcript.speakers` 裡現成的 embedding，重新對 speaker_identity 做 kNN 並寫回 `speaker_name`/`speaker_score`/`is_chair`；不碰本機檔案、不重跑 ASR。調門檻或新增聲紋後跑這支就能讓全部舊影片套用新規則（`only_ids=`、`limit=`、`dry_run=1`） |
@@ -210,7 +211,7 @@ ly.govapi.tw/
 
 **開發中（尚未納入 cron，2026-10）**：
 - `imports/gazette/build-chair-index.php` → `imports/gazette/chair-index.json`：從公報標頭解析每場會議的主席名單，供 `IVodParser::getSessionChair()` 判斷 `is_chair`
-- `upsert-chair-embed.py` / `upsert-reader-embed.py`：主席／宣讀人員專屬聲紋 embedding（主持/宣讀時的語氣跟一般委員發言不同，目前共用同一套 speaker_identity 比對準確度有限）
+- `upsert-chair-embed.py`：院會主席（院長／副院長）專屬聲紋 embedding
 
 **快取目錄**（`imports/ivod/` 下）：
 - `html/` — 爬取的 iVOD HTML 頁面
@@ -377,6 +378,7 @@ ly.govapi.tw/
 - `whisper-transcript.php` 加入即時 kNN 身分比對（`identify_speaker()`），搭配 `backfill-speaker-identity.php`/`reindex-speaker-identity.php` 做門檻調整後的回補
 - ES `ivod` index 新增 `transcript.speakers` 存 embedding，加入 `recompute-speaker-identity.php`（不重跑 ASR 即可全庫重算身分）與 `reprocess-batch.php`（長 Full 影片用新版 asr-tool 重跑）
 - 修正 `config.php` 的 `https_proxy` 被 curl 套用到 ES/asr-tool 請求導致偶發卡住的問題（各 ivod 腳本於 include 後 `putenv('https_proxy')` 清掉）
+- 宣讀人員改走聲紋庫：`upsert-reader-embed.py` 從「請宣讀→完畢」視窗收集議事人員聲紋（17 群，院會＋各委員會），kNN 統一到 `IVodParser::identifySpeaker()`，內容規則降為 fallback
 - 加入公報記名表決解析（`gazette/parse-vote.php` → `gazette_vote` index）
 - 開發中：主席／宣讀人員專屬聲紋（`build-chair-index.php`、`upsert-chair-embed.py`、`upsert-reader-embed.py`），以及長 Full 影片 pyannote 聚類誤合併問題的排查
 
@@ -390,7 +392,7 @@ ly.govapi.tw/
 - **meet 是最複雜的**：從 5 個以上來源（open data、PPG、公報 txt、公報 gazette、發言清單）合併
 - **gazette txt 是 meet 和 ivod 的上游**：gazette 爬蟲失敗會連帶影響 meet 解析和 ivod 對應
 - **iVOD Whisper 逐字稿**：相對較新的功能，仍在擴充中，whisper-transcript.php 是非同步的（submit → 輪詢狀態）
-- **語者身分比對（speaker_identity）更新**：比對門檻 `$MIN_SCORE`（ES score，= (cosine+1)/2，目前 0.85 即 cosine 0.70）分別寫在 `whisper-transcript.php`、`backfill-speaker-identity.php`、`reprocess-batch.php`、`recompute-speaker-identity.php` 四處，要同步改；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR
+- **語者身分比對（speaker_identity）更新**：比對門檻只在 `IVodParser::identifySpeaker()` 的常數（`SPEAKER_MIN_SCORE` 0.85 = cosine 0.70、`READER_MIN_SCORE` 0.875 = cosine 0.75、`READER_MARGIN`；ES score = (cosine+1)/2），四支腳本都呼叫它；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR。宣讀人員的聲紋用 `upsert-reader-embed.py` 收集，可重跑（會往既有 cluster 靠）
 - **`whisper-transcript.php` 是常駐 daemon**：由 `imports/ivod/auto-loop.sh`（`while true; php whisper-transcript.php; sleep 1`）在終端機裡跑，不是 cron/systemd；改程式後 kill 掉 php process 會被自動重啟載入新程式
 - **`config.php` 的 `https_proxy` 是 process-wide**：只給 ivod.ly.gov.tw CDN 下載用，但 curl 會套用到所有 https 請求。只打 ES/asr-tool 的腳本要在 include `init.inc.php` 後 `putenv('https_proxy')` 清掉，否則 ES bulk 會偶發卡住或失敗
 - **常見修改類型**（依 git log 觀察）：人名/資料錯誤修正、解析器調整（文件格式變化）、錯誤處理與重試、新增欄位、爬蟲反封鎖（User-Agent、Proxy、IPv4）

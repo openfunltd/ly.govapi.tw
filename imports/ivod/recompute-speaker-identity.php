@@ -7,7 +7,7 @@
 //
 // 跟 backfill-speaker-identity.php + reindex-speaker-identity.php 的差別：
 // 這支完全不讀本地 ivod-pyannote/*.json，也不管某個 speaker 是不是「已經
-// 有 identity」——一律用目前的 $MIN_SCORE / speaker_identity 內容重新比對、
+// 有 identity」——一律用目前的 IVodParser::identifySpeaker 門檻 / speaker_identity 內容重新比對、
 // 覆蓋舊結果。調整門檻或新增聲紋後，只要跑這支就能讓既有影片反映最新規則，
 // 不需要重新跑 ASR/pyannote，也不需要掃過本地檔案。
 //
@@ -31,35 +31,9 @@ $only_ids = getenv('only_ids') ? array_map('intval', explode(',', getenv('only_i
 $done = $updated = $skipped = $errors = 0;
 
 function identify_speaker($embedding_b64, $term = 11) {
-    $MIN_SCORE = 0.85; // 對應 cosine >= 0.70，需跟 whisper-transcript.php 保持同步
-    try {
-        $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
-        if (max(array_map('abs', $vec)) < 1e-6) return null;
-        $body = json_encode([
-            'knn' => [
-                'field' => 'embedding',
-                'query_vector' => $vec,
-                'k' => 1,
-                'num_candidates' => 30,
-                'filter' => ['term' => ['term' => $term]],
-            ],
-            'size' => 1,
-            '_source' => ['label', 'person_name'],
-        ], JSON_UNESCAPED_UNICODE);
-        $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
-        $hits = $result->hits->hits ?? [];
-        if (empty($hits)) return null;
-        $hit = $hits[0];
-        if ($hit->_score < $MIN_SCORE) return null;
-        return (object)[
-            'label'       => $hit->_source->label,
-            'person_name' => $hit->_source->person_name,
-            'score'       => round($hit->_score * 2 - 1, 3),
-        ];
-    } catch (Exception $e) {
-        error_log("identify_speaker error: " . $e->getMessage());
-        return null;
-    }
+    // 門檻與比對規則統一在 IVodParser::identifySpeaker（含宣讀人員 role=reader 的處理）
+    $r = IVodParser::identifySpeaker($embedding_b64, $term);
+    return $r ? (object)$r : null;
 }
 
 $query = ['exists' => ['field' => 'transcript.speakers']];
@@ -97,34 +71,22 @@ while (true) {
         $pyannote_segs = $ivod->transcript->pyannote ?? [];
         if (!$speakers || !$pyannote_segs) { $skipped++; continue; }
 
-        // 用既有 transcript.pyannote 逐段重建每個 speaker label 的時間區段，
-        // 跟 alignPyannoteIdentities 需要的格式一致，不需要額外存 segments。
-        $segs_by_label = [];
         $transcript_segs = [];
         foreach ($pyannote_segs as $seg) {
-            $segs_by_label[$seg->speaker][] = [$seg->start, $seg->end];
             $transcript_segs[] = [$seg->start, $seg->end, $seg->speaker];
         }
 
-        $pyann_speakers = [];
-        $has_identity = false;
+        // transcript.speakers[].speaker 已是 reindex-speaker-identity.php 對齊過的 transcript label
+        // （跟 transcript.pyannote[].speaker 同一套編號），直接 kNN 即可，不需再做時間重疊對齊。
+        $identities = [];
         foreach ($speakers as $spk) {
             $identity = identify_speaker($spk->embedding);
-            if ($identity) $has_identity = true;
-            $pyann_speakers[] = (object)[
-                'id'       => $spk->speaker,
-                'segments' => $segs_by_label[$spk->speaker] ?? [],
-                'identity' => $identity,
-            ];
+            if ($identity) $identities[$spk->speaker] = $identity;
         }
 
         $reading_windows = IVodParser::findReadingWindows($ivod->transcript->whisperx ?? []);
 
-        $identities = [];
-        if ($has_identity) {
-            $identities = IVodParser::alignPyannoteIdentities($transcript_segs, $pyann_speakers);
-        }
-
+        // 「請宣讀→完畢」內容規則只在 kNN 完全沒比對到身分的 speaker 上當 fallback
         $reading_labels = array_diff_key(
             IVodParser::findReadingSpeakerLabels($transcript_segs, $reading_windows),
             $identities
@@ -137,19 +99,7 @@ while (true) {
 
         $changed = false;
         foreach ($pyannote_segs as $seg) {
-            if (isset($reading_labels[$seg->speaker])) {
-                if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
-                    $seg->speaker_name = '宣讀人員';
-                    unset($seg->speaker_score, $seg->is_chair);
-                    $changed = true;
-                }
-            } elseif ($reading_windows && IVodParser::isReadingTime($reading_windows, $seg->start, $seg->end)) {
-                if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
-                    $seg->speaker_name = '宣讀人員';
-                    unset($seg->speaker_score, $seg->is_chair);
-                    $changed = true;
-                }
-            } elseif (isset($identities[$seg->speaker])) {
+            if (isset($identities[$seg->speaker])) {
                 $new_name    = $identities[$seg->speaker]->label;
                 $new_score   = $identities[$seg->speaker]->score;
                 $new_is_chair = IVodParser::isSessionChair($meet_id, $date, $identities[$seg->speaker]->person_name) ? true : null;
@@ -163,6 +113,13 @@ while (true) {
                     } else {
                         unset($seg->is_chair);
                     }
+                    $changed = true;
+                }
+            } elseif (isset($reading_labels[$seg->speaker])) {
+                // kNN 沒比對到任何身分時的 fallback：內容規則判斷為宣讀人員
+                if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
+                    $seg->speaker_name = '宣讀人員';
+                    unset($seg->speaker_score, $seg->is_chair);
                     $changed = true;
                 }
             } elseif (isset($seg->speaker_name)) {

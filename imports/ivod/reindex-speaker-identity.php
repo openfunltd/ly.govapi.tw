@@ -11,7 +11,7 @@
 //
 // 同時會把每個 speaker cluster 的原始 embedding 存進 ivod-data/ES 的
 // transcript.speakers（label+embedding+total_seconds）。這樣日後調整
-// $MIN_SCORE 門檻或 speaker_identity 新增聲紋時，直接對 ES 既有 embedding
+// IVodParser::identifySpeaker 的門檻或 speaker_identity 新增聲紋時，直接對 ES 既有 embedding
 // 做 kNN 重新比對即可（見 recompute-speaker-identity.php），不需要再重新
 // 掃過 ivod-pyannote/*.json 本地檔案、更不需要重新跑 ASR/pyannote。
 //
@@ -83,21 +83,27 @@ foreach ($files as $pyann_path) {
         $identities = IVodParser::alignPyannoteIdentities($transcript_segs, $pyann->speakers);
     }
 
-    // 同一支影片裡同一個 SPEAKER_XX 編號就是同一個人，只要曾經有一段落在宣讀視窗內，
-    // 這整支影片裡這個編號的段落都算宣讀人員（見 IVodParser::findReadingSpeakerLabels）。
-    // 但如果這個編號已經比對到身分（委員／主席），代表這其實是本人聲紋，只是偶爾因為
-    // 交疊講話被誤判落在宣讀視窗內，不能整支都蓋成宣讀人員，仍交給下面逐段判斷。
+    // 身分一律以 kNN（IVodParser::identifySpeaker）為準：委員、官員、宣讀人員（role=reader）
+    // 都走同一條路。「請宣讀→完畢」內容規則只在 kNN 完全沒比對到身分的 speaker 上當
+    // fallback——同一支影片同一個 SPEAKER_XX 就是同一個人，只要有一段落在宣讀視窗內，
+    // 這個編號的所有段落都算宣讀人員（見 IVodParser::findReadingSpeakerLabels）。
     $reading_labels = array_diff_key(
         IVodParser::findReadingSpeakerLabels($transcript_segs, $reading_windows),
         $identities
     );
 
-    // 把 embedding 存進 transcript.speakers，供 recompute-speaker-identity.php 日後快速重算
+    // 把 embedding 存進 transcript.speakers，供 recompute-speaker-identity.php 日後快速重算。
+    // `speaker` 存的是對齊後的 transcript label（跟 transcript.pyannote[].speaker 同一套編號），
+    // `embed_id` 才是 ivod-pyannote 原始編號——舊影片的 embedding 來自另一次獨立 pyannote，
+    // 兩套編號不同，沒對齊上的 embedding speaker 不存（對不回逐字稿也沒用）。
+    $label_by_eid = array_flip(IVodParser::alignPyannoteSpeakers($transcript_segs, $pyann->speakers));
     $speakers_field = [];
     foreach ($pyann->speakers as $spk) {
         if (empty($spk->embedding)) continue;
+        if (!isset($label_by_eid[$spk->id])) continue;
         $speakers_field[] = [
-            'speaker'       => $spk->id,
+            'speaker'       => $label_by_eid[$spk->id],
+            'embed_id'      => $spk->id,
             'embedding'     => $spk->embedding,
             'total_seconds' => $spk->total_seconds ?? null,
         ];
@@ -111,19 +117,7 @@ foreach ($files as $pyann_path) {
 
     $changed = false;
     foreach ($pyannote_segs as $seg) {
-        if (isset($reading_labels[$seg->speaker])) {
-            if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
-                $seg->speaker_name = '宣讀人員';
-                unset($seg->speaker_score, $seg->is_chair);
-                $changed = true;
-            }
-        } elseif ($reading_windows && IVodParser::isReadingTime($reading_windows, $seg->start, $seg->end)) {
-            if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
-                $seg->speaker_name = '宣讀人員';
-                unset($seg->speaker_score, $seg->is_chair);
-                $changed = true;
-            }
-        } elseif (isset($identities[$seg->speaker])) {
+        if (isset($identities[$seg->speaker])) {
             $new_name    = $identities[$seg->speaker]->label;
             $new_score   = $identities[$seg->speaker]->score;
             $new_is_chair = IVodParser::isSessionChair($meet_id, $date, $identities[$seg->speaker]->person_name) ? true : null;
@@ -137,6 +131,13 @@ foreach ($files as $pyann_path) {
                 } else {
                     unset($seg->is_chair);
                 }
+                $changed = true;
+            }
+        } elseif (isset($reading_labels[$seg->speaker])) {
+            // kNN 沒比對到任何身分時的 fallback：內容規則判斷為宣讀人員
+            if (($seg->speaker_name ?? null) !== '宣讀人員' || isset($seg->speaker_score) || isset($seg->is_chair)) {
+                $seg->speaker_name = '宣讀人員';
+                unset($seg->speaker_score, $seg->is_chair);
                 $changed = true;
             }
         } elseif (isset($seg->speaker_name)) {

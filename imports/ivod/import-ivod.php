@@ -8,6 +8,10 @@ $crawled = 0;
 if (!getenv('date')) {
     putenv('date=' . (time() - 86400 * 7));
 }
+// only_ids=17566,17587 php import-ivod.php：只重新匯入指定 id（不受 date 限制），
+// 用於 reprocess-batch.php 重跑舊影片後，把新的 ivod-transcript/ivod-pyannote 推進 ivod-data 與 ES。
+$only_ids = getenv('only_ids') ? array_map('intval', explode(',', getenv('only_ids'))) : null;
+$max_full_id = intval(file_get_contents(__DIR__ . '/current-full-id'));
 foreach ([
     'Full' => 'current-full-id',
     'Clip' => 'current-id',
@@ -15,7 +19,15 @@ foreach ([
     $overtime_limit = 5; // 有幾個超時的就要替過
     $v = intval(file_get_contents(__DIR__ . '/' . $v_file));
     $error_name = [];
+    $type_ids = null;
+    if ($only_ids !== null) {
+        // Full 的 id 範圍 <= current-full-id，Clip 的 > current-full-id
+        $type_ids = array_values(array_filter($only_ids, fn($id) => $type === 'Full' ? $id <= $max_full_id : $id > $max_full_id));
+        if (!$type_ids) continue;
+        $v = max($type_ids);
+    }
     for (; $v > 0; $v --) {
+        if ($type_ids !== null && !in_array($v, $type_ids)) continue;
         //error_log($v);
         $url = sprintf("https://ivod.ly.gov.tw/Play/%s/1M/%d", $type, $v);
         $html_target = __DIR__ . "/html/{$v}.html";
@@ -25,7 +37,7 @@ foreach ([
         }
         $content = file_get_contents($html_target);
         $ivod = IVodParser::parseHTML($v, $content, $type);
-        if (getenv('date')) {
+        if (getenv('date') && $type_ids === null) {
             if (strtotime($ivod->start_time) < getenv('date')) {
                 $overtime_limit --;
                 if ($overtime_limit <= 0) {
@@ -66,12 +78,11 @@ foreach ([
                         $identities = IVodParser::alignPyannoteIdentities(
                             $obj->pyannote->result->result, $pyann->speakers ?? []);
                     }
-                    // 同一支影片裡同一個 SPEAKER_XX 編號就是同一個人，只要曾經有一段
-                    // 落在宣讀視窗內，這整支影片裡這個編號的段落都算宣讀人員（見
-                    // IVodParser::findReadingSpeakerLabels 說明，處理公報列舉多案、
-                    // 後面案件沒有「請宣讀」觸發詞的情況）。但如果這個編號已經比對到
-                    // 身分（委員／主席），代表這其實是本人聲紋，只是偶爾因為交疊講話
-                    // 被誤判落在宣讀視窗內，不能整支都蓋成宣讀人員，仍交給下面逐段判斷。
+                    // 身分一律以 kNN（IVodParser::identifySpeaker）為準：委員、官員、
+                    // 宣讀人員（speaker_identity 裡 role=reader 的「宣讀人員N」）都走同一條路。
+                    // 「請宣讀→完畢」內容規則只在 kNN 完全沒比對到時當 fallback——同一支
+                    // 影片同一個 SPEAKER_XX 就是同一個人，只要有一段落在宣讀視窗內，這個
+                    // 編號的所有段落都算宣讀人員（見 IVodParser::findReadingSpeakerLabels）。
                     $reading_labels = array_diff_key(
                         IVodParser::findReadingSpeakerLabels($obj->pyannote->result->result, $reading_windows),
                         $identities
@@ -90,16 +101,15 @@ foreach ([
                             'start' => $r[0],
                             'end' => $r[1],
                         ];
-                        if (isset($reading_labels[$r[2]])) {
-                            $entry['speaker_name'] = '宣讀人員';
-                        } elseif ($reading_windows && IVodParser::isReadingTime($reading_windows, $r[0], $r[1])) {
-                            $entry['speaker_name'] = '宣讀人員';
-                        } elseif (isset($identities[$r[2]])) {
+                        if (isset($identities[$r[2]])) {
                             $entry['speaker_name']  = $identities[$r[2]]->label;
                             $entry['speaker_score'] = $identities[$r[2]]->score;
                             if (IVodParser::isSessionChair($meet_id, $date, $identities[$r[2]]->person_name)) {
                                 $entry['is_chair'] = true;
                             }
+                        } elseif (isset($reading_labels[$r[2]])) {
+                            // kNN 沒比對到任何身分時的 fallback：內容規則判斷為宣讀人員
+                            $entry['speaker_name'] = '宣讀人員';
                         }
                         $result['pyannote'][] = $entry;
                     }

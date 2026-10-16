@@ -123,6 +123,31 @@ class IVodParser
      */
     public static function alignPyannoteIdentities($transcript_segs, $pyann_speakers)
     {
+        $identities_by_eid = [];
+        foreach ($pyann_speakers as $spk) {
+            if (!empty($spk->identity)) {
+                $identities_by_eid[$spk->id] = $spk->identity;
+            }
+        }
+        $result = [];
+        foreach (self::alignPyannoteSpeakers($transcript_segs, $pyann_speakers) as $label => $eid) {
+            if (isset($identities_by_eid[$eid])) {
+                $result[$label] = $identities_by_eid[$eid];
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * alignPyannoteIdentities 的底層：只做編號對應，不管 identity。
+     * reindex-speaker-identity.php 用它把每個 embedding speaker 對應到的 transcript label
+     * 一起存進 ES transcript.speakers，之後 recompute-speaker-identity.php 就不需要
+     * segments 也能把 embedding 對回逐字稿的 label。
+     *
+     * @return array  [transcript_label => embed_id]，只回傳比對上的
+     */
+    public static function alignPyannoteSpeakers($transcript_segs, $pyann_speakers)
+    {
         if (empty($transcript_segs) || empty($pyann_speakers)) {
             return [];
         }
@@ -178,22 +203,7 @@ class IVodParser
             $used_e[$eid] = true;
             $used_t[$label] = true;
         }
-
-        // 4. 轉成 transcript_label => identity
-        $identities_by_eid = [];
-        foreach ($pyann_speakers as $spk) {
-            if (!empty($spk->identity)) {
-                $identities_by_eid[$spk->id] = $spk->identity;
-            }
-        }
-
-        $result = [];
-        foreach ($map as $label => $eid) {
-            if (isset($identities_by_eid[$eid])) {
-                $result[$label] = $identities_by_eid[$eid];
-            }
-        }
-        return $result;
+        return $map;
     }
 
     /**
@@ -256,6 +266,71 @@ class IVodParser
             }
         }
         return $labels;
+    }
+
+    const SPEAKER_MIN_SCORE = 0.85;   // ES score = (cosine+1)/2 → cosine 0.70，具名身分（委員／官員）
+    const READER_MIN_SCORE  = 0.875;  // cosine 0.75，宣讀人員（speaker_identity 裡 role=reader）門檻較高
+    const READER_MARGIN     = 0.01;   // ES score 差距（cosine 0.02）內，具名身分優先於宣讀人員
+
+    /**
+     * 用 pyannote speaker embedding 對 speaker_identity 做 kNN，回傳最佳身分或 null。
+     * 委員、行政官員、宣讀人員（role=reader，占位名「宣讀人員N」，由 upsert-reader-embed.py
+     * 收集）都走這同一條路，差別只在門檻：宣讀人員的 embedding 是數小時乾淨朗讀音平均
+     * 出來的，正確時分數會很高，所以門檻設高一點；而誤把具名的人標成宣讀人員會讓他
+     * 失去名字，代價較大，所以兩者分數接近時優先給具名身分。
+     *
+     * 全系統的比對門檻只有這一處（whisper-transcript / reprocess-batch /
+     * backfill-speaker-identity / recompute-speaker-identity 都呼叫這裡）；調整後跑
+     * recompute-speaker-identity.php 即可套用到既有影片。
+     *
+     * @return array|null  ['label'=>…, 'person_name'=>…, 'score'=>cosine(3 位), 'role'=>'reader'（僅宣讀人員）]
+     */
+    public static function identifySpeaker($embedding_b64, $term = 11)
+    {
+        try {
+            $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
+            if (!$vec || max(array_map('abs', $vec)) < 1e-6) return null; // 全零向量
+            $body = json_encode([
+                'knn' => [
+                    'field' => 'embedding',
+                    'query_vector' => $vec,
+                    'k' => 5,
+                    'num_candidates' => 50,
+                    'filter' => ['term' => ['term' => $term]],
+                ],
+                'size' => 5,
+                '_source' => ['label', 'person_name', 'role'],
+            ], JSON_UNESCAPED_UNICODE);
+            $result = Elastic::dbQuery('/{prefix}speaker_identity/_search', 'POST', $body);
+
+            $best_named = $best_reader = null;
+            foreach ($result->hits->hits ?? [] as $hit) { // 已依分數由高到低
+                if (($hit->_source->role ?? null) === 'reader') {
+                    if (!$best_reader && $hit->_score >= self::READER_MIN_SCORE) $best_reader = $hit;
+                } else {
+                    if (!$best_named && $hit->_score >= self::SPEAKER_MIN_SCORE) $best_named = $hit;
+                }
+            }
+            if ($best_named && $best_reader) {
+                $hit = ($best_reader->_score - $best_named->_score < self::READER_MARGIN) ? $best_named : $best_reader;
+            } else {
+                $hit = $best_named ?: $best_reader;
+            }
+            if (!$hit) return null;
+
+            $identity = [
+                'label'       => $hit->_source->label,
+                'person_name' => $hit->_source->person_name,
+                'score'       => round($hit->_score * 2 - 1, 3),
+            ];
+            if (($hit->_source->role ?? null) === 'reader') {
+                $identity['role'] = 'reader';
+            }
+            return $identity;
+        } catch (Exception $e) {
+            error_log("identifySpeaker error: " . $e->getMessage());
+            return null;
+        }
     }
 
     protected static $_chairIndex = null;
