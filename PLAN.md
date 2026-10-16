@@ -50,12 +50,15 @@ ly.govapi.tw/
 | 頻率 | 腳本 | 功能 |
 |------|------|------|
 | 5min | `post-error-to-slack.php` | 監控 ES cron log，有錯誤即推 Slack |
+| 5min | `ivod-wav.php` | 掃描新 Clip/Full，下載 wav（供 whisper-transcript.php 消化） |
 | 1hr  | `post-latest-data-to-slack.php` | 將最新匯入資料摘要推 Slack |
 | 3hr  | `bill.php` | 議案完整流程 orchestrator |
-| 3hr  | `gazette.php` | 公報完整流程 orchestrator |
+| 3hr  | `gazette.php` | 公報完整流程 orchestrator（含記名表決解析） |
 | 3hr  | `meet.php` | 會議完整流程 orchestrator |
+| 3hr  | `law.php` | 法律完整流程 orchestrator（crawl → import-law-content → import-law） |
 | 6am  | `committee.php` | 委員會資料（open data CSV → ES） |
 | 6am  | `legislators.php` | 委員資料（PDF + CSV → ES） |
+| 3am  | `speaker-embed.php` | 掃描近期 gazette-align + pyannote 結果，更新 speaker_identity 聲紋索引 |
 
 ---
 
@@ -88,13 +91,14 @@ ly.govapi.tw/
 
 ### 2. Gazette（公報）— `cron/3hr/gazette.php`
 
-流程順序：`imports/gazette.php` → `gazette/crawl.php` → `gazette/crawl-doc.php`
+流程順序：`imports/gazette.php` → `gazette/crawl.php` → `gazette/crawl-doc.php` → `gazette/parse-vote.php`
 
 | 腳本 | 抓取來源 | 讀取目錄 | 寫入目錄 |
 |------|---------|---------|---------|
 | `imports/gazette.php` | `data.ly.gov.tw/odw/usageFile.action?id=41`（CSV，多屆期） | `/cache/41-gazette-*.csv`、`gazette-detail-html/`、`gazette-data/` | `/cache/41-gazette-*.csv`、`gazette-detail-html/{id}.html`、`gazette-data/`、ES |
 | `gazette/crawl.php` | PPG PDF 下載 URL（動態）、`ppg.ly.gov.tw` 議程頁面 | ES gazette_agenda index | `gazette-pdf/`、`gazette-txt/`、`gazette/error.log` |
 | `gazette/crawl-doc.php` | PPG 文件 URL（從 ES gazette_agenda 取得）、`tika.openfun.dev/tika` | ES gazette_agenda index、`docfile/`、`agenda-html/`、`agenda-tikahtml/` | `docfile/`（DOC 原檔）、`agenda-html/`（轉 HTML）、`agenda-tikahtml/`（Tika HTML） |
+| `gazette/parse-vote.php` | — | ES meet index（`公報發言紀錄` → lcidc）、`gazette-txt/`、`vote-processed.json` | ES gazette_vote index、`vote-processed.json` |
 
 **快取目錄**（`imports/gazette/` 下）：
 - `gazette-detail-html/` — 公報詳細 HTML（1000+ 頁）
@@ -137,9 +141,9 @@ ly.govapi.tw/
 
 ---
 
-### 4. Law（法律）— 手動執行（未列入 cron）
+### 4. Law（法律）— `cron/3hr/law.php`
 
-流程順序：`crawl.php` → `import-law.php` → `import-law-content.php`
+流程順序：`crawl.php` → `import-law-content.php` → `import-law.php`
 
 | 腳本 | 抓取來源 | 讀取目錄 | 寫入目錄 |
 |------|---------|---------|---------|
@@ -170,25 +174,56 @@ ly.govapi.tw/
 
 ---
 
-### 6. iVOD（立法院影片）— `imports/import-all.php`
+### 6. iVOD（立法院影片）— `imports/import-all.php` + 常駐/批次腳本
 
-流程順序：`crawl-html` → `check-gazette` → `whisper-transcript` → `import-ivod`（`crawl-speech` 為補充）
+流程順序：`crawl-html` → `check-gazette` →（cron 5min）`ivod-wav` 下載 wav → `whisper-transcript`（ASR + pyannote + 語者身分比對）→ `import-ivod`（`crawl-speech` 為補充）
 
 | 腳本 | 抓取來源 | 讀取目錄 | 寫入目錄 |
 |------|---------|---------|---------|
 | `crawl-html.php` | `ivod.ly.gov.tw/Play/Full/{quality}/{id}`、`ivod.ly.gov.tw/Play/Clip/{quality}/{id}` | `current-full-id`、`current-id`、`html/` | `html/{id}.html`、`current-full-id`、`current-id` |
 | `crawl-speech.php` | `ivod.ly.gov.tw/TotalSpeech`（CSRF 認證） | cookie jar | `/cache/ivod-speech/{date}/{ts}.html.gz` |
 | `check-gazette.php` | — | `html/`、`/cache/41-gazette-*.csv` | `ivod-gazette/{id}.json` |
-| `whisper-transcript.php` | `whisper-api.openfun.dev`（Whisper + pyannote 語音辨識） | `html/`、`current-id`、`current-full-id`、`ivod-transcript/` | `ivod-transcript/{id}.json` |
+| `cron/5min/ivod-wav.php` | `ivod.ly.gov.tw/Play/{type}/{quality}/{id}`（m3u8 + TS 分段，走 proxy） | `html/`、`current-id`、`current-full-id`、`ivod-transcript/` | `wav/{id}.wav` |
+| `whisper-transcript.php` | `asr-tool.api.openfun.dev`（Whisper + pyannote 語音辨識，內含語者身分比對） | `wav/`、`html/`、`ivod-transcript/`、ES speaker_identity index | `ivod-transcript/{id}.json`、`ivod-pyannote/{id}.json`（含比對出的 `identity`） |
 | `import-ivod.php` | — | `html/`、`ivod-transcript/`、`ivod-gazette/`、`ivod-data/` | `ivod-data/{id}.json`、ES |
+
+**語者身分比對子系統**（speaker identification，較新功能，見下方維護重點）：
+
+| 腳本 | 說明 |
+|------|------|
+| `build-gazette-align.py` | 把公報逐字發言段落對齊 whisper 逐字稿時間軸（給 quality 分數、guessed 標記），寫入 `ivod-gazette-align/{id}.json` 與 `ivod-data/{id}.json` 的 `transcript.gazette`，是語者身分比對的 ground truth 來源 |
+| `upsert-speaker-embed.py`（cron 3am `speaker-embed.php`） | 掃描近 N 天有 gazette-align + pyannote 的 Clip，依公報標註的委員身分把對應 pyannote embedding 平均進 ES speaker_identity index（每人最多保留近 20 筆 `recent_clips`） |
+| `whisper-transcript.php` 內 `identify_speaker()` | 處理新影片時即時用 kNN 比對 speaker_identity，cosine 達門檻才寫入 identity |
+| `backfill-speaker-identity.php` | 批次或指定 id（`only_ids=`）補跑既有 `ivod-pyannote/{id}.json` 裡還沒 identity 的 speaker，常用於門檻調整後重新驗證效果 |
+| `reindex-speaker-identity.php` | 把 `ivod-pyannote/` 裡的結果用時間重疊（`IVodParser::alignPyannoteIdentities`）對齊回 `ivod-data` 的 `transcript.pyannote`（speaker_name/score/is_chair），同時把每個 speaker cluster 的 embedding 存進 `transcript.speakers`，再重新 index 進 ES |
+| `recompute-speaker-identity.php` | 只讀 ES `transcript.speakers` 裡現成的 embedding，重新對 speaker_identity 做 kNN 並寫回 `speaker_name`/`speaker_score`/`is_chair`；不碰本機檔案、不重跑 ASR。調門檻或新增聲紋後跑這支就能讓全部舊影片套用新規則（`only_ids=`、`limit=`、`dry_run=1`） |
+| `reprocess-batch.php` | 對指定 id（`only_ids=`）用新版 asr-tool 重跑 ASR + pyannote，覆蓋 `ivod-transcript/`、`ivod-pyannote/`；需先把 `wav/{id}.wav` 準備好。用於修復舊版 pyannote 把長 Full 影片多人合併成同一 speaker 的結果 |
+
+**歷史資料補齊／維護用腳本**（手動批次，不在 cron）：
+- `backfill-pyannote-download.php` / `backfill-pyannote-process.php` / `backfill-pyannote-run.php` — 對舊 transcript 補跑 pyannote（不重跑 whisper），下載/處理兩階段可並行執行，`-run` 為持續執行版本
+- `reimport-one.php` — 針對單一 id 強制重新 import
+- `reindex-ivod-gazette.php` — 把已有 `transcript.gazette` 的結果重新 index 進 ES
+- `remove-ivod.php` — 從 ES + 本機檔案移除指定 id
+- `fix-gazette-features.py` — 補 `gazette` feature 標記的一次性修正腳本
+- `build-dangtuan-align.py` — 黨團協商版本的公報對齊（來源 `agenda-anchor/`，對象為 Full 整場會議影片）
+- `write-meet-section-preview.py` — 產生 `imports/meet/meet-json/{meet_id}.json` 預覽
+
+**開發中（尚未納入 cron，2026-10）**：
+- `imports/gazette/build-chair-index.php` → `imports/gazette/chair-index.json`：從公報標頭解析每場會議的主席名單，供 `IVodParser::getSessionChair()` 判斷 `is_chair`
+- `upsert-chair-embed.py` / `upsert-reader-embed.py`：主席／宣讀人員專屬聲紋 embedding（主持/宣讀時的語氣跟一般委員發言不同，目前共用同一套 speaker_identity 比對準確度有限）
 
 **快取目錄**（`imports/ivod/` 下）：
 - `html/` — 爬取的 iVOD HTML 頁面
-- `ivod-gazette/` — iVOD ↔ 公報對應 JSON
-- `ivod-transcript/` — Whisper 逐字稿 JSON
-- `ivod-data/` — 最終合併 JSON
+- `ivod-gazette/` — iVOD ↔ 公報對應 JSON（粗粒度，`check-gazette.php` 產生）
+- `ivod-gazette-align/` — 公報發言段落 ↔ whisper 時間軸對齊結果（細粒度，含 quality 分數，語者比對 ground truth）
+- `ivod-transcript/` — Whisper/pyannote ASR 原始回傳 JSON
+- `ivod-pyannote/` — pyannote 分離結果（speaker 分群、embedding、比對出的 identity）
+- `ivod-data/` — 最終合併 JSON（whisperx + pyannote 身分 + gazette 對齊），也是寫入 ES 的來源
+- `wav/` — 下載轉檔後的音檔（16kHz mono，whisper-transcript.php 處理完會自動清掉）
 - `current-id` — 最後處理的 clip ID
 - `current-full-id` — 最後處理的院會 ID
+
+**長 Full 影片分群合併問題（2026-10 已修）**：舊版 pyannote 對數小時級的 Full 影片（整場委員會會議）會把不同人的聲音誤合併成同一個 speaker 標籤，該標籤的 embedding 混了多人聲音，跟任何身分都比對不準（例：17742 原本只分出 2 個巨大 speaker，asr-tool 更新後分出 48 個）。asr-tool 端已於 2026-10 修正，新進影片不受影響；既有舊結果需用 `reprocess-batch.php` 重跑。判斷式：`ivod-pyannote/{id}.json` 裡某 speaker 的首尾時間跨度 ÷ 全片長 ≥ 0.85 且 `total_seconds` ≥ 1800、片長 > 7200s。2026-10-16 掃描本機全部 pyannote 結果找到 123 支疑似受害影片，已重跑其中 21 支（依嚴重度排序的前段），其餘約 100 支尚未處理。
 
 ---
 
@@ -227,8 +262,34 @@ ly.govapi.tw/
 | iVOD | `ivod.ly.gov.tw` | 立法院影片 |
 | v2 API | `v2.ly.govapi.tw` | 內部使用（check-updated-bill、check-lis-progress） |
 | Tika | `tika.openfun.dev/tika` | DOC/DOCX → HTML 文件解析 |
-| Whisper API | `whisper-api.openfun.dev` | iVOD 語音轉文字（含 pyannote 說話者辨識） |
+| ASR Tool | `asr-tool.api.openfun.dev` | iVOD 語音轉文字（Whisper）+ pyannote 說話者分離 |
 | Slack | webhook URL（config.php） | 錯誤通知、資料更新摘要 |
+
+---
+
+## ES Index 總覽
+
+供其他專案串接參考，index 實際名稱為 `{ELASTIC_PREFIX}{名稱}`（prefix 設定在 `config.php`）。文件數為概略值，持續成長中。
+
+| Index | 用途 | 主要寫入來源 |
+|-------|------|------------|
+| `bill` | 議案（法律/預算/人事等提案），含審查進度、關係文書、黨團協商 | `imports/bill/import.php` |
+| `meet` | 會議資料（院會/委員會），整合 open data、PPG、公報文字、公報議程、發言清單等 5+ 來源，是 ivod/interpellation 的上游 | `imports/meet/link-meet.php` |
+| `gazette` | 公報（期別/卷期 metadata + 內容 HTML） | `imports/gazette.php` |
+| `gazette_agenda` | 公報議程/文件層級資料（院會、委員會逐項議程，含來源 PDF/DOC） | `imports/gazette/crawl.php`、`crawl-doc.php` |
+| `gazette_vote` | 公報記載的記名表決結果（逐筆立委 + 投票結果，依 line_no 分文件） | `imports/gazette/parse-vote.php` |
+| `ivod` | 立法院影片（Clip/Full），含逐字稿、委員質詢對應、語者身分比對結果；`transcript.speakers` 另存每個 pyannote speaker 的 embedding（base64 float32，`index:false` 不可搜尋，只供 `recompute-speaker-identity.php` 讀回重算） | `imports/ivod/import-ivod.php`、`reindex-speaker-identity.php` |
+| `speaker_identity` | 語者聲紋身分庫（用於 ivod pyannote embedding 比對，見 iVOD 章節） | `imports/ivod/upsert-speaker-embed.py` |
+| `interpellation` | 質詢資料（院會質詢 PDF 解析） | `imports/interpellation/crawl-interpellation.php` |
+| `law` | 現行法規清單 | `imports/law/import-law.php` |
+| `law_version` | 法規版本歷程 | `imports/law/import-law-content.php` |
+| `law_content` | 法規逐條內容（article-level） | `imports/law/import-law-content.php` |
+| `committee` | 委員會清單 | `cron/6am/committee.php` |
+| `legislator` | 委員資料（含跨屆 bioId） | `cron/6am/legislators.php` |
+| `logs-cron-{year}` | cron 執行紀錄（年度切分） | 各 cron 腳本 |
+| `logs-import-{year}` | 資料匯入紀錄（年度切分） | 各 import 腳本 |
+
+> v1 API（`Dispatcher.php`）已停止維護，外部串接請直接查 ES 或走 v2 API（`v2.ly.govapi.tw`，非本 repo）。
 
 ---
 
@@ -310,6 +371,15 @@ ly.govapi.tw/
 ### 2026-06 — 加入考察資料
 - 議案流程加入「考察」類型資料
 
+### 2026-09～10 — iVOD 語者身分比對（speaker identification）
+- 加入 `build-gazette-align.py`，把公報發言段落對齊 whisper 時間軸，產出帶信心分數的 ground truth
+- 建立 `speaker_identity` ES index 與 `upsert-speaker-embed.py`，用公報比對確認過身分的 pyannote embedding 建聲紋庫
+- `whisper-transcript.php` 加入即時 kNN 身分比對（`identify_speaker()`），搭配 `backfill-speaker-identity.php`/`reindex-speaker-identity.php` 做門檻調整後的回補
+- ES `ivod` index 新增 `transcript.speakers` 存 embedding，加入 `recompute-speaker-identity.php`（不重跑 ASR 即可全庫重算身分）與 `reprocess-batch.php`（長 Full 影片用新版 asr-tool 重跑）
+- 修正 `config.php` 的 `https_proxy` 被 curl 套用到 ES/asr-tool 請求導致偶發卡住的問題（各 ivod 腳本於 include 後 `putenv('https_proxy')` 清掉）
+- 加入公報記名表決解析（`gazette/parse-vote.php` → `gazette_vote` index）
+- 開發中：主席／宣讀人員專屬聲紋（`build-chair-index.php`、`upsert-chair-embed.py`、`upsert-reader-embed.py`），以及長 Full 影片 pyannote 聚類誤合併問題的排查
+
 ---
 
 ## 維護重點
@@ -320,4 +390,7 @@ ly.govapi.tw/
 - **meet 是最複雜的**：從 5 個以上來源（open data、PPG、公報 txt、公報 gazette、發言清單）合併
 - **gazette txt 是 meet 和 ivod 的上游**：gazette 爬蟲失敗會連帶影響 meet 解析和 ivod 對應
 - **iVOD Whisper 逐字稿**：相對較新的功能，仍在擴充中，whisper-transcript.php 是非同步的（submit → 輪詢狀態）
+- **語者身分比對（speaker_identity）更新**：比對門檻 `$MIN_SCORE`（ES score，= (cosine+1)/2，目前 0.85 即 cosine 0.70）分別寫在 `whisper-transcript.php`、`backfill-speaker-identity.php`、`reprocess-batch.php`、`recompute-speaker-identity.php` 四處，要同步改；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR
+- **`whisper-transcript.php` 是常駐 daemon**：由 `imports/ivod/auto-loop.sh`（`while true; php whisper-transcript.php; sleep 1`）在終端機裡跑，不是 cron/systemd；改程式後 kill 掉 php process 會被自動重啟載入新程式
+- **`config.php` 的 `https_proxy` 是 process-wide**：只給 ivod.ly.gov.tw CDN 下載用，但 curl 會套用到所有 https 請求。只打 ES/asr-tool 的腳本要在 include `init.inc.php` 後 `putenv('https_proxy')` 清掉，否則 ES bulk 會偶發卡住或失敗
 - **常見修改類型**（依 git log 觀察）：人名/資料錯誤修正、解析器調整（文件格式變化）、錯誤處理與重試、新增欄位、爬蟲反封鎖（User-Agent、Proxy、IPv4）
