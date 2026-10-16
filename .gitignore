@@ -25,6 +25,7 @@ imports/gazette/dangtuan-pdf
 imports/gazette/dangtuan-tikahtml
 imports/gazette/error.log
 imports/gazette/vote-processed.json
+imports/gazette/chair-index.json
 imports/meet/ppg_meet_page
 imports/meet/ppg_meet_page_json
 imports/meet/meet-data
@@ -53,3 +54,4 @@ imports/meet/meet-json
 imports/law/law.pdf
 imports/law/law.pdf.txt
 imports/law/law-data
+HANDOVER.md
