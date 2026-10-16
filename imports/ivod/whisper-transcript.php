@@ -3,6 +3,14 @@
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/IVodParser.php');
 
+// config.php 的 https_proxy 是給 ivod.ly.gov.tw 下載用（process-wide putenv，
+// curl 會自動套用到「所有」https 請求）。這支不下載 ivod（wav 由 ivod-wav.php
+// 另外處理），只打 asr-tool 跟 ES，清掉避免 identify_speaker() 的 Elastic
+// 呼叫被不相關的 proxy 拖慢／失敗（實測同款 bulk 呼叫走 proxy 會卡住或整個
+// 失敗，清掉後瞬間完成——這代表這支程式先前可能有部分身分比對因為這個
+// 原因被漏掉，誤判成「沒有比對到」）。
+putenv('https_proxy');
+
 $ivod_dir = __DIR__;
 $asr_base = 'https://asr-tool.api.openfun.dev';
 $asr_input_dir = '/srv/data/api.openfun.dev/asr-tool/input';
@@ -83,7 +91,7 @@ function pipeline_to_transcript($v, $job_result) {
 
 function identify_speaker($embedding_b64, $term = 11) {
     // ES kNN 查詢，回傳最佳匹配的 {label, person_name, score} 或 null
-    $MIN_SCORE = 0.925; // 對應 cosine >= 0.85
+    $MIN_SCORE = 0.85; // 對應 cosine >= 0.70
     try {
         $vec = array_values(unpack('f*', base64_decode($embedding_b64)));
         if (max(array_map('abs', $vec)) < 1e-6) return null; // 全零向量
@@ -124,6 +132,7 @@ function save_pyannote($v, $job_result) {
     if (!$has_embedding) return;
     $data = ['id' => (string)$v, 'speakers' => []];
     foreach ($speakers as $spk) {
+        if (!isset($spk->embedding)) continue; // 太短的雜訊 speaker 可能沒有 embedding
         $entry = [
             'id'            => $spk->id,
             'total_seconds' => $spk->total_seconds,
