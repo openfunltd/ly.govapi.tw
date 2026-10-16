@@ -541,6 +541,21 @@ class LYLib
         }
         $source->name = str_replace('立法院', '' , $source->name);
 
+        // 公聽會：委員會登記的會議名稱常只寫到「第N屆第M會期XX委員會」（或「…委員會公聽會」），
+        // 主題放在事由，名稱對使用者沒有辨識度。這種情況改用事由當名稱（去掉開頭「召開／舉行」
+        // 這類動詞），名稱本身已帶主題（有「」《》）或事由不是公聽會事由（如修憲委員會的討論題綱）則不動。
+        if (($source->meet_type ?? '') === '公聽會'
+            and !preg_match('/[「《]/u', $source->name)
+            and preg_match('/委員會(公聽會)?(\(第\d+場\))?$/u', trim($source->name))) {
+            $title = trim($source->title ?? '');
+            if ($title !== '' and mb_strpos($title, '公聽會') !== false) {
+                $title = preg_replace('/^(召開|舉行|辦理|召集)/u', '', $title);
+                $title = rtrim($title, "。 \t");
+                if ($title !== '') {
+                    $source->name = $title;
+                }
+            }
+        }
 
         if (property_exists($source, 'meet_data') and is_array($source->meet_data) and count($source->meet_data)) {
             foreach ($source->meet_data as $meet) {

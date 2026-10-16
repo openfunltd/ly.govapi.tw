@@ -12,6 +12,7 @@ if (!$year) {
 
 foreach ([
     'meet/crawl-meet.php',
+    'meet/crawl-meet-ppg.php',   // PPG 開會日曆補足 open data 42 的延遲，合併寫回 42-meet.jsonl
     'meet/crawl-ppg-page.php',
     'meet/parse-meet-from-gazette.php',
     'meet/crawl-meet-proceeding.php',

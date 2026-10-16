@@ -114,11 +114,12 @@ ly.govapi.tw/
 
 ### 3. Meet（會議）— `cron/3hr/meet.php`
 
-流程順序：`crawl-meet` → `crawl-ppg-page` → `crawl-meet-proceeding` → `crawl-meet-speechlist` → `parse-meet-from-gazette` → `parse-meet-proceeding` → `parse-speech-from-gazette` → `link-meet` → `import-meet`
+流程順序：`crawl-meet` → `crawl-meet-ppg` → `crawl-ppg-page` → `crawl-meet-proceeding` → `crawl-meet-speechlist` → `parse-meet-from-gazette` → `parse-meet-proceeding` → `parse-speech-from-gazette` → `link-meet` → `import-meet`
 
 | 腳本 | 抓取來源 | 讀取目錄 | 寫入目錄 |
 |------|---------|---------|---------|
 | `crawl-meet.php` | `data.ly.gov.tw/odw/openDatasetJson.action?id=42`（分頁） | — | `/cache/42-meet.jsonl` |
+| `crawl-meet-ppg.php` | `ppg.ly.gov.tw/ppg/api/v1/sitting-date`（每月開會日）、`all-sittings`（每日會議；`id` 即 42 的 `meetingNo`） | `/cache/ppg-meet.jsonl`、`/cache/42-meet.jsonl` | `/cache/ppg-meet.jsonl`（PPG 持久清單）、**重寫** `/cache/42-meet.jsonl`（PPG 列 + open data 裡 PPG 沒有的列） |
 | `crawl-ppg-page.php` | `ppg.ly.gov.tw/ppg/sittings/{meetingNo}/details`（HTML） | `/cache/42-meet.jsonl`、`ppg_meet_page/`、`ppg_meet_page_json/` | `ppg_meet_page/{no}-{date}.html`、`ppg_meet_page_json/{no}-{date}.json` |
 | `crawl-meet-proceeding.php` | `ppg.ly.gov.tw/ppg/api/v1/getProceedingsList`（文件清單）+ PPG 文件 URL、`tika.openfun.dev/tika` | `/cache/42-meet.jsonl`、`meet-proceeding-doc/`、`meet-proceeding-txt/`、`meet-proceeding-html/` | `meet-proceeding-doc/`（DOC）、`meet-proceeding-txt/`（文字）、`meet-proceeding-html/`（HTML） |
 | `crawl-meet-speechlist.php` | `data.ly.gov.tw/odw/usageFile.action?id=221`（院會發言）、`id=223`（委員會發言） | `/cache/221-meet-speech.csv`、`/cache/223-meet-speech.csv`、`meet-sub-data/` | `/cache/221-meet-speech.csv`、`/cache/223-meet-speech.csv`、`meet-sub-data/{id}.json` |
@@ -136,7 +137,8 @@ ly.govapi.tw/
 - `meet-proceeding-html/` — 會議紀錄 HTML
 - `meet-sub-data/` — 各來源的補充資料（發言、議程、速記）
 - `meet-data/` — 最終合併 JSON
-- `/cache/42-meet.jsonl` — open data 會議清單
+- `/cache/42-meet.jsonl` — 會議清單（下游統一讀這份；2026-10 起為 PPG 日曆 + open data 42 的合併結果，schema 沿用 42）
+- `/cache/ppg-meet.jsonl` — PPG 開會日曆抓到的清單（一場會議一天一列），預設每輪抓本月＋下月，`backfill=1` 可從第 8 屆逐月重抓
 - `/cache/221-meet-speech.csv`、`/cache/223-meet-speech.csv` — 發言清單
 
 ---
@@ -391,6 +393,7 @@ ly.govapi.tw/
 - **資料格式**：磁碟快取以 `.json.gz` 或 `.html.gz` 儲存，再批次匯入 ES
 - **meet 是最複雜的**：從 5 個以上來源（open data、PPG、公報 txt、公報 gazette、發言清單）合併
 - **gazette txt 是 meet 和 ivod 的上游**：gazette 爬蟲失敗會連帶影響 meet 解析和 ivod 對應
+- **會議清單以 PPG 為主、open data 42 為輔**：open data 42 常晚到週末才列出下週會議（2026-10 甚至整個第 11 屆第 6 會期都沒列），`crawl-meet-ppg.php` 從 ppg.ly.gov.tw 的開會日曆抓（實測整月比對是 42 的超集合，只少「沒有 meetingNo 的委員自辦公聽會」，那部分仍由 42 補）。PPG 沒有屆／會期欄位，院會與委員會從名稱解析，考察／黨團協商等用同一天或最近一天其他會議的值補。PPG 是網站內部 API，格式無承諾，壞掉時 cron 會 log 失敗但不清舊資料
 - **iVOD Whisper 逐字稿**：相對較新的功能，仍在擴充中，whisper-transcript.php 是非同步的（submit → 輪詢狀態）
 - **語者身分比對（speaker_identity）更新**：比對門檻只在 `IVodParser::identifySpeaker()` 的常數（`SPEAKER_MIN_SCORE` 0.85 = cosine 0.70、`READER_MIN_SCORE` 0.875 = cosine 0.75、`READER_MARGIN`；ES score = (cosine+1)/2），四支腳本都呼叫它；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR。宣讀人員的聲紋用 `upsert-reader-embed.py` 收集，可重跑（會往既有 cluster 靠）
 - **`whisper-transcript.php` 是常駐 daemon**：由 `imports/ivod/auto-loop.sh`（`while true; php whisper-transcript.php; sleep 1`）在終端機裡跑，不是 cron/systemd；改程式後 kill 掉 php process 會被自動重啟載入新程式
