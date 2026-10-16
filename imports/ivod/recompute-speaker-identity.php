@@ -16,6 +16,7 @@
 //   limit=500 php recompute-speaker-identity.php
 //   only_ids=17742,17566 php recompute-speaker-identity.php
 //   dry_run=1 limit=20 php recompute-speaker-identity.php   # 只印出變更，不寫檔不寫 ES
+//   since=2026-07-01 php recompute-speaker-identity.php     # 只重算會議日期在這之後的（cron/3am/speaker-embed.php 每晚跑近 90 天）
 
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/IVodParser.php');
@@ -36,13 +37,11 @@ function identify_speaker($embedding_b64, $term = 11) {
     return $r ? (object)$r : null;
 }
 
-$query = ['exists' => ['field' => 'transcript.speakers']];
-if ($only_ids) {
-    $query = ['bool' => ['must' => [
-        $query,
-        ['terms' => ['id' => $only_ids]],
-    ]]];
-}
+$since = getenv('since') ?: null;  // since=2026-07-01：只重算會議日期在這之後的（cron 用，公報到了補 is_chair／新聲紋）
+$must = [['exists' => ['field' => 'transcript.speakers']]];
+if ($only_ids) $must[] = ['terms' => ['id' => $only_ids]];
+if ($since)    $must[] = ['range' => ['date' => ['gte' => $since]]];
+$query = count($must) > 1 ? ['bool' => ['must' => $must]] : $must[0];
 
 $search_after = null;
 while (true) {
@@ -126,6 +125,32 @@ while (true) {
                 // 這次重算沒有比對到身分（例如門檻調高後原本的比對被推翻），清掉舊標記
                 unset($seg->speaker_name, $seg->speaker_score, $seg->is_chair);
                 $changed = true;
+            }
+        }
+
+        // 先把新的 identity 寫回 ivod-pyannote/{id}.json（不論 ES 有沒有變）：import-ivod.php（import-all 每輪跑近 7 天）
+        // 是依這個檔的 identity 重建 transcript.pyannote 的標籤再寫 ES，若不同步，下一輪 import 就會
+        // 把這裡重算的結果蓋回舊值。兩條路徑都以這個檔為單一來源。
+        $pyann_path = $ivod_dir . "/ivod-pyannote/{$v}.json";
+        if (!$dry_run && file_exists($pyann_path)) {
+            $pyann = json_decode(file_get_contents($pyann_path));
+            if ($pyann && !empty($pyann->speakers)) {
+                $identity_by_eid = [];
+                foreach ($speakers as $spk) {
+                    $eid = $spk->embed_id ?? $spk->speaker;
+                    if (isset($identities[$spk->speaker])) $identity_by_eid[$eid] = $identities[$spk->speaker];
+                }
+                $pyann_changed = false;
+                foreach ($pyann->speakers as $spk) {
+                    $new = $identity_by_eid[$spk->id] ?? null;
+                    if (json_encode($spk->identity ?? null) !== json_encode($new)) {
+                        if ($new) $spk->identity = $new; else unset($spk->identity);
+                        $pyann_changed = true;
+                    }
+                }
+                if ($pyann_changed) {
+                    file_put_contents($pyann_path, json_encode($pyann, JSON_UNESCAPED_UNICODE));
+                }
             }
         }
 

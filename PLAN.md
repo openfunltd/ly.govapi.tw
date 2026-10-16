@@ -58,7 +58,7 @@ ly.govapi.tw/
 | 3hr  | `law.php` | 法律完整流程 orchestrator（crawl → import-law-content → import-law） |
 | 6am  | `committee.php` | 委員會資料（open data CSV → ES） |
 | 6am  | `legislators.php` | 委員資料（PDF + CSV → ES） |
-| 3am  | `speaker-embed.php` | 掃描近期 gazette-align + pyannote 結果，更新 speaker_identity 聲紋索引 |
+| 3am  | `speaker-embed.php` | 語者身分每日維護：委員聲紋（近 50 天 Clip）→ 宣讀人員聲紋（全部 Full）→ 重建主席索引 chair-index.json → recompute 近 90 天 Full（補 is_chair、新聲紋，不重跑 ASR） |
 
 ---
 
@@ -398,4 +398,8 @@ ly.govapi.tw/
 - **語者身分比對（speaker_identity）更新**：比對門檻只在 `IVodParser::identifySpeaker()` 的常數（`SPEAKER_MIN_SCORE` 0.85 = cosine 0.70、`READER_MIN_SCORE` 0.875 = cosine 0.75、`READER_MARGIN`；ES score = (cosine+1)/2），四支腳本都呼叫它；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR。宣讀人員的聲紋用 `upsert-reader-embed.py` 收集，可重跑（會往既有 cluster 靠）
 - **`whisper-transcript.php` 是常駐 daemon**：由 `imports/ivod/auto-loop.sh`（`while true; php whisper-transcript.php; sleep 1`）在終端機裡跑，不是 cron/systemd；改程式後 kill 掉 php process 會被自動重啟載入新程式
 - **`config.php` 的 `https_proxy` 是 process-wide**：只給 ivod.ly.gov.tw CDN 下載用，但 curl 會套用到所有 https 請求。只打 ES/asr-tool 的腳本要在 include `init.inc.php` 後 `putenv('https_proxy')` 清掉，否則 ES bulk 會偶發卡住或失敗
+- **語者身分比對待辦（2026-10-16 記錄，尚未處理）**：
+  - 具名聲紋被議事人員聲音污染：周秘書長萬來、吳司長宜璇、鄭局長秀絨、盧副組長碧黛、李副委員長姸慧、蔡副主計長鴻坤等 doc 的 embedding 跟宣讀人員群心相似度 0.70–0.77，出現型態是每場 70–100 秒橫跨二三十場，推測 `upsert-speaker-embed.py` 用公報對齊收集時把宣讀段算到官員頭上。目前宣讀人員門檻較高會壓過它們，但這些 doc 在別的影片仍可能誤中。待做：收集時排除「請宣讀→完畢」視窗；稽核所有跟 reader 群心 ≥0.70 的具名 doc 並重建
+  - 同一人多個 doc：101 人在 speaker_identity 有 ≥2 個 doc（職稱不同如石部長／石次長崇良，或公報錯字如「桌院長榮泰」），kNN 會把同一人的樣本拆散、label 在版本間跳。待做：以 person_name 合併，或比對時按 person_name 聚合
+  - Clip 不存 `transcript.speakers`、不納入 recompute（Clip 以委員質詢為主、沒有宣讀等程序性發言，2026-10-16 決定）；Full 由 import-ivod 匯入時寫入
 - **常見修改類型**（依 git log 觀察）：人名/資料錯誤修正、解析器調整（文件格式變化）、錯誤處理與重試、新增欄位、爬蟲反封鎖（User-Agent、Proxy、IPv4）

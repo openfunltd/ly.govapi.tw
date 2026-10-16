@@ -72,11 +72,30 @@ foreach ([
                     // 編號跟這裡的原始 diarization 不保證相同，需用時間重疊比對
                     // （IVodParser::alignPyannoteIdentities）才能正確對應到人。
                     $identities = [];
+                    $pyann = null;
                     $pyann_file = __DIR__ . "/ivod-pyannote/{$v}.json";
                     if (file_exists($pyann_file)) {
                         $pyann = json_decode(file_get_contents($pyann_file));
                         $identities = IVodParser::alignPyannoteIdentities(
                             $obj->pyannote->result->result, $pyann->speakers ?? []);
+                    }
+                    // Full 影片把每個 speaker 的 embedding 一併存進 transcript.speakers（speaker 為對齊後的
+                    // 逐字稿 label、embed_id 為 ivod-pyannote 原編號），之後調門檻、新增聲紋或公報到了要補
+                    // is_chair 時，recompute-speaker-identity.php 不用重跑 ASR 就能重算。Clip 以委員質詢為主、
+                    // 沒有宣讀等程序性發言，依 2026-10-16 決定不存。
+                    if ($type === 'Full' && $pyann && !empty($pyann->speakers)) {
+                        $label_by_eid = array_flip(IVodParser::alignPyannoteSpeakers(
+                            $obj->pyannote->result->result, $pyann->speakers));
+                        $result['speakers'] = [];
+                        foreach ($pyann->speakers as $spk) {
+                            if (empty($spk->embedding) || !isset($label_by_eid[$spk->id])) continue;
+                            $result['speakers'][] = [
+                                'speaker'       => $label_by_eid[$spk->id],
+                                'embed_id'      => $spk->id,
+                                'embedding'     => $spk->embedding,
+                                'total_seconds' => $spk->total_seconds ?? null,
+                            ];
+                        }
                     }
                     // 身分一律以 kNN（IVodParser::identifySpeaker）為準：委員、官員、
                     // 宣讀人員（speaker_identity 裡 role=reader 的「宣讀人員N」）都走同一條路。
