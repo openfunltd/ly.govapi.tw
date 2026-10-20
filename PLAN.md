@@ -402,4 +402,5 @@ ly.govapi.tw/
   - 具名聲紋被議事人員聲音污染：周秘書長萬來、吳司長宜璇、鄭局長秀絨、盧副組長碧黛、李副委員長姸慧、蔡副主計長鴻坤等 doc 的 embedding 跟宣讀人員群心相似度 0.70–0.77，出現型態是每場 70–100 秒橫跨二三十場，推測 `upsert-speaker-embed.py` 用公報對齊收集時把宣讀段算到官員頭上。目前宣讀人員門檻較高會壓過它們，但這些 doc 在別的影片仍可能誤中。待做：收集時排除「請宣讀→完畢」視窗；稽核所有跟 reader 群心 ≥0.70 的具名 doc 並重建
   - 同一人多個 doc：101 人在 speaker_identity 有 ≥2 個 doc（職稱不同如石部長／石次長崇良，或公報錯字如「桌院長榮泰」），kNN 會把同一人的樣本拆散、label 在版本間跳。待做：以 person_name 合併，或比對時按 person_name 聚合
   - Clip 不存 `transcript.speakers`、不納入 recompute（Clip 以委員質詢為主、沒有宣讀等程序性發言，2026-10-16 決定）；Full 由 import-ivod 匯入時寫入
+- **IVOD HLS 下載（`cron/5min/ivod-wav.php`）**：鏈是 playlist.m3u8（主清單）→ chunklist_w<id>.m3u8（媒體清單）→ media_N.ts，網址帶每次不同的 token，分段要沿同一次拿到的媒體清單解析。2026-10-20 事故：舊版把 playlist 改名成 chunklist 去抓，CDN 回「變體就是自己」的主清單，被當成分段餵給 ffmpeg 造成無窮迴圈吃光記憶體、整台機器卡死。現在：拒絕自指的變體、分段只收 .ts、ffmpeg 包 `timeout`（Clip 20 分、Full 90 分）與 `ulimit -v 3GB`、失敗寫 `wav/{id}.wav.failed` 六小時內不重試（`only_ids=` 不受限）
 - **常見修改類型**（依 git log 觀察）：人名/資料錯誤修正、解析器調整（文件格式變化）、錯誤處理與重試、新增欄位、爬蟲反封鎖（User-Agent、Proxy、IPv4）

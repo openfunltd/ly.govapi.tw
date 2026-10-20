@@ -16,7 +16,23 @@ if ($base_proxy) {
     }
 }
 
-// 取得 m3u8 URL 與 TS 清單
+// 取得媒體清單 URL 與 TS 分段清單
+//
+// 正確的鏈是 playlist.m3u8（主清單，#EXT-X-STREAM-INF）→ chunklist_w<id>.m3u8（媒體清單）→ media_N.ts，
+// 而且網址裡帶的 token 每次請求都不同，分段必須沿著同一次拿到的媒體清單網址解析。
+// 2026-10-20 事故：舊版把 playlist.m3u8 直接改名成 chunklist.m3u8 去抓，CDN 回的是一份「變體就是它自己」的
+// 主清單，非 # 的行只有 chunklist.m3u8 一行，被當成 TS 分段下載後餵給 ffmpeg，ffmpeg 把它當 HLS 清單打開、
+// 又指回自己 → 無窮迴圈吃光記憶體，整台機器卡死。所以這裡：
+//   1. 照規格解析主清單、解析相對網址，變體指回自己就視為失敗
+//   2. 分段只收 .ts，任何 .m3u8 都不准進清單
+function m3u8_lines($content) {
+    return array_values(array_filter(array_map('trim', explode("\n", $content)), fn($l) => $l !== '' && $l[0] !== '#'));
+}
+function m3u8_resolve($base_url, $ref) {
+    if (preg_match('#^https?://#', $ref)) return $ref;
+    if ($ref[0] === '/') { $p = parse_url($base_url); return "{$p['scheme']}://{$p['host']}" . (isset($p['port']) ? ":{$p['port']}" : '') . $ref; }
+    return preg_replace('#/[^/]*$#', '/', $base_url) . $ref;
+}
 function get_m3u8($video_id, $type) {
     foreach (['300K', '1M'] as $quality) {
         $url = sprintf("https://ivod.ly.gov.tw/Play/%s/%s/%d", $type, $quality, $video_id);
@@ -30,27 +46,36 @@ function get_m3u8($video_id, $type) {
         $content = curl_exec($curl);
         curl_close($curl);
         if (!preg_match('#readyPlayer\("([^"]*)#', $content, $m)) continue;
+        $playlist_url = $m[1];
 
-        $m3u8_url = str_replace('playlist.m3u8', 'chunklist.m3u8', $m[1]);
-        $curl = curl_init($m3u8_url);
-        curl_setopt_array($curl, [CURLOPT_RETURNTRANSFER => true, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]);
-        $content = curl_exec($curl);
-        curl_close($curl);
+        $fetch = function($u) {
+            $c = curl_init($u);
+            curl_setopt_array($c, [CURLOPT_RETURNTRANSFER => true, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4, CURLOPT_TIMEOUT => 30]);
+            $r = curl_exec($c); curl_close($c);
+            return (string)$r;
+        };
 
-        // 嘗試取有解析度的 chunklist_w{n}.m3u8
-        if (preg_match('#chunklist_w(\d+)\.m3u8#', $content, $m)) {
-            $w_url = str_replace('chunklist.m3u8', 'chunklist_w' . $m[1] . '.m3u8', $m3u8_url);
-            $curl = curl_init($w_url);
-            curl_setopt_array($curl, [CURLOPT_RETURNTRANSFER => true, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]);
-            $tmp = curl_exec($curl);
-            curl_close($curl);
-            if ($tmp) $content = $tmp;
+        // 最多跟兩層（主清單 → 媒體清單），每層都檢查不是指回自己
+        $media_url = $playlist_url;
+        $media = $fetch($media_url);
+        for ($hop = 0; $hop < 2 && strpos($media, '#EXT-X-STREAM-INF') !== false; $hop++) {
+            $variants = array_values(array_filter(m3u8_lines($media), fn($l) => preg_match('#\.m3u8(\?|$)#', $l)));
+            if (!$variants) { $media = ''; break; }
+            $next = m3u8_resolve($media_url, $variants[0]);
+            if ($next === $media_url || basename(parse_url($next, PHP_URL_PATH)) === basename(parse_url($media_url, PHP_URL_PATH))) {
+                error_log("get_m3u8: {$type}/{$video_id} 變體清單指回自己（{$variants[0]}），放棄 {$quality}");
+                $media = ''; break;
+            }
+            $media_url = $next;
+            $media = $fetch($media_url);
         }
+        if (!$media || strpos($media, '#EXT-X-STREAM-INF') !== false) continue;
 
-        if (!$content) continue;
-        $ts_list = array_values(array_filter(explode("\n", trim($content)), fn($l) => $l && $l[0] !== '#'));
+        $ts_list = array_values(array_filter(m3u8_lines($media), fn($l) => preg_match('#\.ts(\?|$)#', $l)));
+        $bad = array_filter(m3u8_lines($media), fn($l) => !preg_match('#\.ts(\?|$)#', $l));
+        if ($bad) error_log("get_m3u8: {$type}/{$video_id} 媒體清單有非 .ts 項目被略過: " . implode(',', array_slice($bad, 0, 3)));
         if (empty($ts_list)) continue;
-        return [$m3u8_url, $ts_list];
+        return [$media_url, $ts_list];
     }
     throw new Exception("Failed to get m3u8: {$type}/{$video_id}");
 }
@@ -61,8 +86,9 @@ function download_ts_parallel($m3u8_url, $ts_list, $cache_dir, $proxy_urls) {
     $max_parallel = $proxy_urls ? count($proxy_urls) : 1;
 
     $make_cmd = function($ts, $idx, $retry = 0) use ($m3u8_url, $cache_dir, $proxy_urls, $ips) {
-        $file_url = str_replace('chunklist.m3u8', $ts, $m3u8_url);
-        $target = $cache_dir . '/' . $ts;
+        if (!preg_match('#\.ts(\?|$)#', $ts)) throw new Exception("not a ts segment: {$ts}");
+        $file_url = m3u8_resolve($m3u8_url, $ts);
+        $target = $cache_dir . '/' . basename(parse_url($ts, PHP_URL_PATH));
         $cmd = 'curl --max-time 15 --connect-timeout 10 --retry 0 -4';
         if ($ips) {
             $ip = $ips[($idx + $retry) % count($ips)];
@@ -108,7 +134,7 @@ function download_ts_parallel($m3u8_url, $ts_list, $cache_dir, $proxy_urls) {
                 && filesize($item['target']) > 0;
 
             if ($ok) {
-                $done[$item['idx']] = $item['ts'];
+                $done[$item['idx']] = basename(parse_url($item['ts'], PHP_URL_PATH));
             } elseif ($item['retry'] < 5) {
                 sleep($item['retry']);
                 $queue[] = ['ts' => $item['ts'], 'idx' => $item['idx'], 'retry' => $item['retry'] + 1];
@@ -139,14 +165,21 @@ function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
         file_put_contents($mylist, implode("\n", array_map(fn($f) => "file '$f'", $files)) . "\n");
 
         $wav_tmp = $wav_path . '.tmp';
+        // 保險：ffmpeg 一律限制 CPU 時間與虛擬記憶體（Clip 20 分鐘、Full 90 分鐘；3 GB），
+        // 就算清單再出問題也只會失敗，不會把整台機器拖垮
+        $limit_sec = $type === 'Full' ? 5400 : 1200;
         $cmd = sprintf(
-            'ffmpeg -y -f concat -safe 0 -i %s -vn -acodec pcm_s16le -ar 16000 -ac 1 -f wav %s 2>&1',
-            escapeshellarg($mylist), escapeshellarg($wav_tmp)
+            'bash -c %s 2>&1',
+            escapeshellarg(sprintf(
+                'ulimit -v 3000000; exec timeout -k 15 %d ffmpeg -nostdin -loglevel error -y -f concat -safe 0 -i %s -vn -acodec pcm_s16le -ar 16000 -ac 1 -f wav %s',
+                $limit_sec, escapeshellarg($mylist), escapeshellarg($wav_tmp)
+            ))
         );
-        system($cmd, $ret);
+        exec($cmd, $output, $ret);
 
         if ($ret !== 0 || !file_exists($wav_tmp) || filesize($wav_tmp) < 10000) {
-            throw new Exception("ffmpeg failed");
+            @unlink($wav_tmp);
+            throw new Exception("ffmpeg failed (exit {$ret}): " . implode(' ', array_slice($output, -3)));
         }
         rename($wav_tmp, $wav_path);
     } finally {
@@ -154,6 +187,16 @@ function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
         foreach (glob($cache_dir . '/*') as $f) @unlink($f);
         @rmdir($cache_dir);
     }
+}
+
+// 失敗標記：下載／轉檔失敗的影片寫 wav/{id}.wav.failed（內容是時間與原因），
+// 常態掃描在 6 小時內不再重試同一支，避免每 5 分鐘撞同一個壞檔；only_ids 模式不受限。
+function mark_failed($wav_path, $msg) {
+    @file_put_contents($wav_path . '.failed', date('c') . ' ' . $msg . "\n", FILE_APPEND);
+}
+function recently_failed($wav_path) {
+    $f = $wav_path . '.failed';
+    return file_exists($f) && (time() - filemtime($f)) < 6 * 3600;
 }
 
 // ──────────────────────────────────────────────
@@ -175,8 +218,10 @@ if (getenv('only_ids')) {
         error_log("{$type} {$v}: 開始下載");
         try {
             download_ivod_to_wav($v, $type, $wav_path, $proxy_urls);
+            @unlink($wav_path . '.failed');
             error_log("{$type} {$v} done: " . round(filesize($wav_path) / 1024 / 1024, 1) . ' MB');
         } catch (Exception $e) {
+            mark_failed($wav_path, $e->getMessage());
             error_log("{$type} {$v} error: " . $e->getMessage());
         }
     }
@@ -199,6 +244,7 @@ for ($v = 169400; $v <= $max_v; $v++) {
     if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
     if (file_exists($ivod_dir . "/wav/{$v}.wav")) continue;
     if (file_exists($ivod_dir . "/wav/{$v}.wav.tmp")) continue; // 下載中
+    if (recently_failed($ivod_dir . "/wav/{$v}.wav")) continue;
 
     $ivod = IVodParser::parseHTML($v, file_get_contents($html));
     if (strtotime($ivod->start_time) < $endtime) continue;
@@ -209,6 +255,7 @@ for ($v = 169400; $v <= $max_v; $v++) {
         error_log("Clip {$v} done: " . round(filesize($ivod_dir . "/wav/{$v}.wav") / 1024 / 1024, 1) . ' MB');
         $c_clip++;
     } catch (Exception $e) {
+        mark_failed($ivod_dir . "/wav/{$v}.wav", $e->getMessage());
         error_log("Clip {$v} error: " . $e->getMessage());
     }
 }
@@ -228,6 +275,7 @@ if ($c_full < $max_full) {
         if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
         if (file_exists($ivod_dir . "/wav/{$v}.wav")) continue;
         if (file_exists($ivod_dir . "/wav/{$v}.wav.tmp")) continue;
+        if (recently_failed($ivod_dir . "/wav/{$v}.wav")) continue;
 
         $ivod = IVodParser::parseHTML($v, $content, 'Full');
         if (strtotime($ivod->start_time) < $endtime) break;
@@ -238,6 +286,7 @@ if ($c_full < $max_full) {
             error_log("Full {$v} done: " . round(filesize($ivod_dir . "/wav/{$v}.wav") / 1024 / 1024, 1) . ' MB');
             $c_full++;
         } catch (Exception $e) {
+            mark_failed($ivod_dir . "/wav/{$v}.wav", $e->getMessage());
             error_log("Full {$v} error: " . $e->getMessage());
         }
     }
