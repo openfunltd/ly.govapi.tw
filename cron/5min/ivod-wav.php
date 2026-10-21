@@ -189,14 +189,19 @@ function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
     }
 }
 
-// 失敗標記：下載／轉檔失敗的影片寫 wav/{id}.wav.failed（內容是時間與原因），
-// 常態掃描在 6 小時內不再重試同一支，避免每 5 分鐘撞同一個壞檔；only_ids 模式不受限。
+// 失敗標記：下載／轉檔失敗的影片寫 wav/{id}.wav.failed（每次失敗追加一行時間與原因），
+// 常態掃描依失敗次數指數退避：第 1 次 5 分鐘後可重試，之後 10、20、40、80、160 分鐘，最長 6 小時。
+// 剛上架的影片 CDN 的 playlist 常還是 404，要很快重試；真的壞掉的（例如已下架）才會越退越久。
+// 成功後清掉標記；only_ids 模式不受限。
 function mark_failed($wav_path, $msg) {
     @file_put_contents($wav_path . '.failed', date('c') . ' ' . $msg . "\n", FILE_APPEND);
 }
 function recently_failed($wav_path) {
     $f = $wav_path . '.failed';
-    return file_exists($f) && (time() - filemtime($f)) < 6 * 3600;
+    if (!file_exists($f)) return false;
+    $n = max(1, count(file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)));
+    $wait = min(6 * 3600, 300 * (2 ** ($n - 1)));
+    return (time() - filemtime($f)) < $wait;
 }
 
 // ──────────────────────────────────────────────
@@ -252,6 +257,7 @@ for ($v = 169400; $v <= $max_v; $v++) {
     error_log("Clip {$v}: {$ivod->委員名稱} {$ivod->影片長度}");
     try {
         download_ivod_to_wav($v, 'Clip', $ivod_dir . "/wav/{$v}.wav", $proxy_urls);
+        @unlink($ivod_dir . "/wav/{$v}.wav.failed");
         error_log("Clip {$v} done: " . round(filesize($ivod_dir . "/wav/{$v}.wav") / 1024 / 1024, 1) . ' MB');
         $c_clip++;
     } catch (Exception $e) {
@@ -283,6 +289,7 @@ if ($c_full < $max_full) {
         error_log("Full {$v}: {$ivod->會議名稱} {$ivod->影片長度}");
         try {
             download_ivod_to_wav($v, 'Full', $ivod_dir . "/wav/{$v}.wav", $proxy_urls);
+            @unlink($ivod_dir . "/wav/{$v}.wav.failed");
             error_log("Full {$v} done: " . round(filesize($ivod_dir . "/wav/{$v}.wav") / 1024 / 1024, 1) . ' MB');
             $c_full++;
         } catch (Exception $e) {
