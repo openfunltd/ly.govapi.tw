@@ -34,7 +34,12 @@ foreach ([
         escapeshellarg(__DIR__ . '/../../imports/bill/' . $script),
         escapeshellarg($target_jsonl)
     );
-    system($cmd);
+    system($cmd, $ret);
+    if ($ret) {
+        // 這幾步失敗不中斷後面的流程（各自獨立），但一定要留下明顯紀錄：
+        // 2026-07-24～10-21 check-lis-progress.php 每輪 fatal 都沒人發現，三讀資訊因此三個月沒更新
+        error_log("bill: {$script} failed (exit={$ret})，後續步驟照常執行");
+    }
 }
 
 $data_dir = __DIR__ . '/../../imports/bill';

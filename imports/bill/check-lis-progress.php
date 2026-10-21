@@ -1,6 +1,6 @@
 <?php
 
-include(__DIR__ . '/../../config.php');
+include(__DIR__ . '/../../init.inc.php');
 
 $progress_target = __DIR__ . '/../../cache/lis-progress.jsonl';
 $list_target = __DIR__ . '/../../cache/lis-cache.json';
@@ -35,9 +35,13 @@ foreach (array_chunk(array_keys($ids), 100) as $chunked_ids) {
     $url = "https://v2.ly.govapi.tw/bills?" . implode('&', $terms);
     $obj = LYLib::callLYAPI($url);
     foreach ($obj->bills as $bill) {
+        // v2 可能回傳查詢清單以外的提案編號（例如「之1」變體），略過
+        if (!isset($ids[$bill->提案編號 ?? ''])) {
+            continue;
+        }
         $progress = $ids[$bill->提案編號];
         unset($ids[$bill->提案編號]);
-        if (!$bill->{'法律編號'}) {
+        if (empty($bill->{'法律編號'})) {
             continue;
         }
         $law_id = $bill->{'法律編號'}[0];
