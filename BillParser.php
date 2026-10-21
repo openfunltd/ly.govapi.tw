@@ -1267,8 +1267,9 @@ class BillParser
         }
 
         // 如果國會圖書館議事及發言系統有三讀紀錄，就在這邊更新
-        if ($date = self::checkLISCLosedBill($billNo) and strpos($values->{'狀態'}, '三讀') === false) {
-            $values->{'狀態'} = '三讀';
+        // 注意欄位是「議案狀態」（舊版誤寫成「狀態」，流程多了一筆三讀但狀態沒改）
+        if ($date = self::checkLISCLosedBill($billNo) and strpos($values->{'議案狀態'} ?? '', '三讀') === false) {
+            $values->{'議案狀態'} = '三讀';
             $values->{'議案流程'}[] = [
                 '日期' => [date('Y-m-d', strtotime($date))],
                 '狀態' => '三讀',

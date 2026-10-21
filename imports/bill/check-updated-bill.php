@@ -31,6 +31,12 @@ while ($obj = json_decode(fgets($fp))) {
         continue;
     }
     if (BillParser::checkLISCLosedBill($billNo)) {
+        // 已經套用過三讀的就不用每輪重抓
+        $data_path = __DIR__ . "/bill-data/{$billNo}.json.gz";
+        $cur = file_exists($data_path) ? json_decode(gzdecode(file_get_contents($data_path))) : null;
+        if ($cur and strpos($cur->{'議案狀態'} ?? '', '三讀') !== false) {
+            continue;
+        }
         error_log("{$billNo} 已經三讀，需要重新更新");
         unlink(__DIR__ . "/bill-html/{$billNo}.gz");
         continue;
