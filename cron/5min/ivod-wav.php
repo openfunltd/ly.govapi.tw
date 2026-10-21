@@ -153,6 +153,10 @@ function download_ts_parallel($m3u8_url, $ts_list, $cache_dir, $proxy_urls) {
 function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
     global $ivod_dir;
     $cache_dir = $ivod_dir . '/wav-cache/' . $video_id;
+    // 另一個 process（cron 與手動 only_ids 同時跑）正在抓同一支：cache 目錄 10 分鐘內有動靜就讓給它
+    if (file_exists($cache_dir) && (time() - filemtime($cache_dir)) < 600) {
+        throw new Exception("another process is downloading {$video_id}");
+    }
     if (!file_exists($cache_dir)) mkdir($cache_dir, 0777, true);
 
     try {
