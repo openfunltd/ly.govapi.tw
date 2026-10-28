@@ -50,12 +50,13 @@ foreach ($obj->hits->hits as $hit) {
     // 用日期最晚、且日期有效的那一天的頁面（有些 meet_data 的 date 是空的，會拼出 meetingDate=0/..）
     $page_url = null; $last_date = null;
     foreach ($source->meet_data as $md) {
-        // date 必須是正常的 YYYY-MM-DD（有些是 0000-00-00 之類，會拼出 meetingDate=0/..）
-        if (empty($md->date) || !preg_match('/^(19|20)\d{2}-\d{2}-\d{2}$/', $md->date)) continue;
-        if ($last_date === null || strtotime($md->date) > strtotime($last_date)) {
-            $last_date = $md->date;
-            $page_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%s/%s",
-                $md->meetingNo, intval(substr($md->date, 0, 4)) - 1911, substr($md->date, 5, 2), substr($md->date, 8, 2));
+        // 用 meetingDateDesc（民國 YYY/MM/DD，本來就是 PPG 網址要的格式）；meet_data.date 有些壞掉
+        // （例如院會-10-1-1 存成 1911-10-28），不要信
+        if (empty($md->meetingDateDesc) || !preg_match('#^(\d{2,3})/(\d{1,2})/(\d{1,2})#', $md->meetingDateDesc, $dm)) continue;
+        $iso = sprintf('%04d-%02d-%02d', $dm[1] + 1911, $dm[2], $dm[3]);
+        if ($last_date === null || strtotime($iso) > strtotime($last_date)) {
+            $last_date = $iso;
+            $page_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%02d/%02d", $md->meetingNo, $dm[1], $dm[2], $dm[3]);
         }
     }
     if (!$page_url) continue;
