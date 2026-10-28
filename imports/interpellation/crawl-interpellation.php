@@ -23,7 +23,7 @@ foreach ($obj->hits->hits as $hit) {
         echo json_encode($source, JSON_UNESCAPED_UNICODE) . "\n";
         exit;
     }
-    if ($hit->_source->term < 10) {
+    if ($hit->_source->term < intval(getenv('min_term') ?: 10)) { // min_term=8 可一次性重跑第 8、9 屆（例如補欄位）
         break;
     }
 
@@ -50,8 +50,13 @@ foreach ($obj->hits->hits as $hit) {
     // 用日期最晚、且日期有效的那一天的頁面（有些 meet_data 的 date 是空的，會拼出 meetingDate=0/..）
     $page_url = null; $last_date = null;
     foreach ($source->meet_data as $md) {
-        if (empty($md->date) || !strtotime($md->date) || empty($md->ppg_url)) continue;
-        if ($last_date === null || strtotime($md->date) > strtotime($last_date)) { $last_date = $md->date; $page_url = $md->ppg_url; }
+        // date 必須是正常的 YYYY-MM-DD（有些是 0000-00-00 之類，會拼出 meetingDate=0/..）
+        if (empty($md->date) || !preg_match('/^(19|20)\d{2}-\d{2}-\d{2}$/', $md->date)) continue;
+        if ($last_date === null || strtotime($md->date) > strtotime($last_date)) {
+            $last_date = $md->date;
+            $page_url = sprintf("https://ppg.ly.gov.tw/ppg/sittings/%s/details?meetingDate=%d/%s/%s",
+                $md->meetingNo, intval(substr($md->date, 0, 4)) - 1911, substr($md->date, 5, 2), substr($md->date, 8, 2));
+        }
     }
     if (!$page_url) continue;
     $target = __DIR__ . "/files/{$meetingNo}-0.pdf";
@@ -102,6 +107,7 @@ foreach ($obj->hits->hits as $hit) {
                 continue;
             }
             file_put_contents(__DIR__ . "/files/{$meetingNo}-{$idx}.pdf", $pdf);
+            file_put_contents(__DIR__ . "/files/{$meetingNo}-{$idx}.pdf.url", $file); // 記下來源，供 source_pdf 欄位
         }
         $target = __DIR__ . "/files/{$meetingNo}-0.pdf";
         clearstatcache(true, $target); // 前面 file_exists/filesize 查過 stub，PHP 會快取舊大小
@@ -135,9 +141,15 @@ foreach ($obj->hits->hits as $hit) {
         //file_put_contents(__DIR__ . '/tmp.txt', $content);
         error_log("{$file} {$page_url}");
         $info = GazetteParser::parseInterpellation($content);
+        // 原始來源：PPG 院會頁面（一定有）與關係文書 PDF 網址（2026-10-28 之後抓的才有紀錄）。
+        // 原始資料本身有錯（例如印發日期漏字）時不在這裡修，靠這兩個欄位回報給立法院
+        $source_pdf = file_exists($file . '.url') ? trim(file_get_contents($file . '.url')) : null;
         foreach ($info->interpellations as $interpellation) {
             $interpellation->meet_id = $hit->_id;
             $interpellation->meetingNo = $meetingNo;
+            $interpellation->source_page = $page_url;
+            $interpellation->source_pdf = $source_pdf;
+            $interpellation->source_file = basename($file);
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;
