@@ -47,9 +47,21 @@ foreach ($obj->hits->hits as $hit) {
         continue;
     }
     $showed_meets[$meetingNo] = true;
+    // 用日期最晚、且日期有效的那一天的頁面（有些 meet_data 的 date 是空的，會拼出 meetingDate=0/..）
+    $page_url = null; $last_date = null;
+    foreach ($source->meet_data as $md) {
+        if (empty($md->date) || !strtotime($md->date) || empty($md->ppg_url)) continue;
+        if ($last_date === null || strtotime($md->date) > strtotime($last_date)) { $last_date = $md->date; $page_url = $md->ppg_url; }
+    }
+    if (!$page_url) continue;
     $target = __DIR__ . "/files/{$meetingNo}-0.pdf";
-    if (!file_exists($target)) {
-        $content = Importer::getURL($meet_data->ppg_url);
+    // 質詢事項分頁是會後一段時間（常常幾週）才出現在 PPG 頁面上。以前第一次來沒看到就寫 stub
+    // 然後永不重試，2025-04 起幾乎每場都卡在這裡。現在：真的 PDF（>=300B）才算抓到；stub 或空檔
+    // 在會議日期 180 天內每輪重查，更舊的就不再試。
+    $recent = (time() - strtotime($last_date)) < (intval(getenv('retry_days') ?: 180)) * 86400; // retry_days=700 可回補更舊的
+    $have_real = file_exists($target) && filesize($target) >= 300;
+    if (!$have_real && (!file_exists($target) || $recent)) {
+        $content = Importer::getURL($page_url);
         $doc = new DOMDocument;
         $content = str_replace('<head>', '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">', $content);
         @$doc->loadHTML($content);
@@ -61,30 +73,38 @@ foreach ($obj->hits->hits as $hit) {
             $id = ltrim($button->getAttribute('data-bs-target'), '#');
         }
         if (is_null($id)) {
-            file_put_contents($target, "no data in url: {$meet_data->ppg_url}");
+            file_put_contents($target, "no data in url: {$page_url}");
             continue;
         }
         $data_dom = $doc->getElementById($id);
         $files = [];
-        foreach ($data_dom->getElementsByTagName('div') as $div_dom) {
-            if ($div_dom->getAttribute('class') !== 'card-body') {
-                continue;
+        // 分頁裡的關係文書 PDF（LCEWA01_xxx_nnnnn.pdf）全部收；LCEWA06/07 是目次，不收
+        foreach ($data_dom->getElementsByTagName('a') as $a_dom) {
+            $href = $a_dom->getAttribute('href');
+            if (preg_match('#/download/.*LCEWA01_\d+_\d+\.pdf$#', $href) && !in_array($href, $files)) {
+                $files[] = $href;
             }
-            if (strpos($div_dom->nodeValue, '關係文書') === false) {
-                continue;
-            }
-            if (! $a_dom = $div_dom->getElementsByTagName('a')->item(0)) {
-                continue;
-                throw new Exception("找不到 a tag: " . $meet_data->ppg_url);
-            }
-            $files[] = $a_dom->getAttribute('href');
         }
-
+        if (!$files) {
+            file_put_contents($target, "no document in url: {$page_url}");
+            continue;
+        }
         foreach ($files as $idx => $file) {
-            $target = __DIR__ . "/files/{$meetingNo}-{$idx}.pdf";
-            system(sprintf("wget -4 -O %s %s", escapeshellarg($target), escapeshellarg($file)));
-            // TODO: 應該要全部下載完再一次存入，這樣比較不會下載一半
+            // 用跟抓頁面同一套 curl（走 config.php 的 proxy、IPv4、重試），wget 對 PPG 常逾時
+            try {
+                $pdf = Importer::getURL($file, 180);
+            } catch (Exception $e) {
+                $pdf = '';
+            }
+            if (strlen($pdf) < 300 || strpos($pdf, '%PDF') !== 0) {
+                error_log("download failed: {$file}");
+                if ($idx === 0) continue 2; // 第一份沒拿到就整場下一輪再來；其餘缺哪份跳哪份
+                continue;
+            }
+            file_put_contents(__DIR__ . "/files/{$meetingNo}-{$idx}.pdf", $pdf);
         }
+        $target = __DIR__ . "/files/{$meetingNo}-0.pdf";
+        clearstatcache(true, $target); // 前面 file_exists/filesize 查過 stub，PHP 會快取舊大小
     }
     if (filesize($target) < 300) {
         continue;
@@ -113,7 +133,7 @@ foreach ($obj->hits->hits as $hit) {
         $cmd = (sprintf("pdftotext -layout %s -", escapeshellarg($file)));
         $content = `$cmd`;
         //file_put_contents(__DIR__ . '/tmp.txt', $content);
-        error_log("{$file} {$meet_data->ppg_url}");
+        error_log("{$file} {$page_url}");
         $info = GazetteParser::parseInterpellation($content);
         foreach ($info->interpellations as $interpellation) {
             $interpellation->meet_id = $hit->_id;
@@ -127,12 +147,12 @@ foreach ($obj->hits->hits as $hit) {
                 Importer::addImportLog([
                     'event' => 'interpellation-new',
                     'group' => 'interpellation',
-                    'message' => sprintf("新增質詢(%s) %s", $interpellation->會議代碼, $interpellation->事由),
+                    'message' => sprintf("新增質詢(%s) %s", $interpellation->id, mb_substr($interpellation->reason ?? '', 0, 60)),
                     'data' => json_encode([
                         'id' => $interpellation->id,
-                        '質詢委員' => $interpellation->質詢委員,
-                        '事由' => $interpellation->事由,
-                        '會議編號' => $interpellation->會議代碼,
+                        '質詢委員' => $interpellation->legislators ?? [],
+                        '事由' => $interpellation->reason ?? '',
+                        '會議編號' => $meetingNo,
                     ], JSON_UNESCAPED_UNICODE),
                 ], $commit = false);
             } else if (file_get_contents($target_file) == json_encode($interpellation, JSON_UNESCAPED_UNICODE)) {
