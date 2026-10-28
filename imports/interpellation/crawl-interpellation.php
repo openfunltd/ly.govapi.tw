@@ -142,7 +142,7 @@ foreach ($obj->hits->hits as $hit) {
         //file_put_contents(__DIR__ . '/tmp.txt', $content);
         error_log("{$file} {$page_url}");
         $info = GazetteParser::parseInterpellation($content);
-        // 原始來源：PPG 院會頁面（一定有）與關係文書 PDF 網址（2026-10-28 之後抓的才有紀錄）。
+        // 原始來源：PPG 院會頁面（一定有）與關係文書 PDF 網址（files/*.pdf.url 有紀錄的才有）。
         // 原始資料本身有錯（例如印發日期漏字）時不在這裡修，靠這兩個欄位回報給立法院
         $source_pdf = file_exists($file . '.url') ? trim(file_get_contents($file . '.url')) : null;
         foreach ($info->interpellations as $interpellation) {
@@ -151,7 +151,6 @@ foreach ($obj->hits->hits as $hit) {
             $interpellation->source_page = $page_url;
             // page_start 就是 PDF 實體頁碼（已核對），直接帶 #page= 開到該頁；要純檔案網址去掉 # 之後即可
             $interpellation->source_pdf = $source_pdf ? $source_pdf . '#page=' . intval($interpellation->page_start ?: 1) : null;
-            $interpellation->source_file = basename($file);
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;
