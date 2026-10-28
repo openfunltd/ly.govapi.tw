@@ -8,6 +8,7 @@ $meets = [];
 while ($line = fgets($fp)) {
     $meet_data = json_decode($line);
     $meet_data = LYLib::filterMeetData($meet_data);
+    if (empty($meet_data->date)) continue;
     $o = new StdClass;
     $o->meet_data = [$meet_data];
     $meet_data = LYLib::buildMeet($o)->meet_data[0];

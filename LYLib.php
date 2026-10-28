@@ -83,9 +83,13 @@ class LYLib
         }, $meet->meetingName);
         $meet->meetingName = trim($meet->meetingName);
 
-        if (!preg_match('#^(\d+)/(\d+)/(\d+) (\d+):(\d+)-?((\d+):(\d+))?$#', $meet->meetingDateDesc, $matches)) {
-            print_r($meet);
-            readline('press any key to continue :');
+        // 2026-10-28：open data 的 meetingDateDesc 開始帶尾端空白（"103/10/31 09:00-18:00 "），regex 比對失敗後
+        // $matches 是空的，mktime(0,0,0,null,null,1911) 在 PHP 8 會用「今天」的月日，477 場日期變成 1911-10-28。
+        // 先 trim；真的比對不到就丟例外，不要產生垃圾日期（cron 下 readline 也只會立刻回傳）
+        if (!preg_match('#^(\d+)/(\d+)/(\d+) (\d+):(\d+)-?((\d+):(\d+))?$#', trim($meet->meetingDateDesc ?? ''), $matches)) {
+            error_log("filterMeetData: meetingDateDesc 格式不正確，略過 {$meet->meetingNo} " . json_encode($meet->meetingDateDesc, JSON_UNESCAPED_UNICODE));
+            $meet->date = $meet->startTime = $meet->endTime = null; // 呼叫端看到 date 是 null 要跳過這列
+            return $meet;
         }
         $meet->date = date('Y-m-d', mktime(0, 0, 0, $matches[2], $matches[3], $matches[1] + 1911));
         $meet->startTime = date('Y-m-d\TH:i:s', mktime($matches[4], $matches[5], 0, $matches[2], $matches[3], $matches[1] + 1911));

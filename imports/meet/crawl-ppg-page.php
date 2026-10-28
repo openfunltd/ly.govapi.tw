@@ -28,6 +28,7 @@ foreach ($meet_group as $meetingNo => $meets) {
     $infos = [];
     foreach ($meets as $meet) {
         $meet = LYLib::filterMeetData($meet);
+        if (empty($meet->date)) continue;
         try {
             $meet_obj = LYLib::meetNameToId($meet->meetingName, [
                 'meetingNo' => $meetingNo,

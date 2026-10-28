@@ -18,6 +18,7 @@ while ($line = fgets($fp)) {
     }
     try {
         $meet = LYLib::filterMeetData($meet);
+        if (empty($meet->date)) continue;
     } catch (Exception $e) {
         print_r($meet);
         readline('press any key to continue :');

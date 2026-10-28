@@ -8,6 +8,7 @@ $meet_map = new StdClass;
 while ($line = fgets($fp)) {
     $meet_data = json_decode($line);
     $meet_data = LYLib::filterMeetData($meet_data);
+    if (empty($meet_data->date)) continue; // 日期解析不了的列跳過
     $meet_obj = LYLib::meetToId('meet_data', $meet_data);
     if (!$meet_obj) {
         continue;

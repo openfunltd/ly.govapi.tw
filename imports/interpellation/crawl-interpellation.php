@@ -150,6 +150,8 @@ foreach ($obj->hits->hits as $hit) {
             $interpellation->meetingNo = $meetingNo;
             $interpellation->source_page = $page_url;
             $interpellation->source_pdf = $source_pdf;
+            // page_start 就是 PDF 實體頁碼（已核對），加 #page= 可直接開到該頁
+            $interpellation->source_pdf_url = $source_pdf ? $source_pdf . '#page=' . intval($interpellation->page_start ?: 1) : null;
             $interpellation->source_file = basename($file);
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
