@@ -15,7 +15,7 @@ $out = [
     '議事錄' => array_intersect_key((array)($m->議事錄 ?? []), array_flip(['title', '時間', '地點', '主席', '出席委員', '請假委員', '列席委員', '列席官員', '專門委員', '主任秘書'])),
     'attachments' => $m->ppg_data[0]->attachments ?? [],
     '公報' => array_intersect_key((array)($m->公報發言紀錄[0] ?? []), array_flip(['pdf_url', 'doc_url', 'agendarec_url', 'gazette_id', 'page_start', 'page_end', 'meetingDate'])),
-    'ppg_url' => isset($m->meet_data[0]->meetingNo) ? "https://ppg.ly.gov.tw/ppg/sittings/{$m->meet_data[0]->meetingNo}/details?meetingDate=" . ($m->meet_data[0]->meetingDateDesc ?? '') : null,
+    'ppg_url' => isset($m->meet_data[0]->meetingNo) ? "https://ppg.ly.gov.tw/ppg/sittings/{$m->meet_data[0]->meetingNo}/details?meetingDate=" . preg_replace('/\s.*$/', '', $m->meet_data[0]->meetingDateDesc ?? '') : null,
     'bills' => [], 'ivod' => ['full' => null, 'clips' => []],
 ];
 foreach ($m->ppg_data[0]->關係文書->bills ?? [] as $b) {
