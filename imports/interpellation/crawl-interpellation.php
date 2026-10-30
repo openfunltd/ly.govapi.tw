@@ -149,8 +149,10 @@ foreach ($obj->hits->hits as $hit) {
             $interpellation->meet_id = $hit->_id;
             $interpellation->meetingNo = $meetingNo;
             $interpellation->source_page = $page_url;
-            // page_start 就是 PDF 實體頁碼（已核對），直接帶 #page= 開到該頁；要純檔案網址去掉 # 之後即可
-            $interpellation->source_pdf = $source_pdf ? $source_pdf . '#page=' . intval($interpellation->page_start ?: 1) : null;
+            // #page= 用 PDF 實體頁（parser 數換頁符算的 pdf_page）。page_start 是關係文書頁碼「質 N」，一場會議的多份 PDF
+            // 連續編號，第 10 屆常見第二份起從 90 幾頁開始，不是 PDF 頁；要純檔案網址去掉 # 之後即可
+            $interpellation->source_pdf = $source_pdf ? $source_pdf . '#page=' . intval($interpellation->pdf_page ?: 1) : null;
+            unset($interpellation->pdf_page);
             $interpellation->term = $info->term;
             $interpellation->sessionPeriod = $info->sessionPeriod;
             $interpellation->sessionTimes = $info->sessionTimes;

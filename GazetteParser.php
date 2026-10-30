@@ -502,7 +502,6 @@ class GazetteParser
 
     public static function parseInterpellation($content)
     {
-        $current_page = 1;
         $content = rtrim($content);
         if (strpos($content, '專案賥詢') !== false) {
             $content = str_replace('賥', '質', $content);
@@ -565,9 +564,19 @@ class GazetteParser
 
         $lines = explode("\n", $content);
         $ret = new StdClass;
-        $ret->doc_title = trim(array_shift($lines));
+        // $current_page 是關係文書的頁碼（頁尾「質 N」，一場會議的多份 PDF 連續編號）；
+        // $pdf_page 是這份 PDF 的實體頁（數 pdftotext 的換頁符 \f），source_pdf 的 #page= 要用這個
+        $current_page = null;
+        $pdf_page = 1;
+        $interpellation = null;
+        $shift = function() use (&$lines, &$pdf_page) {
+            $line = array_shift($lines);
+            $pdf_page += substr_count($line ?? '', "\f");
+            return $line;
+        };
+        $ret->doc_title = trim($shift());
 
-        $get_newline = function() use (&$lines, &$current_page, $ret, &$get_newline) {
+        $get_newline = function() use (&$lines, &$current_page, $ret, &$get_newline, $shift, &$interpellation) {
             if (!count($lines)) {
                 return null;
             }
@@ -575,26 +584,37 @@ class GazetteParser
                 if (!count($lines)) {
                     return null;
                 }
-                array_shift($lines);
+                $shift();
             }
 
-            if (preg_match('#^質 (\d+)$#u', trim($lines[0]), $matches) and trim(str_replace("\f", "", $lines[1])) == '') {
+            // 頁尾「質 91」；PPG 2026-10 重新產出的 PDF 變成「☆質 91」
+            if (preg_match('#^☆?質 (\d+)$#u', trim($lines[0]), $matches) and trim(str_replace("\f", "", $lines[1])) == '') {
                 return null;
             }
-            while (preg_match('#^質 (\d+)$#u', trim($lines[0]), $matches) and strpos($lines[1], $ret->doc_title) !== false) {
+            while (preg_match('#^☆?質 (\d+)$#u', trim($lines[0]), $matches) and strpos($lines[1], $ret->doc_title) !== false) {
+                if (is_null($current_page)) {
+                    // 第一頁的頁碼要到頁尾才知道，回頭補給第一頁開始的那幾筆（以前都是 null，#page= 變成 1）
+                    foreach ($ret->interpellations as $x) {
+                        if (is_null($x->page_start)) $x->page_start = intval($matches[1]);
+                        if (is_null($x->page_end)) $x->page_end = intval($matches[1]);
+                    }
+                    if (!is_null($interpellation) and is_null($interpellation->page_start)) {
+                        $interpellation->page_start = intval($matches[1]);
+                    }
+                }
                 $current_page = intval($matches[1]) + 1;
-                array_shift($lines);
-                array_shift($lines);
+                $shift();
+                $shift();
                 while (trim($lines[0]) == '') {
                     if (!count($lines)) {
                         return null;
                     }
-                    array_shift($lines);
+                    $shift();
                 }
                 return $get_newline();
 
             }
-            $line = array_shift($lines);
+            $line = $shift();
             if (strpos(trim($line), '案 由 ： 本 院 ') === 0) {
                 $line = preg_replace('#([^ ])[ ]#u', "$1", $line);
             }
@@ -612,7 +632,6 @@ class GazetteParser
         };
 
         $ret->interpellations = [];
-        $interpellation = null;
         // 第一行會是 立法院第 8 屆第 1 會期第 1 次會議議案關係文書
         // 立法院第 11 屆第 1 會期第 10 次會議議事日程
         if (!preg_match('#立法院第 ([0-9]+) 屆第 ([0-9]+) 會期第 ([0-9]+) 次(會議議案關係文書|會議議事日程)#u', $ret->doc_title, $matches)) {
@@ -637,7 +656,8 @@ class GazetteParser
                 $interpellation->id = implode('-', array_map('intval', array_slice($matches, 1)));
                 $interpellation->page_start = $current_page;
                 $interpellation->page_end = $current_page;
-                array_shift($lines);
+                $interpellation->pdf_page = $pdf_page;
+                $shift();
 
                 $line = $get_newline();
                 // 立法院議案關係文書 中華民國 101 年 2 月 22 日印發
