@@ -8,7 +8,7 @@ if (!$from || !$to || !$out_path) { fwrite(STDERR, "usage: php export-meet-list.
 $meets = []; $after = null;
 while (true) {
     $body = ['size' => 500, 'query' => ['range' => ['dates' => ['gte' => $from, 'lte' => $to]]], 'sort' => [['meet_id.keyword' => 'asc']],
-             '_source' => ['meet_id', 'meet_type', 'dates', 'title', 'name', 'term', 'sessionPeriod', 'committees', 'meet_data.meetingUnit', 'meet_data.meetingRoom', 'meet_data.coChairman', 'meet_data.meetingContent', 'meet_data.date', 'meet_data.meetingDateDesc', '議事錄.主席']];
+             '_source' => ['meet_id', 'meet_type', 'categories', 'third_reading_bills', 'dates', 'title', 'name', 'term', 'sessionPeriod', 'committees', 'meet_data.meetingUnit', 'meet_data.meetingRoom', 'meet_data.coChairman', 'meet_data.meetingContent', 'meet_data.date', 'meet_data.meetingDateDesc', '議事錄.主席']];
     if ($after) $body['search_after'] = $after;
     $r = Elastic::dbQuery('/{prefix}meet/_search', 'POST', json_encode($body, JSON_UNESCAPED_UNICODE));
     $hits = $r->hits->hits ?? [];
@@ -24,7 +24,7 @@ $out = [];
 foreach ($meets as $id => $m) {
     $md = $m->meet_data ?? [];
     $out[] = [
-        'meet_id' => $id, 'meet_type' => $m->meet_type, 'dates' => array_values(array_filter((array)$m->dates, fn($d) => $d >= $from && $d <= $to)),
+        'meet_id' => $id, 'meet_type' => $m->meet_type, 'categories' => $m->categories ?? [], 'third_reading_bills' => $m->third_reading_bills ?? [], 'dates' => array_values(array_filter((array)$m->dates, fn($d) => $d >= $from && $d <= $to)),
         'all_dates' => $m->dates, 'title' => $m->title, 'name' => $m->name, 'term' => $m->term, 'sessionPeriod' => $m->sessionPeriod,
         'committees' => $m->committees ?? [], 'unit' => $md[0]->meetingUnit ?? null, 'room' => $md[0]->meetingRoom ?? null,
         'chair' => $md[0]->coChairman ?? (($m->議事錄->主席 ?? [null])[0] ?? null),

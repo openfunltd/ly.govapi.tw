@@ -533,6 +533,109 @@ class LYLib
         return $source;
     }
 
+    /**
+     * 會議屬性（categories）：一場會議可以同時有多個，例如「預算審查＋業務報告質詢」。
+     * 規則只用現有欄位：會議種類、會議事由（meet_data[].meetingContent）、議事網關係文書有沒有帶法律編號，
+     * 院會另由 link-meet.php 從 bill 的議案流程反查三讀議案帶進 $third_reading_bills。
+     * 設計與第 11 屆試跑數字見 PLAN.md「規劃中：會議屬性欄位與公報發言索引」。
+     */
+    public static function buildMeetCategories($source, $third_reading_bills = [])
+    {
+        $type = $source->meet_type ?? '';
+        $content = '';
+        foreach ($source->meet_data ?? [] as $md) {
+            $content .= ($md->meetingContent ?? '') . "\n";
+        }
+        $content = str_replace(["\r", "\t", ' ', '　'], '', $content);
+        $title = str_replace(' ', '', ($source->title ?? '') . ($source->name ?? ''));
+        $has_law = false;
+        foreach ($source->ppg_data ?? [] as $p) {
+            foreach ($p->{'關係文書'}->bills ?? [] as $b) {
+                if (count((array)($b->laws ?? []))) {
+                    $has_law = true;
+                }
+            }
+        }
+        $unit = $source->meet_data[0]->meetingUnit ?? '';
+
+        $cats = [];
+        if (strpos($source->meet_id ?? '', '臨時會') === 0) {
+            $cats[] = '臨時會';
+        }
+        if ($type == '院會') {
+            $cats[] = '院會';
+            // 「對行政院院長施政報告繼續質詢」是總質詢日，不是施政報告本身，先去掉再判斷
+            if (preg_match('#施政報告#u', preg_replace('#對[^。]{0,40}施政報告[^。]{0,20}質詢#u', '', $content))) {
+                $cats[] = '施政報告';
+            }
+            if (preg_match('#總質詢|施政.{0,30}質詢|備質詢#us', $content)) {
+                $cats[] = '總質詢';
+            }
+            if (preg_match('#同意權|提名#u', $content)) {
+                $cats[] = '同意權行使';
+            }
+            if (preg_match('#覆議#u', $content)) {
+                $cats[] = '覆議案';
+            }
+            if (preg_match('#不信任#u', $content)) {
+                $cats[] = '不信任案';
+            }
+            if (count($third_reading_bills)) {
+                $cats[] = '三讀';
+            }
+        } elseif ($type == '公聽會') {
+            $cats[] = '公聽會';
+        } elseif ($type == '黨團協商') {
+            $cats[] = '黨團協商';
+        } elseif ($type == '考察') {
+            $cats[] = '考察';
+        } elseif ($type == '全院委員會') {
+            // 全院委員會只有三種用途，直接標用途、不另留「全院委員會」層
+            if (preg_match('#提名|同意權#u', $content . $title)) {
+                $cats[] = '人事審查';
+            } elseif (preg_match('#覆議#u', $content . $title)) {
+                $cats[] = '覆議案';
+            } elseif (preg_match('#不信任#u', $content . $title)) {
+                $cats[] = '不信任案';
+            } else {
+                $cats[] = '其他';
+            }
+        } elseif (in_array($type, ['委員會', '聯席會議'])) {
+            if (preg_match('#(審查|處理|繼續審查|審議).{0,60}(預算|決算)|預算.{0,6}(案|解凍|凍結|主決議)|凍結案#us', $content)) {
+                $cats[] = '預算審查';
+            }
+            if (preg_match('#提名|同意權#u', $content)) {
+                $cats[] = '人事審查';
+            }
+            if (preg_match('#審查.*(草案|修正案|條文|條例|組織規程)#us', $content)
+                or ($has_law and preg_match('#審查#u', $content))) {
+                $cats[] = '法案審查';
+            }
+            if (preg_match('#並?備質詢|備詢|專題報告|業務(概況|報告)|(邀請|列席).{0,60}報告#us', $content)) {
+                $cats[] = '業務報告質詢';
+            }
+            if (preg_match('#公聽會#u', $content)) {
+                $cats[] = '公聽會';
+            }
+            if (preg_match('#考察|參訪#u', $content)) {
+                $cats[] = '考察';
+            }
+            if (preg_match('#選舉.{0,20}召集委員|推選召集委員#u', $content)) {
+                $cats[] = '選舉召集委員';
+            }
+            // 人民請願、程序委員會、經費稽核這類對外沒意義的內部事務，以及條約審查、調閱小組等邊緣案都歸「其他」
+            if (preg_match('#請願#u', $content) or preg_match('#程序委員會|經費稽核#u', $unit)) {
+                $cats[] = '其他';
+            }
+            if (!count(array_diff($cats, ['臨時會']))) {
+                $cats[] = '其他';
+            }
+        }
+        $source->categories = array_values(array_unique($cats));
+        $source->third_reading_bills = array_values($third_reading_bills);
+        return $source;
+    }
+
     public static function buildMeet($source, $target = 'api')
     {
         $source->dates = [];

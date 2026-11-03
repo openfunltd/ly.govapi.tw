@@ -113,6 +113,48 @@ $diff_function = function($a, $b, $path = '.') use (&$diff_function) {
     return $diff;
 };
 
+// 三讀議案 → 院會：bill 的議案流程「三讀」那一步只有日期沒有會議代碼，用日期對院會的開會日；
+// 對不到任何院會日期的（少數）退用 bill 的 meet_id（最後一次排入的院會）。
+$plenary_dates = [];
+foreach ($meet_map as $meet_id => $meet) {
+    if ($meet->meet_type != '院會') {
+        continue;
+    }
+    foreach ($meet->meet_data as $md) {
+        $plenary_dates[$md->date] = true;
+    }
+}
+$third_by_date = [];
+$third_by_meet = [];
+$ret = Elastic::dbQuery('/{prefix}bill/_search?scroll=5m', 'POST', json_encode([
+    'size' => 1000,
+    'query' => ['term' => ['議案流程.狀態.keyword' => '三讀']],
+    '_source' => ['billNo', '議案名稱', 'laws', '議案流程', 'meet_id'],
+]));
+while (count($ret->hits->hits)) {
+    foreach ($ret->hits->hits as $hit) {
+        $bill = $hit->_source;
+        $record = ['billNo' => $bill->billNo, 'title' => $bill->{'議案名稱'} ?? null, 'laws' => $bill->laws ?? []];
+        $matched = false;
+        foreach ($bill->{'議案流程'} as $flow) {
+            if (($flow->{'狀態'} ?? '') != '三讀') {
+                continue;
+            }
+            foreach ((array)($flow->{'日期'} ?? []) as $date) {
+                if (isset($plenary_dates[$date])) {
+                    $third_by_date[$date][$bill->billNo] = $record;
+                    $matched = true;
+                }
+            }
+            break;
+        }
+        if (!$matched and !empty($bill->meet_id)) {
+            $third_by_meet[$bill->meet_id][$bill->billNo] = $record;
+        }
+    }
+    $ret = Elastic::dbQuery('/_search/scroll', 'POST', json_encode(['scroll' => '5m', 'scroll_id' => $ret->_scroll_id]));
+}
+
 foreach ($meet_map as $meet_id => $meet_data) {
     $meet_data_file = __DIR__ . "/meet-data/{$meet_id}.json";
 
@@ -134,6 +176,15 @@ foreach ($meet_map as $meet_id => $meet_data) {
         }
     }
     $meet_data = LYLib::buildMeet($meet_data, 'db');
+    $third = [];
+    if ($meet_data->meet_type == '院會') {
+        foreach ($meet_data->dates as $date) {
+            $third += $third_by_date[$date] ?? [];
+        }
+        $third += $third_by_meet[$meet_id] ?? [];
+        ksort($third);
+    }
+    $meet_data = LYLib::buildMeetCategories($meet_data, $third);
     if (!file_exists($meet_data_file)) {
         error_log("meet new: {$meet_id}");
         Importer::addImportLog([
@@ -178,6 +229,12 @@ foreach ($meet_map as $meet_id => $meet_data) {
             $changes[] = $k;
         }
         if (!$changes) {
+            continue;
+        }
+        // categories / third_reading_bills 是從其他欄位推導的，單獨變動（例如規則調整、三讀回填）不值得通知
+        if (!array_diff($changes, ['categories', 'third_reading_bills'])) {
+            file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE));
+            Elastic::dbBulkInsert('meet', $meet_id, $meet_data);
             continue;
         }
         error_log("meet change: {$meet_id} " . json_encode($changes, JSON_UNESCAPED_UNICODE));
