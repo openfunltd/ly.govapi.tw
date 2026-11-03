@@ -116,6 +116,8 @@ foreach ($obj->hits->hits as $hit) {
     if (filesize($target) < 300) {
         continue;
     }
+    $seen_ids = []; // 同一場的兩份 PDF 可能是同一份文件（PPG 分頁列兩個連結、內容一樣，例 2021052701 的 00002 與 00107），
+                    // 後面那份的同一個質詢編號跳過，不然每輪都會被兩份輪流覆寫
     foreach (glob(__DIR__ . "/files/{$meetingNo}-*.pdf") as $file) {
         if (in_array(basename($file), [
             "201204066-1.pdf", // https://ppg.ly.gov.tw/ppg/SittingRelatedDocumentQuestionsEyReply/download/agenda1/02/pdf/08/01/06/LCEWA01_080106_00138.pdf
@@ -146,6 +148,10 @@ foreach ($obj->hits->hits as $hit) {
         // 原始資料本身有錯（例如印發日期漏字）時不在這裡修，靠這兩個欄位回報給立法院
         $source_pdf = file_exists($file . '.url') ? trim(file_get_contents($file . '.url')) : null;
         foreach ($info->interpellations as $interpellation) {
+            if (isset($seen_ids[$interpellation->id])) {
+                continue;
+            }
+            $seen_ids[$interpellation->id] = true;
             $interpellation->meet_id = $hit->_id;
             $interpellation->meetingNo = $meetingNo;
             $interpellation->source_page = $page_url;
