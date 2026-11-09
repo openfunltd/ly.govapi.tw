@@ -444,6 +444,7 @@ ly.govapi.tw/
 - **iVOD Whisper 逐字稿**：相對較新的功能，仍在擴充中，whisper-transcript.php 是非同步的（submit → 輪詢狀態）
 - **語者身分比對（speaker_identity）更新**：比對門檻只在 `IVodParser::identifySpeaker()` 的常數（`SPEAKER_MIN_SCORE` 0.85 = cosine 0.70、`READER_MIN_SCORE` 0.875 = cosine 0.75、`READER_MARGIN`；ES score = (cosine+1)/2），四支腳本都呼叫它；調整後跑 `recompute-speaker-identity.php`（先 `dry_run=1` 看變更）即可套用到全部既有影片，不需重跑 ASR。宣讀人員的聲紋用 `upsert-reader-embed.py` 收集，可重跑（會往既有 cluster 靠）
 - **`whisper-transcript.php` 是常駐 daemon**：由 `imports/ivod/auto-loop.sh`（`while true; php whisper-transcript.php; sleep 1`）在終端機裡跑，不是 cron/systemd；改程式後 kill 掉 php process 會被自動重啟載入新程式
+- **`whisper-transcript.php` 不等整批做完（2026-11-04 改）**：每輪 Step 1 先收 `ivod-asr-jobs/` 裡在途 job 的結果，Step 2 補送到在途 3 個（Clip 優先、最新優先），送出後只睡 5 秒就進下一輪。改之前是送 3 個等整批完成才送下一批，一支 Full 的 ASR 要跑幾十分鐘，開會日的 Clip 會全部排在它後面。送出超過 3 小時沒完成的 job 視為卡住，丟掉 job 檔由下一輪重送。同日 `ivod-wav.php` 也拆成 Clip（每輪 10 支）與 `ivod-wav-full.php`（每輪 1 支）兩支 cron，各自有鎖，分段下載階段以 `wav-cache/{id}/` 十分鐘內有更新當「下載中」標記
 - **`config.php` 的 `https_proxy` 是 process-wide**：只給 ivod.ly.gov.tw CDN 下載用，但 curl 會套用到所有 https 請求。只打 ES/asr-tool 的腳本要在 include `init.inc.php` 後 `putenv('https_proxy')` 清掉，否則 ES bulk 會偶發卡住或失敗
 - **語者身分比對待辦（2026-10-16 記錄，尚未處理）**：
   - 具名聲紋被議事人員聲音污染：周秘書長萬來、吳司長宜璇、鄭局長秀絨、盧副組長碧黛、李副委員長姸慧、蔡副主計長鴻坤等 doc 的 embedding 跟宣讀人員群心相似度 0.70–0.77，出現型態是每場 70–100 秒橫跨二三十場，推測 `upsert-speaker-embed.py` 用公報對齊收集時把宣讀段算到官員頭上。目前宣讀人員門檻較高會壓過它們，但這些 doc 在別的影片仍可能誤中。待做：收集時排除「請宣讀→完畢」視窗；稽核所有跟 reader 群心 ≥0.70 的具名 doc 並重建

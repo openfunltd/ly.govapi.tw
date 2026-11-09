@@ -140,6 +140,12 @@ $pending = [];
 foreach (glob($ivod_dir . '/ivod-asr-jobs/*.json') ?: [] as $f) {
     $v = intval(basename($f, '.json'));
     $info = json_decode(file_get_contents($f));
+    // 送出超過 3 小時還沒完成的 job 視為卡住：丟掉 job 檔（wav 還在，下一輪會重送）
+    if (($info->submitted_at ?? time()) < time() - 3 * 3600) {
+        error_log("stale job {$v} ({$info->job_id}), dropped");
+        @unlink($f);
+        continue;
+    }
     $pending[$v] = $info->job_id;
 }
 
@@ -157,7 +163,9 @@ foreach ($pending as $v => $job_id) {
 }
 
 // ──────────────────────────────────────────────
-// Step 2：掃描 wav/ 目錄，送出新 job（最多 3 個，clip 優先、最新優先）
+// Step 2：掃描 wav/ 目錄，送出新 job（在途最多 3 個，clip 優先、最新優先）
+// 送出後不等它完成：由下一輪的 Step 1 收結果。以前是送 3 個然後等整批做完才送下一批，
+// 一支 3～5 小時的 Full 要跑幾十分鐘，開會日幾十支 Clip 會全部排在它後面。
 // ──────────────────────────────────────────────
 
 $max_full_id = intval(file_get_contents($ivod_dir . '/current-full-id'));
@@ -175,7 +183,8 @@ foreach (glob($ivod_dir . '/wav/*.wav') ?: [] as $wav_file) {
 }
 rsort($clips); // 最新的優先
 rsort($fulls);
-$to_submit = array_slice(array_merge($clips, $fulls), 0, 3);
+$slots = max(0, 3 - count($pending));
+$to_submit = array_slice(array_merge($clips, $fulls), 0, $slots);
 
 $new_jobs = [];
 foreach ($to_submit as $v) {
@@ -204,36 +213,12 @@ foreach ($to_submit as $v) {
 }
 
 // ──────────────────────────────────────────────
-// Step 3：等待新送出的 job 完成
+// Step 3：在途 job 由下一輪的 Step 1 輪詢；沒事做就睡久一點
 // ──────────────────────────────────────────────
 
 if (empty($new_jobs) && empty($pending)) {
     error_log("no jobs, sleep 60 seconds");
     sleep(60);
-}
-
-$wait_jobs = $new_jobs;
-$start_time = time();
-$timeout = 6000;
-
-while (!empty($wait_jobs)) {
-    if (time() - $start_time > $timeout) {
-        error_log("timeout waiting for jobs: " . implode(',', array_keys($wait_jobs)));
-        break;
-    }
+} else {
     sleep(5);
-
-    foreach ($wait_jobs as $v => $job_id) {
-        $result = asr_get($job_id);
-        error_log("{$v} ({$job_id}): {$result->status}" . ($result->stage ? " stage:{$result->stage}" : ''));
-
-        if ($result->status === 'done') {
-            save_transcript($v, $result);
-            unset($wait_jobs[$v]);
-        } elseif ($result->status === 'error') {
-            error_log("asr error {$v}: " . ($result->error ?? 'unknown'));
-            @unlink($ivod_dir . "/ivod-asr-jobs/{$v}.json");
-            unset($wait_jobs[$v]);
-        }
-    }
 }
