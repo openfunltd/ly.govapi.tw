@@ -1698,8 +1698,12 @@ class Dispatcher
             ];
         }
         if (count($params) > 3) {
-            $interpellation_id = implode('-', [$term, $sessionPeriod, $sessionTimes, $params[3]]);
-            $obj = Elastic::dbQuery("/{prefix}interpellation/_doc/{$interpellation_id}");
+            // 質詢 id 2026-11 起是「屆-會期-編號」（每會期連續編號）；舊路徑的會次保留相容，先找新 id，再找編號相同內容不同時加會次後綴的那種
+            $obj = null;
+            foreach ([implode('-', [$term, $sessionPeriod, $params[3]]), implode('-', [$term, $sessionPeriod, $params[3], $sessionTimes])] as $interpellation_id) {
+                $obj = Elastic::dbQuery("/{prefix}interpellation/_doc/{$interpellation_id}");
+                if (isset($obj->found) && $obj->found) break;
+            }
             if (isset($obj->found) && $obj->found) {
                 self::json_output(LYLib::buildInterpellation($obj->_source));
             } else {
@@ -1721,7 +1725,7 @@ class Dispatcher
             $records->meet_id = self::getParam('meet_id', ['array' => true]);
             $cmd['query']['bool']['must'][] = [
                 'terms' => [
-                    'meet_id.keyword' => $records->meet_id,
+                    'meet_ids.keyword' => $records->meet_id,
                 ],
             ];
         }
@@ -1754,7 +1758,7 @@ class Dispatcher
         }
 
         $all_fields = [
-            'meet_id' => ['aggs' => true, 'field' => 'meet_id.keyword', 'agg_size' => 100],
+            'meet_id' => ['aggs' => true, 'field' => 'meet_ids.keyword', 'agg_size' => 100],
             'legislator' => ['aggs' => true, 'field' => 'legislators.keyword', 'agg_size' => 100],
             'date' => ['aggs' => true, 'field' => 'date', 'agg_size' => 100],
         ];
