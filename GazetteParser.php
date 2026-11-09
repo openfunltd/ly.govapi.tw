@@ -687,7 +687,8 @@ class GazetteParser
                 }
 
                 while ($line = $get_newline()) {
-                    if (strpos(trim($line), '說明：') === 0) {
+                    // 沒有「說明」的質詢（例：11-2-2-3）直接接下一筆的「專案質詢」，以前會把下一筆整個吃進案由、下一筆就消失
+                    if (strpos(trim($line), '說明：') === 0 or (trim($line) == '專案質詢' and preg_match('#^(\d+)－(\d+)－(\d+)－(\d+)$#', trim($lines[0] ?? '')))) {
                         $pop_line($line);
                         break;
                     }
