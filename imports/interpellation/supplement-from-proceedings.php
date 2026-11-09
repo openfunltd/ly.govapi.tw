@@ -52,6 +52,8 @@ function proceeding_items($lcidc_id)
             elseif (preg_match('#^本院委員(.*?)，#u', $r, $mm)) $legislators = explode('、', $mm[1]);
             elseif (preg_match('#^本院([^，]*黨團)，#u', $r, $mm)) $legislators = [$mm[1]];
             elseif (preg_match('#^本院([^，]*)委員，#u', $r, $mm)) $legislators = [$mm[1]];
+            // 「本院全院委員會報告審查…」「本院○○委員會報告審查…」是下一節的條目，不是質詢
+            if ($legislators and preg_match('/委員會|報告/u', implode('', $legislators))) $legislators = null;
             if ($legislators) $items[] = (object)['legislators' => $legislators, 'reason' => $reason];
         } elseif (count($items) and !preg_match('/^[（(]/u', $x)) {
             // 案由跨行時接續
@@ -62,13 +64,59 @@ function proceeding_items($lcidc_id)
 }
 
 function norm_names($names) { return array_map(fn($n) => preg_replace('/[^\p{L}\p{N}]+/u', '', $n), (array)$names); }
+// 姓名相同，或只差一個字（議事錄的 tikahtml 會掉罕用字：「傅崐萁」→「傅萁」）
+function same_names($a, $b)
+{
+    $a = norm_names($a); $b = norm_names($b);
+    if ($a == $b) return true;
+    if (count($a) != count($b)) return false;
+    foreach ($a as $i => $x) {
+        $y = $b[$i];
+        if ($x === $y) continue;
+        [$long, $short] = mb_strlen($x) > mb_strlen($y) ? [$x, $y] : [$y, $x];
+        if (mb_strlen($long) - mb_strlen($short) != 1) return false;
+        $ok = false;
+        for ($k = 0; $k < mb_strlen($long); $k++) if (mb_substr($long, 0, $k) . mb_substr($long, $k + 1) === $short) { $ok = true; break; }
+        if (!$ok) return false;
+    }
+    return true;
+}
 function same_item($rec, $item)
 {
-    if (norm_names($rec->legislators ?? []) != norm_names($item->legislators)) return false;
-    $a = mb_substr(norm_text($rec->reason), 0, 60); $b = mb_substr(norm_text($item->reason), 0, 60);
-    if ($a === $b) return true;
+    if (!same_names($rec->legislators ?? [], $item->legislators)) return 0;
+    // 以兩邊較短者為準比前段（議事錄有時多接一段「對行政院…」，關係文書有時案由較短）
+    $a = norm_text($rec->reason); $b = norm_text($item->reason);
+    $len = min(mb_strlen($a), mb_strlen($b), 60);
+    if ($len < 10) return 0;
+    $a = mb_substr($a, 0, $len); $b = mb_substr($b, 0, $len);
+    if ($a === $b or char_diff_le1($a, $b)) return 2; // 只差一個字（鑑／鑒等異體字、tikahtml 掉字）也算同一則
     similar_text($a, $b, $pct);
-    return $pct >= 80;
+    return $pct >= 80 ? 1 : 0;
+}
+// 兩字串是否只差一個字元（替換、或多／少一個字）
+function char_diff_le1($a, $b)
+{
+    $la = mb_strlen($a); $lb = mb_strlen($b);
+    if (abs($la - $lb) > 1) return false;
+    $ca = mb_str_split($a); $cb = mb_str_split($b);
+    $i = 0; while ($i < min($la, $lb) and $ca[$i] === $cb[$i]) $i++;
+    if ($i >= min($la, $lb)) return true;
+    if ($la == $lb) return array_slice($ca, $i + 1) === array_slice($cb, $i + 1);
+    return $la > $lb ? array_slice($ca, $i + 1) === array_slice($cb, $i) : array_slice($ca, $i) === array_slice($cb, $i + 1);
+}
+// 最長嚴格遞增子序列，回傳被選上的索引（null 不參與）
+function lis_indices($vals)
+{
+    $idx = array_keys(array_filter($vals, fn($v) => !is_null($v)));
+    $n = count($idx); if (!$n) return [];
+    $len = array_fill(0, $n, 1); $prev = array_fill(0, $n, -1);
+    for ($i = 1; $i < $n; $i++) for ($j = 0; $j < $i; $j++) {
+        if ($vals[$idx[$j]] < $vals[$idx[$i]] and $len[$j] + 1 > $len[$i]) { $len[$i] = $len[$j] + 1; $prev[$i] = $j; }
+    }
+    $best = array_search(max($len), $len);
+    $out = [];
+    for ($i = $best; $i >= 0; $i = $prev[$i]) $out[$idx[$i]] = true;
+    return $out;
 }
 
 putenv('https_proxy'); // 只打 ES
@@ -78,7 +126,9 @@ $r = Elastic::dbQuery("/{prefix}meet/_search", 'GET', json_encode([
     '_source' => ['meet_id', 'term', 'sessionPeriod', 'sessionTimes', '議事錄.agenda_lcidc_id'],
 ]));
 $meets = array_map(fn($h) => $h->_source, $r->hits->hits);
-usort($meets, fn($a, $b) => [$a->term, $a->sessionPeriod, $a->sessionTimes] <=> [$b->term, $b->sessionPeriod, $b->sessionTimes]);
+// 臨時會的會次另起算，排在該會期一般院會之後
+$sort_key = fn($m) => [$m->term, $m->sessionPeriod, str_starts_with($m->meet_id, '臨時會') ? 1 : 0, $m->sessionTimes];
+usort($meets, fn($a, $b) => $sort_key($a) <=> $sort_key($b));
 
 // 同會期已知的紀錄（含先前補錄的）
 $by_session = [];
@@ -89,76 +139,81 @@ foreach (glob($data_dir . '/*') as $f) {
 }
 
 $added = 0; $unresolved = 0; $meets_checked = 0;
-foreach ($meets as $meet) {
-    $items = proceeding_items($meet->{'議事錄'}->agenda_lcidc_id);
-    if (!$items) continue;
-    $meets_checked++;
-    $sk = "{$meet->term}-{$meet->sessionPeriod}";
+$by_sk_meets = [];
+foreach ($meets as $meet) $by_sk_meets["{$meet->term}-{$meet->sessionPeriod}"][] = $meet;
+foreach ($by_sk_meets as $sk => $sk_meets) {
     $session = $by_session[$sk] ?? [];
-    // 議事錄每一條配到已知紀錄的編號；配不到的待推
-    $nos = [];
-    foreach ($items as $i => $item) {
-        $nos[$i] = null;
+    // 整個會期各場議事錄的條目依會議順序串成一條序列：編號是會期連續的，這樣連續幾場都沒關係文書
+    // （例如 9-7-1、9-7-2 各 4 則、前面空號 1～8）也能一起推
+    $seq = [];
+    foreach ($sk_meets as $meet) {
+        $items = proceeding_items($meet->{'議事錄'}->agenda_lcidc_id);
+        if (!$items) continue;
+        $meets_checked++;
+        foreach ($items as $item) $seq[] = (object)['meet' => $meet, 'item' => $item, 'no' => null, 'matched' => false, 'exact' => false];
+    }
+    if (!$seq) continue;
+    foreach ($seq as $e) {
         foreach ($session as $rec) {
-            if (same_item($rec, $item)) { $nos[$i] = $rec->no; break; }
+            if ($m = same_item($rec, $e->item)) { $e->no = $rec->no; $e->matched = true; $e->exact = ($m == 2); break; }
         }
     }
-    if (!in_array(null, $nos, true)) continue; // 全部都有了
-    // 推編號：把已知編號當錨點，錨點之間的未知條目數量等於編號缺口就依序填；
-    // 開頭／結尾沒有錨點時用同會期「前一次會議的最大編號」「後一次會議的最小編號」當邊界
-    $used = []; foreach ($session as $rec) $used[$rec->no] = true;
-    $prev_max = 0; $next_min = PHP_INT_MAX;
-    foreach ($session as $rec) {
-        foreach ($rec->listings ?? [] as $l) {
-            if ($l->sessionTimes < $meet->sessionTimes) $prev_max = max($prev_max, $rec->no);
-            if ($l->sessionTimes > $meet->sessionTimes) $next_min = min($next_min, $rec->no);
+    if (!array_filter($seq, fn($e) => !$e->matched)) continue; // 全部都有了
+    // 錨點只取編號遞增的那一串（最長遞增子序列）：配到更早編號的條目（重複刊登、或文字相近誤配）
+    // 不當錨點，否則一個倒退的編號就讓後面整段推不出來（8-3-15、8-7-16 各百餘則）
+    // 不在遞增串上的：文字完全相同是重複刊登（8-3-15 再列一次 8-3-14 的 425），略過；只是相近的當成另一則待推號
+    // （8-7-16 邱志偉「促請教育部」與 631 號「促請外交部」是兩則）
+    $anchors = lis_indices(array_map(fn($e) => $e->matched ? $e->no : null, $seq));
+    $work = [];
+    foreach ($seq as $i => $e) {
+        if ($e->matched and !isset($anchors[$i])) {
+            if ($e->exact) continue;
+            $e->matched = false; $e->no = null;
         }
+        $work[] = $e;
     }
-    $anchors = array_filter($nos, fn($n) => !is_null($n));
-    $lo = $prev_max; // 前一個錨點
-    $i = 0; $n = count($items);
+    $used = [];
+    foreach ($session as $rec) $used[$rec->no] = true;
+    $lo = 0; $n = count($work); $i = 0;
     while ($i < $n) {
-        if (!is_null($nos[$i])) { $lo = $nos[$i]; $i++; continue; }
-        $j = $i; while ($j < $n and is_null($nos[$j])) $j++;
-        $hi = $j < $n ? $nos[$j] : $next_min; // 後一個錨點
+        if ($work[$i]->matched) { $lo = $work[$i]->no; $i++; continue; }
+        $j = $i; while ($j < $n and !$work[$j]->matched) $j++;
+        $hi = $j < $n ? $work[$j]->no : PHP_INT_MAX; // 後一個錨點；會期最後沒有邊界就直接往後接
         $count = $j - $i;
         $free = [];
         if ($hi !== PHP_INT_MAX) {
             for ($x = $lo + 1; $x < $hi; $x++) if (empty($used[$x])) $free[] = $x;
         } else {
-            // 會期最後一次會議之後沒有邊界：只有在這場完全沒有任何已知編號、且前面沒有缺口時才敢直接往後接
             for ($x = $lo + 1; $x <= $lo + $count; $x++) if (empty($used[$x])) $free[] = $x;
         }
         if (count($free) === $count) {
-            for ($k = 0; $k < $count; $k++) $nos[$i + $k] = $free[$k];
+            for ($k = 0; $k < $count; $k++) $work[$i + $k]->no = $free[$k];
         } else {
-            error_log(sprintf("%s: 議事錄第 %d～%d 條推不出編號（區間 %d～%s 有 %d 個空號、%d 條）", $meet->meet_id, $i + 1, $j, $lo, $hi === PHP_INT_MAX ? '∞' : $hi, count($free), $count));
+            $run_meets = array_unique(array_map(fn($e) => $e->meet->meet_id, array_slice($work, $i, $count)));
+            error_log(sprintf("%s: 議事錄 %d 條推不出編號（區間 %d～%s 有 %d 個空號）", implode(',', $run_meets), $count, $lo, $hi === PHP_INT_MAX ? '∞' : $hi, count($free)));
             $unresolved += $count;
         }
         $i = $j;
     }
-    foreach ($items as $i => $item) {
-        if (is_null($nos[$i])) continue;
-        $already = false;
-        foreach ($session as $rec) if ($rec->no == $nos[$i]) { $already = true; break; }
-        if ($already) continue;
-        $id = "{$meet->term}-{$meet->sessionPeriod}-{$nos[$i]}";
+    foreach ($work as $e) {
+        if ($e->matched or is_null($e->no)) continue;
+        $meet = $e->meet; $item = $e->item; $no = $e->no;
+        $id = "{$meet->term}-{$meet->sessionPeriod}-{$no}";
+        $html_url = 'https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_' . $meet->{'議事錄'}->agenda_lcidc_id . '.doc.html';
         $record = (object)[
-            'id' => $id, 'term' => $meet->term, 'sessionPeriod' => $meet->sessionPeriod, 'no' => $nos[$i],
+            'id' => $id, 'term' => $meet->term, 'sessionPeriod' => $meet->sessionPeriod, 'no' => $no,
             'legislators' => $item->legislators, 'reason' => $item->reason, 'description' => null,
             'source' => '議事錄', 'no_inferred' => true,
             'listings' => [(object)[
                 'meet_id' => $meet->meet_id, 'sessionTimes' => $meet->sessionTimes, 'meetingNo' => null, 'printed_at' => null,
-                'page_start' => null, 'page_end' => null, 'source_page' => null,
-                'source_pdf' => 'https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_' . $meet->{'議事錄'}->agenda_lcidc_id . '.doc.html',
+                'page_start' => null, 'page_end' => null, 'source_page' => null, 'source_pdf' => $html_url,
             ]],
             'meet_ids' => [$meet->meet_id],
             'meet_id' => $meet->meet_id, 'sessionTimes' => $meet->sessionTimes, 'meetingNo' => null, 'printed_at' => null,
-            'page_start' => null, 'page_end' => null, 'source_page' => null,
-            'source_pdf' => 'https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_' . $meet->{'議事錄'}->agenda_lcidc_id . '.doc.html',
+            'page_start' => null, 'page_end' => null, 'source_page' => null, 'source_pdf' => $html_url,
         ];
-        file_put_contents("{$data_dir}/{$id}", json_encode($record, JSON_UNESCAPED_UNICODE));
-        $by_session[$sk][] = $record; $session[] = $record;
+        if (!$dry) file_put_contents("{$data_dir}/{$id}", json_encode($record, JSON_UNESCAPED_UNICODE));
+        $by_session[$sk][] = $record;
         $added++;
         error_log("補錄 {$id} ({$meet->meet_id}) " . implode(',', $item->legislators) . ' ' . mb_substr($item->reason, 0, 30));
         if (!$dry) {
