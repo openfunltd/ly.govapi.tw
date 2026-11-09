@@ -50,7 +50,8 @@ ly.govapi.tw/
 | 頻率 | 腳本 | 功能 |
 |------|------|------|
 | 5min | `post-error-to-slack.php` | 監控 ES cron log，有錯誤即推 Slack |
-| 5min | `ivod-wav.php` | 掃描新 Clip/Full，下載 wav（供 whisper-transcript.php 消化） |
+| 5min | `ivod-wav.php` | 掃描新 Clip，下載 wav（供 whisper-transcript.php 消化），每輪最多 10 支 |
+| 5min | `ivod-wav-full.php` | 掃描新 Full，下載 wav，每輪 1 支；與 Clip 分開跑、各自有鎖，長影片不擋 Clip |
 | 1hr  | `post-latest-data-to-slack.php` | 將最新匯入資料摘要推 Slack |
 | 3hr  | `bill.php` | 議案完整流程 orchestrator |
 | 3hr  | `gazette.php` | 公報完整流程 orchestrator（含記名表決解析） |

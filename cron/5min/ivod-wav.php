@@ -1,5 +1,6 @@
 <?php
 
+if (!getenv('mode')) putenv('mode=clip');
 include(__DIR__ . '/../../init.inc.php');
 include(__DIR__ . '/../../imports/ivod/IVodParser.php');
 
@@ -200,6 +201,14 @@ function download_ivod_to_wav($video_id, $type, $wav_path, $proxy_urls) {
 function mark_failed($wav_path, $msg) {
     @file_put_contents($wav_path . '.failed', date('c') . ' ' . $msg . "\n", FILE_APPEND);
 }
+// 下載中的判斷：ffmpeg 階段有 wav/{id}.wav.tmp，分段下載階段看 wav-cache/{id}/ 十分鐘內有無更新
+// （Clip 與 Full 兩支 cron 分開跑，避免交接時同一支影片被抓兩次；被殺掉留下的舊 cache 十分鐘後不再擋）
+function downloading($v) {
+    global $ivod_dir;
+    if (file_exists($ivod_dir . "/wav/{$v}.wav.tmp")) return true;
+    $cache = $ivod_dir . "/wav-cache/{$v}";
+    return is_dir($cache) and (time() - filemtime($cache)) < 600;
+}
 function recently_failed($wav_path) {
     $f = $wav_path . '.failed';
     if (!file_exists($f)) return false;
@@ -238,8 +247,11 @@ if (getenv('only_ids')) {
 }
 
 $endtime = time() - 6 * 30 * 86400; // 只處理 6 個月內的影片
-$max_clip = 3;
-$max_full = 1;
+// mode=clip（cron/5min/ivod-wav.php）只抓 Clip、mode=full（cron/5min/ivod-wav-full.php）只抓 Full，兩支 cron 各自有鎖，
+// 一支 3～5 小時的 Full 下載不會擋住開會日每隔幾分鐘就上架的 Clip。直接執行預設 mode=clip，mode=both 兩種都抓。
+$mode = getenv('mode');
+$max_clip = in_array($mode, ['clip', 'both']) ? 10 : 0;
+$max_full = in_array($mode, ['full', 'both']) ? 1 : 0;
 $c_clip = 0;
 $c_full = 0;
 
@@ -252,7 +264,7 @@ for ($v = 169400; $v <= $max_v; $v++) {
     if (!file_exists($html)) continue;
     if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
     if (file_exists($ivod_dir . "/wav/{$v}.wav")) continue;
-    if (file_exists($ivod_dir . "/wav/{$v}.wav.tmp")) continue; // 下載中
+    if (downloading($v)) continue;
     if (recently_failed($ivod_dir . "/wav/{$v}.wav")) continue;
 
     $ivod = IVodParser::parseHTML($v, file_get_contents($html));
@@ -284,7 +296,7 @@ if ($c_full < $max_full) {
 
         if (file_exists($ivod_dir . "/ivod-transcript/{$v}.json")) continue;
         if (file_exists($ivod_dir . "/wav/{$v}.wav")) continue;
-        if (file_exists($ivod_dir . "/wav/{$v}.wav.tmp")) continue;
+        if (downloading($v)) continue;
         if (recently_failed($ivod_dir . "/wav/{$v}.wav")) continue;
 
         $ivod = IVodParser::parseHTML($v, $content, 'Full');
