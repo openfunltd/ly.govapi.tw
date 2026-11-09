@@ -623,8 +623,11 @@ class LYLib
             if (preg_match('#選舉.{0,20}召集委員|推選召集委員#u', $content)) {
                 $cats[] = '選舉召集委員';
             }
-            // 人民請願、程序委員會、經費稽核這類對外沒意義的內部事務，以及條約審查、調閱小組等邊緣案都歸「其他」
-            if (preg_match('#請願#u', $content) or preg_match('#程序委員會|經費稽核#u', $unit)) {
+            // 程序委員會（審定議事日程及人民請願案）獨立一類；其事由固定含「人民請願案」，不再落入「其他」
+            if (preg_match('#程序委員會#u', $unit)) {
+                $cats[] = '程序委員會';
+            } elseif (preg_match('#請願#u', $content) or preg_match('#經費稽核#u', $unit)) {
+                // 人民請願、經費稽核這類對外沒意義的內部事務，以及條約審查、調閱小組等邊緣案都歸「其他」
                 $cats[] = '其他';
             }
             if (!count(array_diff($cats, ['臨時會']))) {
