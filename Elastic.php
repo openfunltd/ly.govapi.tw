@@ -37,6 +37,9 @@ class Elastic
 
     public static $_show_log = true;
 
+    // dbBulkCommit 累計的失敗筆數（呼叫端可先歸零、commit 後檢查）
+    public static $_bulk_errors = 0;
+
     public static function dbBulkCommit($mapping = null)
     {
         if (is_null($mapping)) {
@@ -58,6 +61,7 @@ class Elastic
                         continue;
                     }
                     file_put_contents('error.data', self::$_db_bulk_pool[$mapping]);
+                    self::$_bulk_errors ++;
                     print_r($result);
                     continue;
                 }

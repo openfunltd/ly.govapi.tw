@@ -13,6 +13,7 @@ imports/gazette/picfile
 imports/gazette/txtfile
 imports/gazette/gazette-agenda-data
 imports/gazette/gazette-data
+imports/gazette/speech-state
 imports/gazette/gazette-html
 imports/gazette/gazette-pdf
 imports/gazette/gazette-txt

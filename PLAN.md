@@ -413,6 +413,22 @@ ly.govapi.tw/
 - 第三階段的段落不重匯文字，做成另一層標註記 block 範圍；哪種會議類型的切分乾淨就先對哪種上段落，其他維持第二階段。
 - 待定：② 上線後 `/meet/{id}/transcript/{agenda_id}` 直接改讀索引還是並存一段時間（傾向直接改，但輸出格式會變，要先確認有沒有人在用）。
 - 容量估計一兩百萬筆、幾 GB 以內，小於現在的 ivod index（3.2 GB）。
+- 已實作（2026-11-03）：`GazetteSpeechParser::build()` 沿用 `GazetteTranscriptParser::parse()` 的 block 切分，每個 block 一筆，
+  欄位：lcidc_id／agenda_id／meet_id／date／seq／kind（發言、主席程序、附件、議事錄、宣讀表決、標題）／speaker_raw、speaker_name、
+  speaker_role（委員、主席、官員、其他）、speaker_title／turn_seq、turn_speaker（質詢輪次：委員質詢與官員答詢同一輪）／text／
+  time_start、time_source（gazette-clock、clip、interpolated）、clip_id、video.ivod_id、video.offset（Full 影片秒數）。
+  匯入：`imports/gazette/import-speech.php`（接在 `cron/3hr/meet.php` 的 link-meet 之後；狀態檔 `speech-state/{lcidc}.json` 記來源 md5
+  與 parser 版本，變了才重做，重做前先 delete_by_query 該文件舊 block）。ES index `speech`，對外 v2 `/speeches`（`q=` 搜內文），
+  `/meet/{id}/speeches`、`/ivod/{id}/speeches`。主席發言 60 字以內視為主席程序；報告內小標題被切開的無發言者 block 接續前一人；
+  「委員X書面質詢」當附件。Clip 配對：同日、同委員名、與公報戳記差 30 分鐘內，一支 Clip 只配一輪。
+  第 11 屆 dry run：院會 400 份 8.9 萬筆、委員會 300 份 17.4 萬筆、聯席 98 份 6.9 萬筆、全院 22 份 7 千筆，解析失敗只有 1 份（缺 tikahtml）；
+  委員會質詢輪次幾乎全部配到 Clip。待辦：①公聽會、黨團協商、考察的 meet 沒有 `公報發言紀錄`（0 場），所以還沒進索引，
+  要先把這三種的公報文件連到 meet；②沒有質詢戳記的法案審查會（例：委員會-11-5-36-27）整份沒有時間，可改用「委員發言＋同日該委員 Clip」當錨點；
+  ③ASR 對齊（Full 級）之後補 block 秒數，更新 time_start／time_source。
+  全量回填（2026-11-03）：8,625 份文件、486 萬筆，第 8～11 屆（委員會 377 萬、院會 76 萬、聯席 32 萬、全院 1.5 萬）；有秒數的 233 萬筆。
+  ES 寫入失敗會由 `Elastic::$_bulk_errors` 察覺，不留狀態檔下次重做。來源 ivod 的 Full 時間有壞資料：13762 的 start_time 年份是 0021、
+  約 2,900 支舊 Full 的 start 是 1970，parser 配 Full 時只採用 2000 年以後開始的；另有幾支 Full 的 `影片長度` 標成 26～30 小時
+  （12999 臨時會通宵審國民法官法是真的，14485 內政委員會 30 小時可疑），這類的 offset 會超過一天，待 ASR 對齊時一併核對。
 
 ---
 

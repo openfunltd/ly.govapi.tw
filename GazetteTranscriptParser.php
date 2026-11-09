@@ -330,7 +330,7 @@ class GazetteTranscriptParser
         return intval($str); 
     }
 
-    public static function parse($content, $agendas = null, $hit_agenda = null)
+    public static function parse($content, $agendas = null, $hit_agenda = null, $with_votes = true)
     {
         $doc = new DOMDocument;
         // UTF-8
@@ -589,7 +589,7 @@ class GazetteTranscriptParser
                 $first_line = $line;
                 $block_tmp = [];
                 $origin_block = json_decode(json_encode($blocks[0]));
-                while (trim($blocks[0][0]) != '') {
+                while (isset($blocks[0][0]) and trim($blocks[0][0]) != '') {
                     $text = $blocks[0][0];
                     $text = str_replace(' ', '', $text);
                     $text = str_replace('　', '', $text);
@@ -631,7 +631,7 @@ class GazetteTranscriptParser
                 $ret->date = sprintf('%d-%02d-%02d', $matches[1] + 1911, $matches[2], $matches[3]);
             }
         }
-        if (property_exists($ret, 'title') and preg_match('#第(\d+)屆#', $ret->title, $matches)) {
+        if ($with_votes and property_exists($ret, 'title') and preg_match('#第(\d+)屆#', $ret->title, $matches)) {
             $term = intval($matches[1]);
             return self::parseVote($ret, $term);
         }

@@ -21,6 +21,7 @@ foreach ([
     'meet/parse-speech-from-gazette.php',
     'meet/enrich-gazette-pdf-links.php',
     'meet/link-meet.php',
+    'gazette/import-speech.php',  // 公報發言索引（speech index），要在 link-meet 之後，靠 meet 的公報發言紀錄找文件
 ] as $script) {
     $cmd = sprintf("php %s",
         escapeshellarg(__DIR__ . '/../../imports/' . $script)
