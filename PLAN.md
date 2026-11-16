@@ -427,7 +427,14 @@ ly.govapi.tw/
   要先把這三種的公報文件連到 meet；②沒有質詢戳記的法案審查會（例：委員會-11-5-36-27）整份沒有時間，可改用「委員發言＋同日該委員 Clip」當錨點；
   ③ASR 對齊（Full 級）之後補 block 秒數，更新 time_start／time_source。
   全量回填（2026-11-03）：8,625 份文件、486 萬筆，第 8～11 屆（委員會 377 萬、院會 76 萬、聯席 32 萬、全院 1.5 萬）；有秒數的 233 萬筆。
-  ES 寫入失敗會由 `Elastic::$_bulk_errors` 察覺，不留狀態檔下次重做。來源 ivod 的 Full 時間有壞資料：13762 的 start_time 年份是 0021、
+  ES 寫入失敗會由 `Elastic::$_bulk_errors` 察覺，不留狀態檔下次重做。
+  parser VERSION 2（2026-11-16）：原住民族姓名的正規化。公報把羅馬拼音的委員寫成「鄭天財Sra Kacaw委員」「Kolas Yotaka委員」
+  （整個名字在前、委員在後，不是「姓＋委員＋名」），官員寫成「夷將‧拔路兒主任委員」（職稱在後、後面沒有名），原本都落成
+  `其他`、姓名黏著職稱（第 11 屆鄭天財、伍麗華各 9 千筆）。改成：這兩種寫法另有規則；委員姓名一律對回 legislator 資料的寫法
+  （`GazetteSpeechParser::legislatorName()` 用 `GazetteParser::getNameList()` 含別名，羅馬拼音只寫一半也用前綴／後綴對）；
+  Clip 配對改用 `nameKey()`（去空白、音節點、括號）比對，IVOD 的「鄭天財Sra．Kacaw」「鄭天財(Sra．Kacaw)」才對得到。
+  順便修了 `GazetteParser` 第 9 屆把 Kolas Yotaka 別名對到高潞．以用．巴魕剌的錯誤。`import-speech.php` 加了檔案鎖避免與 cron 同跑。
+  已知未處理：院會總質詢的質詢輪次（`turn_speaker`）常標成答詢的院長（蘇貞昌、賴清德），是 `GazetteTranscriptParser` 的段落標記來源問題。來源 ivod 的 Full 時間有壞資料：13762 的 start_time 年份是 0021、
   約 2,900 支舊 Full 的 start 是 1970，parser 配 Full 時只採用 2000 年以後開始的；另有幾支 Full 的 `影片長度` 標成 26～30 小時
   （12999 臨時會通宵審國民法官法是真的，14485 內政委員會 30 小時可疑），這類的 offset 會超過一天，待 ASR 對齊時一併核對。
 

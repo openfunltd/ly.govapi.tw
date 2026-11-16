@@ -26,6 +26,12 @@ $html_dir = __DIR__ . '/agenda-tikahtml';
 if (!$dry and !file_exists($state_dir)) {
     mkdir($state_dir, 0775, true);
 }
+// 同時只跑一支（手動回填和 cron/3hr/meet.php 撞在一起會對同一份文件先刪後寫）
+$lock = fopen(__DIR__ . '/.import-speech.lock', 'c');
+if (!$dry and !flock($lock, LOCK_EX | LOCK_NB)) {
+    error_log('另一支 import-speech.php 還在跑，略過');
+    exit(0);
+}
 
 // ---- index 不存在就建（text 用 standard analyzer，中文逐字切，match_phrase 可用）----
 if (!$dry) {

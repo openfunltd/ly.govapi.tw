@@ -12,7 +12,7 @@
  */
 class GazetteSpeechParser
 {
-    const VERSION = 1;
+    const VERSION = 2; // 2: 原住民族姓名（羅馬拼音、「．」）的委員／官員正規化、委員名對回 legislator 寫法
 
     // 官員／其他身分的職稱，放在姓和名之間（例：林部長佳龍、曾主任委員智勇）
     const TITLE_PATTERN = '副?(?:主任委員|主任秘書|主任檢察官|委員長|監察委員|大法官|部長|次長|署長|局長|司長|處長|院長|秘書長|祕書長|總裁|董事長|總經理|主計長|執行長|廳長|校長|館長|所長|組長|科長|主任|代表|理事長|市長|縣長|檢察長|檢察官|法官|參謀總長|總長|司令|廠長|課長|專門委員|參事|顧問|研究員|召集人|幹事長|書記長|總召|總幹事|發言人|會長|教授|律師|醫師|秘書|祕書|先生|女士|小姐)';
@@ -22,22 +22,34 @@ class GazetteSpeechParser
      * 發言者原文 → [name, role, title]
      * role: 主席／委員／官員／其他
      */
-    public static function normalizeSpeaker($raw, $chair_name = null)
+    public static function normalizeSpeaker($raw, $chair_name = null, $term = null)
     {
-        $raw = trim(str_replace(['　', ' '], '', $raw));
+        // 去空白，但羅馬拼音字與字之間的空白保留（Sra Kacaw、Kolas Yotaka）
+        $raw = trim(preg_replace('#(?<![A-Za-z])[\s　]+|[\s　]+(?![A-Za-z])#u', '', $raw));
         if ($raw === '主席') {
             return [$chair_name ?: '主席', '主席', '主席'];
         }
         if (preg_match('#^主席[（(](.+?)代?[）)]$#u', $raw, $m)) {
             // 主席（賴委員惠員代）／主席（吳委員秉叡）
-            [$name] = self::normalizeSpeaker($m[1]);
+            [$name] = self::normalizeSpeaker($m[1], null, $term);
             return [$name, '主席', '主席'];
         }
         if (preg_match('#^委員(.+?)書面(質詢|意見)$#u', $raw, $m)) {
-            return [$m[1], '委員', '書面' . $m[2]];
+            return [self::legislatorName($m[1], $term), '委員', '書面' . $m[2]];
         }
         if (preg_match('#^(.{1,2})委員(.+)$#u', $raw, $m)) {
-            return [$m[1] . $m[2], '委員', '委員'];
+            return [self::legislatorName($m[1] . $m[2], $term), '委員', '委員'];
+        }
+        // 原住民族官員公報寫「夷將‧拔路兒主任委員」「羅赫踛Helu Chiu處長」：整個名字在前、職稱在後
+        if (preg_match('#^(.{2,20}?)(' . self::TITLE_PATTERN . ')$#u', $raw, $m) and preg_match('#[A-Za-z．‧·]#u', $m[1])) {
+            $title = $m[2];
+            $base = preg_replace('#^副#u', '', $title);
+            $role = in_array($base, self::NON_OFFICIAL_TITLES) ? '其他' : '官員';
+            return [$m[1], $role, $title];
+        }
+        // 原住民族委員公報寫「鄭天財Sra Kacaw委員」「Kolas Yotaka委員」「伍麗華Saidhai．Tahovecahe委員」：整個名字在前、委員在後
+        if (preg_match('#^(.+?)委員$#u', $raw, $m) and preg_match('#[A-Za-z．‧·]#u', $m[1])) {
+            return [self::legislatorName($m[1], $term), '委員', '委員'];
         }
         if (preg_match('#^(.{1,3}?)(' . self::TITLE_PATTERN . ')(.{1,8})$#u', $raw, $m)) {
             $title = $m[2];
@@ -46,6 +58,48 @@ class GazetteSpeechParser
             return [$m[1] . $m[3], $role, $title];
         }
         return [$raw, '其他', null];
+    }
+
+    // 姓名比對用的 key：去空白、音節點、括號，英文轉小寫（IVOD 寫「鄭天財Sra．Kacaw」「鄭天財(Sra．Kacaw)」，公報寫「鄭天財Sra Kacaw」）
+    public static function nameKey($name)
+    {
+        return strtolower(preg_replace('#[\s　．‧·()（）]+#u', '', (string)$name));
+    }
+
+    protected static $_legislator_keys = [];
+
+    /**
+     * 委員姓名對回 legislator 資料的寫法（GazetteParser::getNameList 含別名）；對不到就原樣回傳。
+     * 羅馬拼音的名字公報有時只寫拼音（Kolas Yotaka）或只寫漢名，所以 key 相互為前綴／後綴且唯一也算對到。
+     */
+    public static function legislatorName($name, $term)
+    {
+        if (!$term) return $name;
+        if (!isset(self::$_legislator_keys[$term])) {
+            $keys = [];
+            try {
+                foreach (GazetteParser::getNameList($term) as $alias => $full) {
+                    $keys[self::nameKey($alias)] = $full;
+                }
+            } catch (Throwable $e) {
+                // 沒有 ES（離線測試）就不對照
+            }
+            self::$_legislator_keys[$term] = $keys;
+        }
+        $keys = self::$_legislator_keys[$term];
+        $q = self::nameKey($name);
+        if ($q === '') return $name;
+        if (isset($keys[$q])) return $keys[$q];
+        if (preg_match('#[a-z]#', $q)) {
+            $found = [];
+            foreach ($keys as $k => $full) {
+                if (str_starts_with($k, $q) or str_ends_with($k, $q) or str_starts_with($q, $k) or str_ends_with($q, $k)) {
+                    $found[$full] = true;
+                }
+            }
+            if (count($found) == 1) return array_key_first($found);
+        }
+        return $name;
     }
 
     /**
@@ -68,7 +122,7 @@ class GazetteSpeechParser
         if ($chair_raw) {
             // 「吳委員秉叡」「吳委員秉叡（召集委員）」
             $chair_raw = preg_replace('#[（(].*$#u', '', $chair_raw);
-            [$chair_name] = self::normalizeSpeaker($chair_raw);
+            [$chair_name] = self::normalizeSpeaker($chair_raw, null, $meta['term'] ?? null);
         }
         $persons = (array)($ret->person_count ?? []);
 
@@ -91,8 +145,9 @@ class GazetteSpeechParser
         };
         $find_clip = function($name, $anchor) use ($clips, &$used_clips, $date) {
             $best = null; $best_diff = null;
+            $name_key = self::nameKey($name);
             foreach ($clips as $clip) {
-                if ($clip['name'] !== $name) continue;
+                if (self::nameKey($clip['name']) !== $name_key) continue;
                 if ($date and substr($clip['start'], 0, 10) !== $date) continue;
                 if (isset($used_clips[$clip['id']])) continue;
                 $diff = $anchor ? abs(strtotime($clip['start']) - strtotime($anchor)) : 0;
@@ -128,7 +183,7 @@ class GazetteSpeechParser
                 $label = mb_substr($first, 3);
                 if (preg_match('#^質詢：(.+)：(\d+):(\d+)$#u', $label, $m)) {
                     $turn_seq ++;
-                    [$turn_speaker] = self::normalizeSpeaker($m[1], $chair_name);
+                    [$turn_speaker] = self::normalizeSpeaker($m[1], $chair_name, $meta['term'] ?? null);
                     $turn_clock = $clock_to_time($m[2], $m[3]);
                     $turn_first = true;
                     $turn_clip = $find_clip($turn_speaker, $turn_clock);
@@ -160,7 +215,7 @@ class GazetteSpeechParser
                 array_shift($text_lines);
             } elseif (preg_match('#^([^：]{1,25})：(.*)$#us', $first, $m) and array_key_exists($m[1], $persons)) {
                 $speaker_raw = $m[1];
-                [$speaker_name, $speaker_role, $speaker_title] = self::normalizeSpeaker($speaker_raw, $chair_name);
+                [$speaker_name, $speaker_role, $speaker_title] = self::normalizeSpeaker($speaker_raw, $chair_name, $meta['term'] ?? null);
                 $body = $m[2];
                 // 公報時鐘戳記：「林委員德福：（9時21分）謝謝主席」
                 if (preg_match('#^[（(](\d+)時(\d+)分[）)]#u', $body, $t)) {
