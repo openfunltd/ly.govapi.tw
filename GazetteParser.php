@@ -127,7 +127,7 @@ class GazetteParser
             self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
             self::$_name_list->{$term}['廖國棟'] = '廖國棟Sufin‧Siluko';
             self::$_name_list->{$term}['廖國SufinSiluko'] = '廖國棟Sufin‧Siluko';
-            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財Sra Kacaw';
             self::$_name_list->{$term}['葉毓蘭'] = '游毓蘭';
             self::$_name_list->{$term}[json_decode('"\u5085\ue82f\u5d10\u8401"')] = '傅崐萁';
             self::$_name_list->{$term}[json_decode('"\u5085\u5d10\ue82f\u8401"')] = '傅崐萁';
@@ -162,8 +162,9 @@ class GazetteParser
         }
         if ($term == 11) {
             self::$_name_list->{$term}['楊瓊櫻'] = '楊瓊瓔';
-            self::$_name_list->{$term}['鄭天財SraKaca'] = '鄭天財 Sra Kacaw';
-            self::$_name_list->{$term}['鄭天財'] = '鄭天財 Sra Kacaw';
+            self::$_name_list->{$term}['鄭天財SraKaca'] = '鄭天財Sra Kacaw';
+            self::$_name_list->{$term}['鄭天財'] = '鄭天財Sra Kacaw';
+            self::$_name_list->{$term}['Kacaw'] = '鄭天財Sra Kacaw'; // 公報 1158001 寫成「鄭天財 Sra Kacaw、Kacaw、謝衣鳯」
             self::$_name_list->{$term}['伍麗華SaidhaTahovecah'] = '伍麗華Saidhai‧Tahovecahe';
             self::$_name_list->{$term}['伍麗華SaidhaiTahovecah'] = '伍麗華Saidhai‧Tahovecahe';
             self::$_name_list->{$term}['伍麗華'] = '伍麗華Saidhai‧Tahovecahe';
@@ -277,7 +278,7 @@ class GazetteParser
             error_log("ostr = " . json_encode($ostr, JSON_UNESCAPED_UNICODE));
             throw new Exception("{$term} 找不到人名: " . json_encode($str, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
-        return $hit;
+        return array_values(array_unique($hit)); // 同一人被列兩次（別名重複對到）只算一次
     }
 
     public static function matchFirstLine($line)
