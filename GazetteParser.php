@@ -81,9 +81,9 @@ class GazetteParser
             self::$_name_list->{$term}['王惠'] = '王惠美';  
             self::$_name_list->{$term}['李秀彥'] = '李彥秀';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
-            self::$_name_list->{$term}['KolasYotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
-            self::$_name_list->{$term}['Kolasotaka'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
-            self::$_name_list->{$term}['KolasYotak'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
+            self::$_name_list->{$term}['KolasYotaka'] = '谷辣斯．尤達卡Kolas Yotaka';
+            self::$_name_list->{$term}['Kolasotaka'] = '谷辣斯．尤達卡Kolas Yotaka';
+            self::$_name_list->{$term}['KolasYotak'] = '谷辣斯．尤達卡Kolas Yotaka';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacida'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕剌KawloIyunPacial'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
             self::$_name_list->{$term}['高潞以用巴魕刺KawloIyunPacidal'] = '高潞．以用．巴魕剌Kawlo．Iyun．Pacidal';
