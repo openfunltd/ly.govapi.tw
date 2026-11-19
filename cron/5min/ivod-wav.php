@@ -34,7 +34,10 @@ function m3u8_resolve($base_url, $ref) {
     if ($ref[0] === '/') { $p = parse_url($base_url); return "{$p['scheme']}://{$p['host']}" . (isset($p['port']) ? ":{$p['port']}" : '') . $ref; }
     return preg_replace('#/[^/]*$#', '/', $base_url) . $ref;
 }
+// 先試 300K，拿不到再試 1M；每個畫質失敗在哪一步都記進例外訊息（wav/{id}.wav.failed），
+// 才分得出是播放頁沒有 readyPlayer、playlist 還是 404（CDN 還沒生好）、還是媒體清單沒有分段
 function get_m3u8($video_id, $type) {
+    $reasons = [];
     foreach (['300K', '1M'] as $quality) {
         $url = sprintf("https://ivod.ly.gov.tw/Play/%s/%s/%d", $type, $quality, $video_id);
         $curl = curl_init($url);
@@ -45,14 +48,23 @@ function get_m3u8($video_id, $type) {
             CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 6.1; rv:8.0) Gecko/20100101 Firefox/8.0',
         ]);
         $content = curl_exec($curl);
+        $page_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $page_err = curl_error($curl);
         curl_close($curl);
-        if (!preg_match('#readyPlayer\("([^"]*)#', $content, $m)) continue;
+        if (!preg_match('#readyPlayer\("([^"]*)#', $content, $m)) {
+            $title = preg_match('#<title>(.*?)</title>#s', (string)$content, $t) ? trim($t[1]) : '';
+            $reasons[] = "{$quality}: 播放頁 http={$page_code}" . ($page_err ? " {$page_err}" : '') . " 沒有 readyPlayer" . ($title ? "（{$title}）" : '');
+            continue;
+        }
         $playlist_url = $m[1];
 
-        $fetch = function($u) {
+        $last_code = 0;
+        $fetch = function($u) use (&$last_code) {
             $c = curl_init($u);
             curl_setopt_array($c, [CURLOPT_RETURNTRANSFER => true, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4, CURLOPT_TIMEOUT => 30]);
-            $r = curl_exec($c); curl_close($c);
+            $r = curl_exec($c);
+            $last_code = curl_getinfo($c, CURLINFO_HTTP_CODE);
+            curl_close($c);
             return (string)$r;
         };
 
@@ -70,15 +82,21 @@ function get_m3u8($video_id, $type) {
             $media_url = $next;
             $media = $fetch($media_url);
         }
-        if (!$media || strpos($media, '#EXT-X-STREAM-INF') !== false) continue;
+        if (!$media || strpos($media, '#EXT-X-STREAM-INF') !== false) {
+            $reasons[] = "{$quality}: " . basename(parse_url($media_url, PHP_URL_PATH)) . " http={$last_code}" . ($media ? ' 仍是主清單' : ' 空的');
+            continue;
+        }
 
         $ts_list = array_values(array_filter(m3u8_lines($media), fn($l) => preg_match('#\.ts(\?|$)#', $l)));
         $bad = array_filter(m3u8_lines($media), fn($l) => !preg_match('#\.ts(\?|$)#', $l));
         if ($bad) error_log("get_m3u8: {$type}/{$video_id} 媒體清單有非 .ts 項目被略過: " . implode(',', array_slice($bad, 0, 3)));
-        if (empty($ts_list)) continue;
+        if (empty($ts_list)) {
+            $reasons[] = "{$quality}: 媒體清單沒有 .ts 分段";
+            continue;
+        }
         return [$media_url, $ts_list];
     }
-    throw new Exception("Failed to get m3u8: {$type}/{$video_id}");
+    throw new Exception("Failed to get m3u8: {$type}/{$video_id} [" . implode('; ', $reasons) . ']');
 }
 
 // 並行下載 TS 檔（最多 5 條同時，每條走不同 proxy）
