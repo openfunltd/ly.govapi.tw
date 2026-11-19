@@ -34,6 +34,7 @@ for ($y = $start; $y >= 2012; $y --) {
         'size' => 10000,
     ]));
     $agendas = [];
+    $covered_agendas = [];
     foreach ($ret->hits->hits as $hit) {
         $source = $hit->_source;
         $agenda_lcidc_ids = [];
@@ -55,6 +56,12 @@ for ($y = $start; $y >= 2012; $y --) {
             continue;
         }
 
+        // 舊公報有的只在內文提到「發言紀錄索引」、沒有「本期委員發言紀錄索引」這一節，略過不要讓整支掛掉
+        if (!preg_match('#^\s*本期委員發言紀錄索引\s*$#mu', str_replace("\x0c", '', file_get_contents($txtfile)))) {
+            error_log("{$txtfile} 沒有「本期委員發言紀錄索引」，略過");
+            continue;
+        }
+
         $empty = true;
         foreach (GazetteParser::getSpeechFromGazette($txtfile) as $idx => $speech) {
             $empty = false;
@@ -73,10 +80,21 @@ for ($y = $start; $y >= 2012; $y --) {
                 var_dump($speech);
                 throw new Exception("{$speech->meet_name} {$speech->speakers} {$speech->content}");
             }
+            if (!$meet_obj and strpos($speech->meet_name, '公聽會') !== false) {
+                // 公聽會的 meet_id 是「公聽會-會議編號」，名稱裡沒有，要靠公報目錄的日期和事由去對
+                $dates = [];
+                if (preg_match('#[\(（]頁次：?(.*?)[─－-]([^）]*)#us', $speech->content, $pm)) {
+                    try {
+                        $key = basename($txtfile, '.txt') . '_' . $transnumber($pm[1]) . '_' . $transnumber($pm[2]);
+                        $dates = $agendas[$key]->meetingDate ?? [];
+                    } catch (Exception $e) {
+                    }
+                }
+                $meet_obj = LYLib::findHearingMeet($speech->meet_name, $dates);
+            }
             if (!$meet_obj) {
                 error_log("找不到 {$speech->meet_name}");
                 continue;
-                throw new Exception("找不到 {$speech->meet_name}");
             }
             unset($speech->line);
             error_log($txtfile);
@@ -108,6 +126,7 @@ for ($y = $start; $y >= 2012; $y --) {
             }
             $agenda_id = "{$speech->gazette_id}_{$speech->page_start}_{$speech->page_end}";
             if (isset($agendas[$agenda_id])) {
+                $covered_agendas[$agendas[$agenda_id]->agenda_id] = true;
                 $speech->agenda_id = $agendas[$agenda_id]->agenda_id;
                 $speech->agenda_lcidc_ids = $agendas[$agenda_id]->agenda_lcidc_ids;
                 $speech->meetingDate = $agendas[$agenda_id]->meetingDate;
@@ -130,6 +149,42 @@ for ($y = $start; $y >= 2012; $y --) {
                 $meet_data->{$data_key} = $speech;
                 file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             }
+        }
+    }
+
+    // 有些公聽會的公報沒列進「本期委員發言紀錄索引」，但公報目錄（委員會紀錄）有，直接從目錄補一筆
+    foreach ($agendas as $agenda) {
+        if (($agenda->agendaType ?? null) != 3 or strpos($agenda->subject ?? '', '公聽會') === false) {
+            continue;
+        }
+        if (isset($covered_agendas[$agenda->agenda_id]) or !$agenda->agenda_lcidc_ids) {
+            continue;
+        }
+        $meet_obj = LYLib::findHearingMeet("第{$agenda->term}屆" . $agenda->subject, $agenda->meetingDate ?? []);
+        if (!$meet_obj) {
+            error_log("找不到公聽會 {$agenda->agenda_id} {$agenda->subject}");
+            continue;
+        }
+        $speech = new StdClass;
+        $speech->meet_name = $agenda->subject;
+        $speech->content = $agenda->subject;
+        $speech->speakers = [];
+        $speech->meet_id = $meet_obj->id;
+        $speech->gazette_id = $agenda->gazette_id;
+        $speech->page_start = intval($agenda->pageStart);
+        $speech->page_end = intval($agenda->pageEnd);
+        $speech->agenda_id = $agenda->agenda_id;
+        $speech->agenda_lcidc_ids = $agenda->agenda_lcidc_ids;
+        $speech->meetingDate = $agenda->meetingDate;
+        $speech->source = '公報目錄';
+        $data_key = "公報發言紀錄:{$agenda->gazette_id}:agenda:{$agenda->agendaNo}";
+
+        $meet_data_file = __DIR__ . sprintf("/../meet/meet-sub-data/%s.json", $meet_obj->id);
+        $meet_data = file_exists($meet_data_file) ? json_decode(file_get_contents($meet_data_file)) : new StdClass;
+        if (!property_exists($meet_data, $data_key) or json_encode($speech) != json_encode($meet_data->{$data_key})) {
+            error_log("公報目錄 {$agenda->agenda_id} {$meet_obj->id} {$data_key}");
+            $meet_data->{$data_key} = $speech;
+            file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
     }
 }

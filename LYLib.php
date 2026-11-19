@@ -505,6 +505,120 @@ class LYLib
         throw new Exception("{$oname} 有問題");
     }
 
+    /**
+     * 公聽會的公報紀錄標題對回 meet（公聽會的 meet_id 是「公聽會-會議編號」，名稱裡沒有編號，
+     * 要靠屆、委員會、日期（公報目錄的 meetingDate）和「」內的事由相似度去對）。
+     * 例：立法院第11屆第6會期內政委員會「都市危險及老舊建築物加速重建條例」及「都市更新條例」修法公聽會紀錄
+     * 對不到回 null。
+     */
+    public static function findHearingMeet($name, $dates = [])
+    {
+        $name = preg_replace('#\s+#u', '', $name);
+        if (!preg_match('#第(\d+)屆#u', $name, $m)) {
+            return null;
+        }
+        $term = intval($m[1]);
+        $committee_ids = [];
+        // 去掉「第11屆第6會期第1次臨時會」之後、「」之前的就是委員會名
+        $head = preg_replace('#^(立法院)?(第\d+屆)?(第\d+會期)?(第\d+次臨時會)?#u', '', $name);
+        if (preg_match('#^([^「]*?)[兩二三]?委員會#u', $head, $m) and $m[1] !== '') {
+            // 「司法及法制」是一個委員會、「外交及國防、司法及法制」是兩個：先整段試，不行再用「、」切
+            $names = [$m[1]];
+            if (strpos($m[1], '、') !== false or strpos($m[1], '，') !== false) {
+                $names = preg_split('#[、，]#u', $m[1]);
+            }
+            foreach ($names as $cname) {
+                try {
+                    $committee_ids[] = self::getCommitteeId($cname);
+                } catch (Exception $e) {
+                }
+            }
+        }
+        preg_match_all('#「([^」]+)」#u', $name, $m);
+        $subject = implode('', $m[1]);
+        if ($subject === '') {
+            $subject = preg_replace('#^.*委員會(舉行|召開)?|公聽會紀錄?$#u', '', $name);
+        }
+        $normalize = function($t) {
+            $t = str_replace(['（', '）', '─', '—', '–'], ['(', ')', '-', '-', '-'], (string)$t);
+            $t = preg_replace('#\s+|^立法院|(會議)?紀錄$#u', '', $t);
+            return $t;
+        };
+        $norm_name = $normalize($name);
+
+        $dates = array_values(array_filter((array)$dates));
+        $best = null;
+        $best_score = 0;
+        // 第一輪只看同一天；跨兩天的公聽會 meet 只記第一天，所以第二輪放寬到前後 7 天但事由要更像
+        foreach ([0, 7] as $slack) {
+            if ($slack and !$dates) break;
+            $filter = [
+                ['term' => ['term' => $term]],
+                ['term' => ['meet_type.keyword' => '公聽會']],
+            ];
+            if ($dates and !$slack) {
+                $filter[] = ['terms' => ['dates' => $dates]];
+            } elseif ($dates) {
+                $filter[] = ['range' => ['dates' => ['gte' => date('Y-m-d', strtotime(min($dates) . " -{$slack} days")), 'lte' => date('Y-m-d', strtotime(max($dates) . " +{$slack} days"))]]];
+            }
+            $ret = Elastic::dbQuery('/{prefix}meet/_search', 'POST', json_encode([
+                'size' => 1000,
+                'query' => ['bool' => ['filter' => $filter]],
+                '_source' => ['meet_id', 'committees', 'dates', 'title', 'meet_data.meetingName', 'meet_data.meetingContent'],
+            ]));
+            foreach ($ret->hits->hits as $hit) {
+                $meet = $hit->_source;
+                $meet_committees = (array)($meet->committees ?? []);
+                // 委員會對得到就要有交集（聯合公聽會 meet 可能只記其中一個委員會）
+                if ($committee_ids and $meet_committees and !array_intersect($committee_ids, $meet_committees)) {
+                    continue;
+                }
+                $texts = [$meet->title ?? ''];
+                foreach ($meet->meet_data ?? [] as $md) {
+                    $texts[] = $md->meetingName ?? '';
+                    $texts[] = $md->meetingContent ?? '';
+                }
+                $score = 0;
+                foreach ($texts as $t) {
+                    if ($t === '') continue;
+                    // 「立法院第11屆修憲委員會公聽會（第6場）」「第11屆第2會期第2次全院委員會公聽會」這種沒有「」事由的，
+                    // 整個名稱相同（meet 的標題去掉「」事由後）就算
+                    if ($normalize($t) === $norm_name or $normalize(preg_replace('#「[^」]*」#u', '', $t)) === $norm_name) {
+                        $score = 1;
+                        break;
+                    }
+                    $t = preg_replace('#\s+#u', '', $t);
+                    $a = preg_split('//u', $subject, -1, PREG_SPLIT_NO_EMPTY);
+                    $b = preg_split('//u', $t, -1, PREG_SPLIT_NO_EMPTY);
+                    $common = count(array_intersect($a, $b));
+                    $score = max($score, $common / max(count($a), 1));
+                }
+                if ($score > $best_score) {
+                    $best_score = $score;
+                    $best = $meet;
+                }
+            }
+            $threshold = $slack ? 0.9 : ($dates ? 0.5 : 0.8);
+            if ($best and $best_score >= $threshold) {
+                break;
+            }
+            $best = null;
+            $best_score = 0;
+        }
+        if ($best) {
+            $obj = new StdClass;
+            $obj->id = $best->meet_id;
+            $obj->type = '公聽會';
+            $obj->term = $term;
+            $obj->title = $best->title;
+            $obj->committees = (array)($best->committees ?? []);
+            $obj->tmpMeeting = null;
+            $obj->score = round($best_score, 2);
+            return $obj;
+        }
+        return null;
+    }
+
     public static function buildLegislator($source)
     {
         $source->picUrl = str_replace('http://', 'https://', $source->picUrl);

@@ -1426,6 +1426,16 @@ class GazetteParser
                 $ret->content = '';
                 $ret->speakers = null;
                 continue;
+            } elseif (preg_match('#^立法院.*紀錄$#u', trim($line))) {
+                // 公聽會的會議名沒有「會議」兩字、一行寫完：立法院第11屆第1會期教育及文化委員會「青年基本法草案」公聽會紀錄
+                if ($ret->content) {
+                    $ret->line = $line;
+                    yield clone $ret;
+                }
+                $ret->meet_name = trim($line);
+                $ret->content = '';
+                $ret->speakers = null;
+                continue;
             } elseif (preg_match('#^立法院(.*)#', $line) and preg_match('#紀錄#', $lines[0])) {
                 if ($ret->content) {
                     $ret->line = $line;
