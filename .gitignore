@@ -58,3 +58,4 @@ imports/law/law-data
 error.data
 imports/ivod/ivod-asr-jobs
 imports/ivod/wav-cache
+imports/gazette/.import-speech.lock
