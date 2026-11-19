@@ -12,11 +12,13 @@
  */
 class GazetteSpeechParser
 {
-    const VERSION = 2; // 2: 原住民族姓名（羅馬拼音、「．」）的委員／官員正規化、委員名對回 legislator 寫法
+    const VERSION = 4; // 2: 原住民族姓名（羅馬拼音、「．」）的委員／官員正規化、委員名對回 legislator 寫法
 
     // 官員／其他身分的職稱，放在姓和名之間（例：林部長佳龍、曾主任委員智勇）
-    const TITLE_PATTERN = '副?(?:主任委員|主任秘書|主任檢察官|委員長|監察委員|大法官|部長|次長|署長|局長|司長|處長|院長|秘書長|祕書長|總裁|董事長|總經理|主計長|執行長|廳長|校長|館長|所長|組長|科長|主任|代表|理事長|市長|縣長|檢察長|檢察官|法官|參謀總長|總長|司令|廠長|課長|專門委員|參事|顧問|研究員|召集人|幹事長|書記長|總召|總幹事|發言人|會長|教授|律師|醫師|秘書|祕書|先生|女士|小姐)';
-    const NON_OFFICIAL_TITLES = ['教授', '律師', '醫師', '先生', '女士', '小姐', '會長', '理事長', '代表', '召集人', '研究員'];
+    // 職稱前可加修飾（榮譽理事長、兼任副教授、常務理事、創會理事長、代理主任委員）
+    const TITLE_MODIFIER = '(?:榮譽|名譽|創會|兼任|常務|代理|首席|資深|客座|特聘|助理|講座)?';
+    const TITLE_PATTERN = self::TITLE_MODIFIER . '副?(?:主任委員|主任秘書|主任檢察官|委員長|監察委員|大法官|部長|次長|署長|局長|司長|處長|院長|秘書長|祕書長|總裁|董事長|總經理|主計長|人事長|審計長|參謀長|總談判代表|談判代表|高級管理師|管理師|執行長|執行秘書|廳長|校長|館長|所長|組長|科長|主任|代表|理事長|理事主席|理事|監事|董事|市長|縣長|檢察長|檢察官|法官|參謀總長|總長|司令|廠長|課長|專門委員|參事|顧問|研究員|召集人|幹事長|書記長|總召|總幹事|總監|發言人|會長|教授|講師|律師|醫師|建築師|會計師|技師|社工師|護理師|藥師|心理師|牧師|博士|秘書|祕書|經理|創辦人|負責人|記者|先生|女士|小姐)';
+    const NON_OFFICIAL_TITLES = ['教授', '講師', '律師', '醫師', '建築師', '會計師', '技師', '社工師', '護理師', '藥師', '心理師', '牧師', '博士', '先生', '女士', '小姐', '會長', '理事長', '理事主席', '理事', '監事', '董事', '代表', '召集人', '研究員', '經理', '創辦人', '負責人', '記者'];
 
     /**
      * 發言者原文 → [name, role, title]
@@ -40,12 +42,23 @@ class GazetteSpeechParser
         if (preg_match('#^(.{1,2})委員(.+)$#u', $raw, $m)) {
             return [self::legislatorName($m[1] . $m[2], $term), '委員', '委員'];
         }
+        // 公聽會附的「兼任副教授李得全書面資料」「內政部書面資料」「秘書長彭揚凱書面資料」
+        if (preg_match('#^(.+?)書面(資料|意見|報告)$#u', $raw, $m)) {
+            [$name, $role] = self::normalizeSpeaker($m[1], $chair_name, $term);
+            return [$name, $role, '書面' . $m[2]];
+        }
+        // 職稱在前、全名在後：「秘書長彭揚凱」「兼任副教授李得全」
+        if (preg_match('#^(' . self::TITLE_PATTERN . ')([^\s]{2,4})$#u', $raw, $m) and !preg_match('#[A-Za-z．‧·]#u', $m[2])) {
+            return [$m[2], self::titleRole($m[1]), $m[1]];
+        }
+        // 人事同意權案的「徐錫祥被提名人」：名字在前
+        if (preg_match('#^(.{2,4})被提名人$#u', $raw, $m)) {
+            return [$m[1], '其他', '被提名人'];
+        }
         // 原住民族官員公報寫「夷將‧拔路兒主任委員」「羅赫踛Helu Chiu處長」：整個名字在前、職稱在後
         if (preg_match('#^(.{2,20}?)(' . self::TITLE_PATTERN . ')$#u', $raw, $m) and preg_match('#[A-Za-z．‧·]#u', $m[1])) {
             $title = $m[2];
-            $base = preg_replace('#^副#u', '', $title);
-            $role = in_array($base, self::NON_OFFICIAL_TITLES) ? '其他' : '官員';
-            return [$m[1], $role, $title];
+            return [$m[1], self::titleRole($title), $title];
         }
         // 原住民族委員公報寫「鄭天財Sra Kacaw委員」「Kolas Yotaka委員」「伍麗華Saidhai．Tahovecahe委員」：整個名字在前、委員在後
         if (preg_match('#^(.+?)委員$#u', $raw, $m) and preg_match('#[A-Za-z．‧·]#u', $m[1])) {
@@ -53,11 +66,16 @@ class GazetteSpeechParser
         }
         if (preg_match('#^(.{1,3}?)(' . self::TITLE_PATTERN . ')(.{1,8})$#u', $raw, $m)) {
             $title = $m[2];
-            $base = preg_replace('#^副#u', '', $title);
-            $role = in_array($base, self::NON_OFFICIAL_TITLES) ? '其他' : '官員';
-            return [$m[1] . $m[3], $role, $title];
+            return [$m[1] . $m[3], self::titleRole($title), $title];
         }
         return [$raw, '其他', null];
+    }
+
+    // 職稱 → 身分：政府機關的職稱算官員，學者、專業人士、民間團體算其他
+    public static function titleRole($title)
+    {
+        $base = preg_replace('#^' . self::TITLE_MODIFIER . '副?#u', '', $title);
+        return in_array($base, self::NON_OFFICIAL_TITLES) ? '其他' : '官員';
     }
 
     // 姓名比對用的 key：去空白、音節點、括號，英文轉小寫（IVOD 寫「鄭天財Sra．Kacaw」「鄭天財(Sra．Kacaw)」，公報寫「鄭天財Sra Kacaw」）
