@@ -13,14 +13,21 @@
  *   php crawl-dangtuan.php              # 第11屆所有未處理的
  *   php crawl-dangtuan.php --dry-run    # 只列出，不下載
  *   php crawl-dangtuan.php --force      # 強制重新下載 / tika
- *   term=11 php crawl-dangtuan.php      # 指定屆期（預設 11）
+ *   term=11 php crawl-dangtuan.php      # 指定屆期（預設最新一屆）
  */
 
 include(__DIR__ . '/../../init.inc.php');
 
 $dry_run  = in_array('--dry-run', $argv);
 $force    = in_array('--force',   $argv);
-$term     = (int)(getenv('term') ?: 11);
+$term     = (int)getenv('term');
+if (!$term) {
+    // 預設最新一屆（看 meet-data 裡黨團協商的最大屆次）
+    foreach (glob(__DIR__ . '/../meet/meet-data/黨團協商-*.json') as $f) {
+        $t = (int)(json_decode(file_get_contents($f))->term ?? 0);
+        if ($t > $term) $term = $t;
+    }
+}
 
 $ppg_dir  = __DIR__ . '/../meet/ppg_meet_page_json';
 $meet_dir = __DIR__ . '/../meet/meet-data';

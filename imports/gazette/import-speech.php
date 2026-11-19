@@ -82,6 +82,38 @@ while (count($ret->hits->hits)) {
     }
     $ret = Elastic::dbQuery('/_search/scroll', 'POST', json_encode(['scroll' => '5m', 'scroll_id' => $ret->_scroll_id]));
 }
+
+// ---- 黨團協商：公報目錄大多不列黨團協商紀錄，改用 ppg 會議頁附件的紀錄 PDF（crawl-dangtuan.php 抓到 dangtuan-tikahtml/）----
+// PDF 轉的 HTML 一行一段，匯入前先用 GazetteSpeechParser::reflowPdfHtml() 重排；文件編號用 dangtuan-{PDF 檔名}
+if (!getenv('meet_type') or getenv('meet_type') === '黨團協商') {
+    $dangtuan = [];
+    foreach (glob(__DIR__ . '/dangtuan-data/*.json') as $f) {
+        $d = json_decode(file_get_contents($f));
+        if (!$d or empty($d->pdfs)) continue;
+        $meet_id = '黨團協商-' . $d->meeting_no;
+        if ($only_meet and $meet_id !== $only_meet) continue;
+        if ($only_term and intval($d->term ?? 0) !== $only_term) continue;
+        $dangtuan[$meet_id] = $d;
+    }
+    foreach (array_chunk(array_keys($dangtuan), 200) as $ids) {
+        $ret = Elastic::dbQuery('/{prefix}meet/_search', 'POST', json_encode([
+            'size' => count($ids), 'query' => ['terms' => ['meet_id.keyword' => $ids]],
+            '_source' => ['meet_id', 'meet_type', 'term', 'sessionPeriod', 'committees', 'dates'],
+        ]));
+        foreach ($ret->hits->hits as $hit) {
+            $meet = $hit->_source;
+            $d = $dangtuan[$meet->meet_id];
+            foreach ($d->pdfs as $pdf) {
+                $html_path = __DIR__ . '/dangtuan-tikahtml/' . $pdf->pdf_file . '.html';
+                if (!file_exists($html_path)) continue;
+                $lcidc_id = 'dangtuan-' . preg_replace('#\.pdf$#i', '', $pdf->pdf_file);
+                $record = (object)['meetingDate' => [$d->date], 'pdf_url' => $pdf->pdf_url, 'page_start' => null, 'page_end' => null];
+                if (preg_match('#LCIDC01_(\d+)_#', $pdf->pdf_file, $m)) $record->gazette_id = $m[1];
+                $targets[$lcidc_id] = ['meets' => [$meet->meet_id => $meet], 'record' => $record, 'html_path' => $html_path, 'reflow' => true];
+            }
+        }
+    }
+}
 error_log(sprintf("%d 份公報子文件待檢查", count($targets)));
 
 // ---- 每場會議的 Clip／Full（時間錨點用）----
@@ -109,9 +141,9 @@ $done = 0; $skipped = 0; $docs_total = 0; $errors = 0; $now = date('c');
 $kinds_total = []; $time_total = [];
 foreach ($targets as $lcidc_id => $target) {
     if ($done >= $limit) break;
-    $path = sprintf('%s/LCIDC01_%s.doc.html', $html_dir, $lcidc_id);
+    $path = $target['html_path'] ?? sprintf('%s/LCIDC01_%s.doc.html', $html_dir, $lcidc_id);
     $html = file_exists($path) ? file_get_contents($path) : false;
-    if ($html === false or strlen($html) < 100) {
+    if (($html === false or strlen($html) < 100) and empty($target['html_path'])) {
         $html = @file_get_contents(sprintf('https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id));
     }
     if ($html === false or strlen($html) < 100) {
@@ -141,7 +173,7 @@ foreach ($targets as $lcidc_id => $target) {
     }
     $meta = [
         'lcidc_id' => $lcidc_id,
-        'gazette_id' => $record->gazette_id ?? explode('_', $lcidc_id)[0],
+        'gazette_id' => $record->gazette_id ?? (str_starts_with($lcidc_id, 'dangtuan-') ? null : explode('_', $lcidc_id)[0]),
         'agenda_id' => $record->agenda_id ?? null,
         'meet_id' => count($meet_ids) == 1 ? $meet_ids[0] : $meet_ids,
         'meet_type' => $meet->meet_type ?? null,
@@ -150,12 +182,19 @@ foreach ($targets as $lcidc_id => $target) {
         'committees' => array_map('intval', (array)($meet->committees ?? [])),
         'page_start' => $record->page_start ?? null,
         'page_end' => $record->page_end ?? null,
-        'source_url' => sprintf('https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id),
+        'source_url' => $record->pdf_url ?? sprintf('https://lydata.ronny-s3.click/agenda-tikahtml/LCIDC01_%s.doc.html', $lcidc_id),
         'clips' => $clips,
         'fulls' => $fulls,
     ];
+    if (!empty($target['reflow'])) {
+        $meta['date'] = $record->meetingDate[0] ?? null;
+    }
     try {
-        [$docs, $info] = GazetteSpeechParser::build($html, $meta);
+        [$docs, $info] = GazetteSpeechParser::build(!empty($target['reflow']) ? GazetteSpeechParser::reflowPdfHtml($html) : $html, $meta);
+        if (!empty($target['reflow']) and empty($info['kinds']['發言'])) {
+            // 附件裡也有議案列表之類不是紀錄的 PDF，沒有任何發言就不當文件
+            throw new Exception('沒有發言，不是會議紀錄');
+        }
     } catch (Throwable $e) {
         error_log("{$lcidc_id}: 解析失敗 " . $e->getMessage());
         $errors ++;

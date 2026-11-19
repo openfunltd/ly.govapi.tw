@@ -121,6 +121,60 @@ class GazetteSpeechParser
     }
 
     /**
+     * PDF 經 tika 轉出的 HTML（黨團協商紀錄：ppg 會議頁的附件或公報分冊 PDF）重排成 .doc 轉出的樣子，
+     * 讓 GazetteTranscriptParser::parse 吃得下。PDF 版是 <div class="page"> 包著一行一個 <p>，
+     * 有「協 1」「黨團協商紀錄」這類頁首頁尾，數字前後還會多空白（113年 2 月 5日）。
+     * 作法：去頁首頁尾、去中文與數字之間的空白、把實體行接回段落
+     * （「某某：」開頭的行另起一段；上一行比整頁常見寬度短表示段落結束）。
+     */
+    public static function reflowPdfHtml($html)
+    {
+        $doc = new DOMDocument;
+        @$doc->loadHTML('<?xml encoding="UTF-8">' . $html);
+        $lines = [];
+        foreach ($doc->getElementsByTagName('p') as $p) {
+            $line = trim(preg_replace('#[\x{0}\x{a0}\x{3000}]+#u', ' ', $p->textContent));
+            // 羅馬拼音字之間的空白保留，其餘（中文、數字、標點之間）去掉
+            $line = trim(preg_replace('#(?<![A-Za-z])[ \t]+|[ \t]+(?![A-Za-z])#u', '', $line));
+            if ($line === '') continue;
+            // 頁首頁尾：「協1」「黨團協商紀錄」「立法院公報 第115卷 第78期 黨團協商紀錄」、純頁碼
+            if (preg_match('#^(協|委|院)?\d{1,4}$#u', $line)) continue;
+            if (preg_match('#^(立法院公報.*)?黨團協商紀錄$#u', $line)) continue;
+            $lines[] = $line;
+        }
+        if (!$lines) return '<html><body></body></html>';
+        // 常見行寬：取各行長度的眾數附近（最長的幾行），短於它 2 個字以上的行視為段落結尾
+        $lens = array_map('mb_strlen', $lines);
+        rsort($lens);
+        $width = $lens[min(intdiv(count($lens), 10), count($lens) - 1)];
+        $paras = [];
+        $cur = '';
+        $prev_short = true;
+        foreach ($lines as $line) {
+            $starts_new = $prev_short
+                or preg_match('#^(主席|[^：，、。；]{2,20})：#u', $line)
+                or preg_match('#^(時間|地點|主席|出席|列席|協商主題|決議|決定|協商結論|散會)#u', $line);
+            if ($starts_new and $cur !== '') {
+                $paras[] = $cur;
+                $cur = '';
+            }
+            $cur .= $line;
+            $prev_short = mb_strlen($line) < $width - 2;
+        }
+        if ($cur !== '') $paras[] = $cur;
+        // 第一個「主席：」之前是標頭（時間、地點、主席、協商主題），「協商主題：…」的冒號不能被當成發言人
+        foreach ($paras as $i => $para) {
+            if (preg_match('#^主席：#u', $para)) break;
+            $paras[$i] = str_replace('：', '︰', $para);
+        }
+        $out = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>';
+        foreach ($paras as $para) {
+            $out .= '<p>' . htmlspecialchars($para, ENT_QUOTES, 'UTF-8') . "</p>\n";
+        }
+        return $out . '</body></html>';
+    }
+
+    /**
      * @param string $html   tikahtml 內容
      * @param array  $meta   [
      *   'meet_id' => '委員會-11-5-20-18', 'meet_type' => '委員會', 'term' => 11, 'sessionPeriod' => 5,
