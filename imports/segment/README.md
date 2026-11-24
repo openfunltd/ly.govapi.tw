@@ -15,6 +15,8 @@
 | `data/recovered-docs.json`、`data/recovered-lcidc.json` | `findings/` | 人工反查的「meet 沒有公報發言紀錄」文件對應（之後改由 link-meet 產生） |
 | `segment_meet.py` | 本 repo | 驅動程式：跑切分器、把段對回 speech 的發言編號、寫 `meet_section` index |
 | `lyapi_es.py` | 本 repo | ES 存取（設定從 config.php 讀） |
+| `parsed.php` | 本 repo | 本機版 `/gazette_agenda_doc/{id}/parsed`（對本機 tikahtml 跑 GazetteTranscriptParser） |
+| `run-segment.py`、`run-segment.php` | 本 repo | cron 用的增量掃描（見下） |
 
 James 的檔案只改了路徑（`.cache` 改在本目錄、`findings/...` 的模組與資料改成本目錄），規則一行沒動；
 搬入時的版本是 research-ly-meet `93b0034`（2026-11-23）。之後切分規則的修改請直接在這裡改，不要再從 research-ly-meet 複製。
@@ -31,8 +33,10 @@ ES speech（import-speech.php，block_line）←─ parsed.block_lines[block 序
                                       ES meet_section（一段一筆）＋ meet-section/{meet_id}.json
 ```
 
-切分器目前仍透過 v2 API 取 meet 與 parsed（token 從 config.php 的 `OPENFUN_DATA_TOKEN` 拿，快取在 `.cache/`）；
-parsed 和 speech 都是 `GazetteTranscriptParser` 同一次切出來的 block，用 tikahtml 行號 `block_line` 直接對。
+切分器透過 v2 API 取 meet、meets 清單、公報目錄等（token 從 config.php 的 `OPENFUN_DATA_TOKEN` 拿，快取在 `.cache/`）；
+最重的 parsed 不打 API：`segment_meet.py` 把各模組的 `fetch()` 包起來，遇到 `/gazette_agenda_doc/{id}/parsed` 就用
+`parsed.php` 對本機 `imports/gazette/agenda-tikahtml/` 跑同一個 `GazetteTranscriptParser`（實測輸出與 API 完全相同，0.05 秒），
+寫進切分器原本的快取檔。parsed 和 speech 都是同一次切出來的 block，用 tikahtml 行號 `block_line` 直接對。
 「段落：…」合成標記沒有 speech block，對不到就略過。
 
 ## 用法

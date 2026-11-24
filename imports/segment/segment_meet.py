@@ -30,8 +30,53 @@ if not os.environ.get("OPENFUN_TOKEN"):
     os.environ["OPENFUN_TOKEN"] = lyapi_es.config()["token"]
 
 import stages                 # noqa: E402  （要在 OPENFUN_TOKEN 設好之後 import，它 import 時讀環境變數）
+import hearing, plenary, budget   # noqa: E402
 
 VERSION = 1                  # 本檔的輸出格式／對應規則版本
+
+
+# ───────────────────────── parsed 走本機，不打正式 API ─────────────────────────
+# 切分器各自的 fetch() 都會抓 /gazette_agenda_doc/{lcidc}/parsed（最重的一種請求：伺服器要從 S3 抓 tikahtml 再切）。
+# 匯入端自己就有 tikahtml（imports/gazette/agenda-tikahtml/），用 parsed.php 跑同一個 GazetteTranscriptParser，
+# 寫進切分器原本的快取檔（檔名規則相同），其他網址照舊打 API。
+
+_PARSED_URL = re.compile(r'/gazette_agenda_doc/(\d+_\d+)/parsed$')
+
+
+def local_parsed(lcidc):
+    key = stages.parsed_path(lcidc)
+    if os.path.exists(key):
+        try:
+            return json.load(open(key, encoding="utf-8"))
+        except ValueError:
+            pass
+    import subprocess
+    r = subprocess.run(["php", os.path.join(HERE, "parsed.php"), lcidc], capture_output=True, text=True)
+    if r.returncode != 0 or not r.stdout.startswith("{"):
+        return None
+    os.makedirs(stages.CACHE, exist_ok=True)
+    with open(key, "w", encoding="utf-8") as f:
+        f.write(r.stdout)
+    return json.loads(r.stdout)
+
+
+def _wrap_fetch(mod):
+    orig = getattr(mod, "fetch", None)
+    if orig is None or getattr(orig, "_local_parsed", False):
+        return
+    def fetch(url, tries=6):
+        m = _PARSED_URL.search(url)
+        if m:
+            d = local_parsed(m.group(1))
+            if d is not None:
+                return d
+        return orig(url, tries)
+    fetch._local_parsed = True
+    mod.fetch = fetch
+
+
+for _mod in (stages, hearing, plenary, budget):
+    _wrap_fetch(_mod)
 SEGMENTER_SOURCE = "research-ly-meet 93b0034 (2026-11-23)"   # James 切分器搬進來時的版本
 OUT_DIR = os.path.join(HERE, "meet-section")
 INDEX = "meet_section"
@@ -331,6 +376,7 @@ def run_meet(meet_id, mode=None):
 
 def run_caucus(lcidc):
     import segment_caucus as SC
+    _wrap_fetch(SC.NG)
     r = SC.segment(lcidc)
     if r.get("error"):
         return None, f"{lcidc}: {r['error']}"
