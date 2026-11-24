@@ -22,7 +22,7 @@ import segment_meet as SM
 
 SPEECH_STATE = os.path.join(HERE, "..", "gazette", "speech-state")
 STATE_DIR = os.path.join(HERE, "segment-state")
-SUPPORTED = ("院會", "委員會", "聯席會議", "公聽會")
+SUPPORTED = ("院會", "委員會", "聯席會議", "公聽會", "臨時會院會", "臨時會委員會", "臨時會聯席會議")  # 臨時會的 會議種類 和常會相同，切分器直接適用；全院委員會還沒接
 
 
 def speech_docs_by_meet():
