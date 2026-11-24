@@ -60,5 +60,5 @@ python3 segment_meet.py --caucus 1086006_00005                               # �
 - 委員會非預算日（審法案、業務報告）：James 沒有切分，照交接文件只顯示一層單元。
 - 全院委員會人事審查：切分器已搬入，驅動程式還沒接。
 - 黨團協商：切分器吃公報目錄類別 8 的 LCIDC 文件，本 repo 的黨團協商發言索引是 ppg 附件 PDF（`dangtuan-*`），兩邊要對起來。
-- 排進 cron、v2 的 `/meet/{id}/sections`、speech block 回寫 單元／段／unit_kind。
+- speech block 回寫 單元／段／unit_kind（目前只有 meet_section 這一側有；v2 的 `/meet_sections`、`/meet/{id}/meet_sections` 已上線，lymeet 的段落目錄讀這個）。
 - 回歸測試（James 的 `findings/annotations/`、各類驗收數字）。
