@@ -462,6 +462,16 @@ ly.govapi.tw/
 
 ---
 
+
+### 3. 會議紀錄切分：單元 → 段（`imports/segment/`，2026-11-24 起）
+
+- James 的五類切分器（research-ly-meet `scripts/segment_*.py`，James 同意開源）搬進 `imports/segment/`，只改路徑不改規則；
+  之後規則直接在本 repo 改。說明與欄位見 `imports/segment/README.md`。
+- `segment_meet.py` 跑切分器後把每段對回 speech 的發言編號：parsed 與 speech 是同一次 `GazetteTranscriptParser` 切的 block，
+  用 tikahtml 行號 `block_line` 對。輸出 ES index `meet_section`（一段一筆：session／section／`unit_kind`／tags／vote／`seq_start`～`seq_end`）。
+- 第一批實測：院會-11-5-18（48 段）、委員會-11-5-20-18（65 段，全部對到發言）、公聽會-2026102285（30 段）。
+- 待做：排進 cron、v2 `/meet/{id}/sections`、人事審查接驅動程式、黨團協商對 `dangtuan-*` 文件、`unit_kind` 規則請 James 核、回歸測試。
+
 ## 維護重點
 
 - **v1 API 已不再更新**：`Dispatcher.php`、`swagger.yaml` 可忽略

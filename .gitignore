@@ -59,3 +59,7 @@ error.data
 imports/ivod/ivod-asr-jobs
 imports/ivod/wav-cache
 imports/gazette/.import-speech.lock
+imports/segment/.cache
+imports/segment/__pycache__
+imports/segment/meet-section
+imports/segment/data/expected
