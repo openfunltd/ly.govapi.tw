@@ -63,3 +63,5 @@ imports/segment/.cache
 imports/segment/__pycache__
 imports/segment/meet-section
 imports/segment/data/expected
+imports/segment/segment-state
+imports/segment/.run-segment.lock

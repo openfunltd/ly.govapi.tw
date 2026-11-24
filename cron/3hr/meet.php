@@ -23,6 +23,7 @@ foreach ([
     'meet/link-meet.php',
     'gazette/crawl-dangtuan.php',  // 黨團協商紀錄 PDF（ppg 會議頁附件）→ dangtuan-tikahtml/，供 import-speech 用
     'gazette/import-speech.php',  // 公報發言索引（speech index），要在 link-meet 之後，靠 meet 的公報發言紀錄找文件
+    'segment/run-segment.php',    // 單元 → 段的切分（meet_section index），要在 import-speech 之後，靠 speech-state 判斷哪些會議要重切
 ] as $script) {
     $cmd = sprintf("php %s",
         escapeshellarg(__DIR__ . '/../../imports/' . $script)
