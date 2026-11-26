@@ -231,8 +231,8 @@ foreach ($meet_map as $meet_id => $meet_data) {
         if (!$changes) {
             continue;
         }
-        // categories / third_reading_bills 是從其他欄位推導的，單獨變動（例如規則調整、三讀回填）不值得通知
-        if (!array_diff($changes, ['categories', 'third_reading_bills'])) {
+        // categories / third_reading_bills / agencies 是從其他欄位推導的，單獨變動（例如規則調整、三讀回填）不值得通知
+        if (!array_diff($changes, ['categories', 'third_reading_bills', 'agencies'])) {
             file_put_contents($meet_data_file, json_encode($meet_data, JSON_UNESCAPED_UNICODE));
             Elastic::dbBulkInsert('meet', $meet_id, $meet_data);
             continue;
